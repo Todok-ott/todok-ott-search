@@ -15,6 +15,9 @@ export interface Movie {
   vote_count: number;
   media_type?: 'movie' | 'tv';
   genre_ids: number[];
+  ott_providers?: {
+    flatrate?: Array<{ provider_id: number; provider_name: string; logo_path: string }>;
+  };
 }
 
 export interface SearchResult {
