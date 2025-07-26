@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { ArrowLeft, Eye, Mail, Calendar, User, MessageSquare } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Footer from '@/components/Footer';
 
 interface Inquiry {
@@ -17,6 +17,18 @@ interface Inquiry {
 }
 
 export default function AdminInquiriesPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#121212] flex items-center justify-center">
+        <div className="text-white text-xl">로딩 중...</div>
+      </div>
+    }>
+      <AdminInquiriesContent />
+    </Suspense>
+  );
+}
+
+function AdminInquiriesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const adminKey = searchParams.get('adminKey');
