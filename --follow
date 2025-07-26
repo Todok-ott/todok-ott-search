@@ -1,0 +1,5 @@
+[33m8718a82[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Fix movie/TV detection: Add TV redirect and improve search query cleaning
+[33m151fa97[m Fix movie detail page: Use title parameter for accurate search
+[33mbab0eb6[m Fix movie search: Remove direct ID lookup, use search-based approach only
+[33ma3cfd74[m Enhance search matching: Add detailed logging and improved similarity matching
+[33m705ebb9[m Fix ESLint error: Change bestMatch to const
