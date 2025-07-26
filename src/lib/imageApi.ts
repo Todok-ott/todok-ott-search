@@ -61,7 +61,7 @@ export class UnsplashClient {
       'thriller movie poster'
     ];
     
-    const randomKeyword = posterKeywords[Math.floor(Math.random() * posterKeywords.length)];
+    // const randomKeyword = posterKeywords[Math.floor(Math.random() * posterKeywords.length)];
     
     return [
       {
@@ -108,7 +108,7 @@ export class PicsumClient {
     return images;
   }
 
-  async searchImages(query: string): Promise<ImageResult[]> {
+  async searchImages(): Promise<ImageResult[]> {
     // Picsum은 검색 기능이 없으므로 랜덤 이미지 반환
     return this.getRandomImages(5);
   }

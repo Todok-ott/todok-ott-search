@@ -1,4 +1,4 @@
-import { Movie } from './tmdb';
+
 
 // 국내 OTT 정보 제공자
 export interface KoreanOTTProvider {

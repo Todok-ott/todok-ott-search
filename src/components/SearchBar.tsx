@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, X, Star, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 import { Movie } from '@/lib/tmdb';
 
 interface SearchBarProps {
@@ -138,9 +139,11 @@ export default function SearchBar({ onSearch, onResultSelect, placeholder = "작
                     onClick={() => handleResultClick(movie)}
                   >
                     <div className="w-16 h-24 rounded-lg overflow-hidden mr-4 flex-shrink-0 shadow-lg">
-                      <img
+                      <Image
                         src={movie.poster_path ? `https://image.tmdb.org/t/p/w154${movie.poster_path}` : '/placeholder-poster.jpg'}
                         alt={movie.title || movie.name || ''}
+                        width={64}
+                        height={96}
                         className="w-full h-full object-cover"
                       />
                     </div>
@@ -164,19 +167,18 @@ export default function SearchBar({ onSearch, onResultSelect, placeholder = "작
                         </p>
                       )}
                       {/* OTT 플랫폼 로고들 */}
-                      {movie.ott_providers?.flatrate && movie.ott_providers.flatrate.length > 0 && (
+                                                {movie.ott_providers?.flatrate && movie.ott_providers.flatrate.length > 0 && (
                         <div className="flex items-center space-x-2">
                           <span className="text-xs text-gray-500 mr-2">시청 가능:</span>
                           {movie.ott_providers.flatrate.slice(0, 4).map((provider: { provider_id: number; provider_name: string; logo_path: string }) => (
-                            <img
+                            <Image
                               key={provider.provider_id}
                               src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
                               alt={provider.provider_name}
+                              width={24}
+                              height={24}
                               className="w-6 h-6 rounded opacity-60 hover:opacity-100 transition-opacity duration-200"
                               title={provider.provider_name}
-                              onError={(e) => {
-                                e.currentTarget.style.display = 'none';
-                              }}
                             />
                           ))}
                         </div>

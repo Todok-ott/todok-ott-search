@@ -1,8 +1,9 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Star, Play, Heart, Info, AlertCircle } from 'lucide-react';
+import { Star, Info, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
+import Image from 'next/image';
 import { OTTProvider } from '@/lib/ottUtils';
 
 interface OTTInfoProps {
@@ -45,12 +46,14 @@ export default function OTTInfo({ ottProviders, title = "시청 가능 플랫폼
             className="bg-black/20 border border-gray-600/20 rounded-lg p-4 hover:border-gray-500/30 transition-colors"
           >
             <div className="flex items-center space-x-3 mb-3">
-              <img
+              <Image
                 src={ott.logo}
                 alt={ott.name}
+                width={40}
+                height={40}
                 className="w-10 h-10 rounded object-cover"
-                onError={(e) => {
-                  e.currentTarget.src = '/ott-logos/default.png';
+                onError={() => {
+                  // Next.js Image에서는 onError 대신 fallback 이미지 사용
                 }}
               />
               <div className="flex-1">

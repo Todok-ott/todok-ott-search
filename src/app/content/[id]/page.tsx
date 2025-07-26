@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Star, Play, Calendar, Clock, Globe, Info } from 'lucide-react';
+import Image from 'next/image';
 import Footer from '@/components/Footer';
 import OTTInfo from '@/components/OTTInfo';
 
@@ -120,10 +121,12 @@ function ContentDetailContent() {
       {content.backdrop_path && (
         <div className="fixed inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/50 to-black"></div>
-          <img
+          <Image
             src={`https://image.tmdb.org/t/p/original${content.backdrop_path}`}
             alt={title}
-            className="w-full h-full object-cover opacity-30"
+            fill
+            className="object-cover opacity-30"
+            priority
           />
         </div>
       )}
@@ -171,10 +174,13 @@ function ContentDetailContent() {
           >
             <div className="sticky top-8">
               <div className="relative overflow-hidden rounded-xl shadow-2xl">
-                <img
+                <Image
                   src={content.poster_path ? `https://image.tmdb.org/t/p/w500${content.poster_path}` : '/placeholder-poster.jpg'}
                   alt={title}
+                  width={500}
+                  height={750}
                   className="w-full h-auto object-cover"
+                  priority
                 />
                 
                 {/* 미디어 타입 배지 */}
