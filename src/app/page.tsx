@@ -135,22 +135,30 @@ export default function Home() {
       event.preventDefault();
     };
 
-    // DOM 변경 감지 및 에러 방지
+    // DOM 변경 감지 및 에러 방지 (더 강력한 차단)
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (mutation.type === 'childList') {
           mutation.addedNodes.forEach((node) => {
             if (node.nodeType === Node.ELEMENT_NODE) {
               const element = node as Element;
-              // 스크립트 태그가 추가되면 에러 방지
+              // 스크립트 태그가 추가되면 즉시 제거
               if (element.tagName === 'SCRIPT') {
                 console.warn('외부 스크립트 차단:', element);
-                element.remove();
+                try {
+                  element.remove();
+                } catch (e) {
+                  console.warn('스크립트 제거 실패:', e);
+                }
               }
-              // iframe 태그도 차단 (광고 등)
+              // iframe 태그도 즉시 제거
               if (element.tagName === 'IFRAME') {
                 console.warn('외부 iframe 차단:', element);
-                element.remove();
+                try {
+                  element.remove();
+                } catch (e) {
+                  console.warn('iframe 제거 실패:', e);
+                }
               }
             }
           });
@@ -158,10 +166,21 @@ export default function Home() {
       });
     });
 
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true
-    });
+    // 더 빠른 감지를 위해 즉시 시작
+    if (document.body) {
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+    } else {
+      // body가 아직 없으면 DOMContentLoaded 대기
+      document.addEventListener('DOMContentLoaded', () => {
+        observer.observe(document.body, {
+          childList: true,
+          subtree: true
+        });
+      });
+    }
 
     window.addEventListener('error', handleError);
     window.addEventListener('unhandledrejection', handleUnhandledRejection);
