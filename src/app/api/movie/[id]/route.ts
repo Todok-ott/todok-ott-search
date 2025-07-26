@@ -11,9 +11,13 @@ export async function GET(
     const { id } = await params;
     const movieId = parseInt(id);
     
+    // URL에서 제목 파라미터 추출
+    const url = new URL(request.url);
+    const titleParam = url.searchParams.get('title');
+    
     console.log('=== Movie API 호출 시작 ===');
     console.log('요청 URL:', request.url);
-    console.log('파라미터:', { id, movieId });
+    console.log('파라미터:', { id, movieId, titleParam });
     console.log('요청 헤더:', Object.fromEntries(request.headers.entries()));
     
     if (isNaN(movieId)) {
@@ -43,10 +47,19 @@ export async function GET(
       if (!movieDetails || (!movieDetailsTyped.title && !movieDetailsTyped.name)) {
         console.error('영화 상세 정보가 유효하지 않음:', movieDetails);
         
-        // 검색을 통한 대체 방법 시도
-        console.log('검색을 통한 대체 방법 시도...');
+        // 제목으로 검색하는 대체 방법 시도
+        console.log('제목으로 검색하는 대체 방법 시도...');
         try {
-          const searchResults = await tmdbClient.searchMovies(movieId.toString());
+          let searchQuery = movieId.toString();
+          
+          // 제목 파라미터가 있으면 제목으로 검색
+          if (titleParam) {
+            searchQuery = titleParam;
+            console.log('제목으로 검색:', searchQuery);
+          }
+          
+          const searchResults = await tmdbClient.searchMovies(searchQuery);
+          console.log('검색 결과 개수:', Array.isArray(searchResults) ? searchResults.length : 0);
           console.log('검색 결과:', searchResults);
           
           if (searchResults && Array.isArray(searchResults) && searchResults.length > 0) {
@@ -59,12 +72,15 @@ export async function GET(
               movieDetails = detailedResult;
               console.log('검색을 통한 상세 정보 성공:', movieDetails);
             }
+          } else {
+            console.log('검색 결과가 없음');
           }
         } catch (searchError) {
           console.error('검색 대체 방법도 실패:', searchError);
         }
         
         if (!movieDetails || (!movieDetailsTyped.title && !movieDetailsTyped.name)) {
+          console.error('최종적으로 영화 정보를 찾을 수 없음');
           return NextResponse.json(
             { error: '영화 정보를 찾을 수 없습니다.' },
             { status: 404 }
@@ -91,16 +107,17 @@ export async function GET(
           console.log('404 에러 - 검색을 통한 대체 방법 시도...');
           try {
             const searchResults = await tmdbClient.searchMovies(movieId.toString());
+            console.log('404 에러 후 검색 결과:', searchResults);
             if (searchResults && Array.isArray(searchResults) && searchResults.length > 0) {
               const firstResult = searchResults[0] as Record<string, unknown>;
               const detailedResult = await tmdbClient.getMovieDetails(firstResult.id as number);
               if (detailedResult) {
                 movieDetails = detailedResult;
-                console.log('검색을 통한 상세 정보 성공:', movieDetails);
+                console.log('404 에러 후 검색을 통한 상세 정보 성공:', movieDetails);
               }
             }
           } catch (searchError) {
-            console.error('검색 대체 방법도 실패:', searchError);
+            console.error('404 에러 후 검색 대체 방법도 실패:', searchError);
           }
           
           if (!movieDetails) {

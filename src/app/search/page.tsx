@@ -112,7 +112,12 @@ function SearchResultsContent() {
       targetUrl
     });
     
-    window.location.href = targetUrl;
+    // 제목 정보를 URL 파라미터로 전달
+    const titleParam = encodeURIComponent(movie.title || movie.name || '');
+    const finalUrl = `${targetUrl}?title=${titleParam}`;
+    
+    console.log('최종 URL:', finalUrl);
+    window.location.href = finalUrl;
   };
 
   const handleSearch = (newQuery: string) => {
