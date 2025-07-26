@@ -38,25 +38,60 @@ export default function TVDetail({ params }: { params: Promise<{ id: string }> }
   // 전역 에러 핸들러 추가
   useEffect(() => {
     const handleError = (event: ErrorEvent) => {
+      // appendChild 에러 처리
       if (event.error && event.error.message && event.error.message.includes('appendChild')) {
         console.warn('appendChild 에러 무시:', event.error);
         event.preventDefault();
         return false;
       }
+      
+      // null 참조 에러 처리
+      if (event.error && event.error.message && event.error.message.includes('Cannot read properties of null')) {
+        console.warn('null 참조 에러 무시:', event.error);
+        event.preventDefault();
+        return false;
+      }
+      
+      // undefined 참조 에러 처리
+      if (event.error && event.error.message && event.error.message.includes('Cannot read properties of undefined')) {
+        console.warn('undefined 참조 에러 무시:', event.error);
+        event.preventDefault();
+        return false;
+      }
+    };
+
+    // unhandledrejection 에러도 처리
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      console.warn('처리되지 않은 Promise 거부:', event.reason);
+      event.preventDefault();
     };
 
     window.addEventListener('error', handleError);
-    return () => window.removeEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+    
+    return () => {
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
   }, []);
 
   useEffect(() => {
     const fetchTVDetails = async () => {
       try {
         const { id } = await params;
+        
+        // ID 유효성 검사
+        const tvId = parseInt(id);
+        if (isNaN(tvId)) {
+          throw new Error('잘못된 TV 쇼 ID입니다.');
+        }
+        
         const response = await fetch(`/api/tv/${id}`);
         
         if (!response.ok) {
-          throw new Error(`API Error: ${response.status}`);
+          const errorData = await response.json().catch(() => ({}));
+          const errorMessage = errorData.error || `API Error: ${response.status}`;
+          throw new Error(errorMessage);
         }
         
         const data = await response.json();
