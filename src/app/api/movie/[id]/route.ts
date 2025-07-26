@@ -182,7 +182,12 @@ export async function GET(
     
     // 한국어 콘텐츠인 경우 한국 OTT 정보 추가
     const movieTitle = (movieDetails as { title?: string }).title || '';
-    if (/[가-힣]/.test(movieTitle) && combinedOTTInfo.length === 0) {
+    const releaseDate = (movieDetails as { release_date?: string }).release_date;
+    
+    // 개봉일 확인 - 아직 개봉하지 않은 영화는 OTT 정보 추가하지 않음
+    const isReleased = releaseDate && new Date(releaseDate) <= new Date();
+    
+    if (/[가-힣]/.test(movieTitle) && combinedOTTInfo.length === 0 && isReleased) {
       const koreanProviders = findKoreanOTTProviders(movieTitle);
       if (koreanProviders.length > 0) {
         // 한국 OTT 정보를 별도 필드로 추가
@@ -196,8 +201,8 @@ export async function GET(
       }
     }
     
-    // 한국어 콘텐츠인 경우 기본 OTT 정보 추가
-    if (/[가-힣]/.test(movieTitle)) {
+    // 한국어 콘텐츠인 경우 기본 OTT 정보 추가 (개봉된 영화만)
+    if (/[가-힣]/.test(movieTitle) && isReleased) {
       const koreanProviders = findKoreanOTTProviders(movieTitle);
       if (koreanProviders.length > 0) {
         const movieWithKoreanOTT = {

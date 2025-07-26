@@ -102,6 +102,20 @@ export const KOREAN_CONTENT_DATABASE: Record<string, KoreanOTTProvider[]> = {
 export function findKoreanOTTProviders(title: string): KoreanOTTProvider[] {
   const normalizedTitle = title.toLowerCase().replace(/[^\w\s가-힣]/g, '');
   
+  // 개봉 예정/극장 상영 중인 영화들 제외
+  const theaterOnlyMovies = [
+    '메간 2.0', 'm3gan 2.0', 'megan 2.0',
+    '슈퍼맨', 'superman', 'super man',
+    '드래곤 길들이기', 'how to train your dragon',
+    '극장판', 'theatrical', 'movie'
+  ];
+  
+  for (const movie of theaterOnlyMovies) {
+    if (normalizedTitle.includes(movie.toLowerCase())) {
+      return []; // 극장 전용 영화는 OTT 정보 없음
+    }
+  }
+  
   // 정확한 매칭
   for (const [key, providers] of Object.entries(KOREAN_CONTENT_DATABASE)) {
     if (normalizedTitle.includes(key.toLowerCase())) {
@@ -118,7 +132,7 @@ export function findKoreanOTTProviders(title: string): KoreanOTTProvider[] {
     }
   }
   
-  // 한국어 콘텐츠 감지 (한글 포함)
+  // 한국어 콘텐츠 감지 (한글 포함) - 하지만 극장 전용 영화는 제외
   if (/[가-힣]/.test(title)) {
     // 한국어 콘텐츠는 주로 티빙, 웨이브, 왓챠에서 찾을 수 있음
     return [KOREAN_OTT_PLATFORMS[2], KOREAN_OTT_PLATFORMS[3], KOREAN_OTT_PLATFORMS[4]]; // 웨이브, 티빙, 왓챠
