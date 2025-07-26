@@ -73,7 +73,7 @@ export default function Home() {
               <GoogleAdSense
                 key={ad.id}
                 adSlot={ad.adSlot || ''}
-                adFormat={ad.adFormat as any}
+                adFormat={ad.adFormat as 'auto' | 'rectangle' | 'banner' | 'leaderboard'}
                 className="mb-4"
               />
             ) : ad.type === 'amazon' && ad.productData ? (

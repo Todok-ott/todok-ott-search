@@ -167,7 +167,7 @@ export default function SearchBar({ onSearch, onResultSelect, placeholder = "작
                       {movie.ott_providers?.flatrate && movie.ott_providers.flatrate.length > 0 && (
                         <div className="flex items-center space-x-2">
                           <span className="text-xs text-gray-500 mr-2">시청 가능:</span>
-                          {movie.ott_providers.flatrate.slice(0, 4).map((provider: any) => (
+                          {movie.ott_providers.flatrate.slice(0, 4).map((provider: { provider_id: number; provider_name: string; logo_path: string }) => (
                             <img
                               key={provider.provider_id}
                               src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}

@@ -128,7 +128,7 @@ export default function SearchResults() {
                   <span className="text-white text-sm font-medium">정렬:</span>
                   <select
                     value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as any)}
+                    onChange={(e) => setSortBy(e.target.value as 'relevance' | 'rating' | 'year' | 'title')}
                     className="bg-white/10 text-white border border-gray-600/30 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FFD700]/50"
                   >
                     <option value="relevance">관련도</option>
@@ -148,7 +148,7 @@ export default function SearchResults() {
                     ].map((type) => (
                       <button
                         key={type.value}
-                        onClick={() => setFilterType(type.value as any)}
+                        onClick={() => setFilterType(type.value as 'all' | 'movie' | 'tv')}
                         className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                           filterType === type.value
                             ? 'bg-[#FFD700] text-black'
@@ -264,7 +264,7 @@ export default function SearchResults() {
                       {/* OTT 플랫폼 로고들 */}
                       {item.ott_providers?.flatrate && (
                         <div className="absolute bottom-3 left-3 flex space-x-1">
-                          {item.ott_providers.flatrate.slice(0, 3).map((provider: any) => (
+                          {item.ott_providers.flatrate.slice(0, 3).map((provider: { provider_id: number; provider_name: string; logo_path: string }) => (
                             <img
                               key={provider.provider_id}
                               src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
