@@ -41,7 +41,7 @@ class TMDBClient {
   private cache = new Map<string, { data: unknown; timestamp: number }>();
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5분 캐시
 
-  private async fetchAPI(endpoint: string, params: Record<string, string> = {}) {
+  private async fetchAPI<T>(endpoint: string, params: Record<string, string> = {}, retryCount = 0): Promise<T> {
     if (!TMDB_API_KEY || TMDB_API_KEY === 'undefined') {
       throw new Error('TMDB API 키가 설정되지 않았습니다.');
     }
@@ -60,7 +60,7 @@ class TMDBClient {
 
     // 캐시된 데이터가 있고 유효한 경우
     if (cached && (now - cached.timestamp) < this.CACHE_DURATION) {
-      return cached.data;
+      return cached.data as T;
     }
 
     // API 요청 제한 준수 (초당 50회 미만)
@@ -70,19 +70,30 @@ class TMDBClient {
 
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10초 타임아웃
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15초 타임아웃으로 증가
 
       const response = await fetch(url.toString(), {
         signal: controller.signal,
         headers: {
           'Accept': 'application/json',
-        }
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        },
+        mode: 'cors',
+        credentials: 'omit'
       });
 
       clearTimeout(timeoutId);
 
       if (!response.ok) {
         console.error('TMDB API 응답 오류:', response.status, response.statusText);
+        
+        // 재시도 로직 (최대 3회)
+        if (retryCount < 3 && (response.status === 429 || response.status >= 500)) {
+          console.log(`재시도 ${retryCount + 1}/3...`);
+          await this.delay(1000 * (retryCount + 1)); // 지수 백오프
+          return this.fetchAPI(endpoint, params, retryCount + 1);
+        }
+        
         throw new Error(`TMDB API Error: ${response.status} - ${response.statusText}`);
       }
       
@@ -91,8 +102,18 @@ class TMDBClient {
       // 캐시에 저장
       this.cache.set(cacheKey, { data, timestamp: now });
       
-      return data;
+      return data as T;
     } catch (error) {
+      console.error('TMDB API 요청 실패:', error);
+      
+      // 재시도 로직 (네트워크 오류나 타임아웃의 경우)
+      if (retryCount < 3 && (error instanceof Error && 
+          (error.name === 'AbortError' || error.message.includes('fetch')))) {
+        console.log(`네트워크 오류로 재시도 ${retryCount + 1}/3...`);
+        await this.delay(2000 * (retryCount + 1)); // 지수 백오프
+        return this.fetchAPI(endpoint, params, retryCount + 1);
+      }
+      
       if (error instanceof Error && error.name === 'AbortError') {
         throw new Error('TMDB API 요청 시간 초과');
       }

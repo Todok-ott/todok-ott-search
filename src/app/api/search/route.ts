@@ -15,8 +15,24 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // TMDB API로 검색
-    const searchResult = await tmdbClient.searchMulti(query.trim(), parseInt(page));
+    console.log('검색 요청:', query.trim());
+
+    // TMDB API로 검색 (재시도 로직 포함)
+    let searchResult;
+    try {
+      searchResult = await tmdbClient.searchMulti(query.trim(), parseInt(page));
+    } catch (error) {
+      console.error('TMDB 검색 실패:', error);
+      return NextResponse.json(
+        { 
+          error: '검색 서비스에 일시적인 문제가 있습니다. 잠시 후 다시 시도해주세요.',
+          results: [],
+          total_pages: 0,
+          total_results: 0
+        },
+        { status: 503 }
+      );
+    }
     
     // 각 결과에 OTT 정보 추가 (최대 5개까지만 처리하여 성능 최적화)
     const resultsWithOTT = await Promise.all(
