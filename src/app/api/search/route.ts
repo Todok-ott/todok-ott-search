@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
     console.log('결합된 검색 결과:', combinedResults.length);
 
     // 4단계: 각 결과에 OTT 정보 추가 (최대 5개까지만 처리하여 성능 최적화)
-    let resultsWithOTT = await Promise.all(
+    let resultsWithOTT: unknown[] = await Promise.all(
       combinedResults.slice(0, 5).map(async (item: unknown) => {
         const itemTyped = item as SearchResult;
         try {
