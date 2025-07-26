@@ -103,6 +103,28 @@ export default function LatestPage() {
 
       {/* 메인 콘텐츠 */}
       <main className="max-w-7xl mx-auto px-6 py-8">
+        
+        {/* 광고 배너 - 신규 페이지 상단 */}
+        <div className="w-full flex justify-center mb-8">
+          <div style={{
+            width: '100%',
+            maxWidth: 728,
+            height: 90,
+            background: 'linear-gradient(45deg, #FF9800, #F57C00)',
+            color: '#fff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 8,
+            border: '2px dashed #E65100',
+            fontWeight: 'bold',
+            fontSize: '20px'
+          }}>
+            🆕 광고 영역 (샘플) - 신규 페이지
+          </div>
+        </div>
+
+        {/* 페이지 헤더 */}
         <motion.div 
           className="mb-8"
           initial={{ opacity: 0, y: 20 }}

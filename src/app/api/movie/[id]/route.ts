@@ -29,28 +29,58 @@ export async function GET(
     let ottProviders = null;
     
     try {
+      console.log('TMDB API 호출 시작 - 영화 ID:', movieId);
       movieDetails = await tmdbClient.getMovieDetails(movieId);
-      console.log('영화 상세 정보 성공:', movieDetails);
+      console.log('영화 상세 정보 성공:', {
+        id: (movieDetails as any)?.id,
+        title: (movieDetails as any)?.title,
+        name: (movieDetails as any)?.name,
+        hasData: !!movieDetails
+      });
       
       // 데이터 유효성 검사 추가
       const movieDetailsTyped = movieDetails as { title?: string; name?: string };
       if (!movieDetails || (!movieDetailsTyped.title && !movieDetailsTyped.name)) {
         console.error('영화 상세 정보가 유효하지 않음:', movieDetails);
-        return NextResponse.json(
-          { error: '영화 정보를 찾을 수 없습니다.' },
-          { status: 404 }
-        );
+        
+        // 검색을 통한 대체 방법 시도
+        console.log('검색을 통한 대체 방법 시도...');
+        try {
+          const searchResults = await tmdbClient.searchMovies(movieId.toString());
+          console.log('검색 결과:', searchResults);
+          
+          if (searchResults && Array.isArray(searchResults) && searchResults.length > 0) {
+            const firstResult = searchResults[0] as any;
+            console.log('검색으로 찾은 영화:', firstResult);
+            
+            // 검색 결과로 상세 정보 다시 가져오기
+            const detailedResult = await tmdbClient.getMovieDetails(firstResult.id);
+            if (detailedResult) {
+              movieDetails = detailedResult;
+              console.log('검색을 통한 상세 정보 성공:', movieDetails);
+            }
+          }
+        } catch (searchError) {
+          console.error('검색 대체 방법도 실패:', searchError);
+        }
+        
+        if (!movieDetails || (!movieDetailsTyped.title && !movieDetailsTyped.name)) {
+          return NextResponse.json(
+            { error: '영화 정보를 찾을 수 없습니다.' },
+            { status: 404 }
+          );
+        }
       }
       
-          // 추가 디버깅 정보
-    console.log('영화 데이터 구조:', {
-      hasTitle: !!movieDetailsTyped.title,
-      hasName: !!movieDetailsTyped.name,
-      title: movieDetailsTyped.title,
-      name: movieDetailsTyped.name,
-      keys: Object.keys(movieDetails || {}),
-      fullData: movieDetails
-    });
+      // 추가 디버깅 정보
+      console.log('영화 데이터 구조:', {
+        hasTitle: !!movieDetailsTyped.title,
+        hasName: !!movieDetailsTyped.name,
+        title: movieDetailsTyped.title,
+        name: movieDetailsTyped.name,
+        keys: Object.keys(movieDetails || {}),
+        fullData: movieDetails
+      });
       
     } catch (error) {
       console.error('영화 상세 정보 가져오기 실패:', error);
@@ -58,10 +88,27 @@ export async function GET(
       // TMDB API 에러 타입별 처리
       if (error instanceof Error) {
         if (error.message.includes('404')) {
-          return NextResponse.json(
-            { error: '영화를 찾을 수 없습니다.' },
-            { status: 404 }
-          );
+          console.log('404 에러 - 검색을 통한 대체 방법 시도...');
+          try {
+            const searchResults = await tmdbClient.searchMovies(movieId.toString());
+            if (searchResults && Array.isArray(searchResults) && searchResults.length > 0) {
+              const firstResult = searchResults[0] as any;
+              const detailedResult = await tmdbClient.getMovieDetails(firstResult.id);
+              if (detailedResult) {
+                movieDetails = detailedResult;
+                console.log('검색을 통한 상세 정보 성공:', movieDetails);
+              }
+            }
+          } catch (searchError) {
+            console.error('검색 대체 방법도 실패:', searchError);
+          }
+          
+          if (!movieDetails) {
+            return NextResponse.json(
+              { error: '영화를 찾을 수 없습니다.' },
+              { status: 404 }
+            );
+          }
         } else if (error.message.includes('401')) {
           return NextResponse.json(
             { error: 'API 키가 유효하지 않습니다.' },
@@ -80,10 +127,12 @@ export async function GET(
         }
       }
       
-      return NextResponse.json(
-        { error: '영화 정보를 불러오는 중 오류가 발생했습니다.' },
-        { status: 500 }
-      );
+      if (!movieDetails) {
+        return NextResponse.json(
+          { error: '영화 정보를 불러오는 중 오류가 발생했습니다.' },
+          { status: 500 }
+        );
+      }
     }
 
     // OTT 정보는 선택적으로 가져오기

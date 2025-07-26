@@ -104,6 +104,28 @@ export default function PopularPage() {
 
       {/* 메인 콘텐츠 */}
       <main className="max-w-7xl mx-auto px-6 py-8">
+        
+        {/* 광고 배너 - 인기 페이지 상단 */}
+        <div className="w-full flex justify-center mb-8">
+          <div style={{
+            width: '100%',
+            maxWidth: 728,
+            height: 90,
+            background: 'linear-gradient(45deg, #2196F3, #1976D2)',
+            color: '#fff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 8,
+            border: '2px dashed #1565C0',
+            fontWeight: 'bold',
+            fontSize: '20px'
+          }}>
+            🔥 광고 영역 (샘플) - 인기 페이지
+          </div>
+        </div>
+
+        {/* 페이지 헤더 */}
         <motion.div 
           className="mb-8"
           initial={{ opacity: 0, y: 20 }}
