@@ -231,50 +231,57 @@ export default function Home() {
       try {
         setLoading(true);
         setError(null);
-        
-        // API 호출 전에 기본 데이터로 설정
         setPopularMovies(fallbackMovies);
         setPopularTVShows(fallbackTVShows);
-        
-        console.log('Fetching popular content...');
+
+        // 인기 영화/TV 20개씩 받아옴
         const [moviesResponse, tvResponse] = await Promise.all([
           fetch('/api/popular/movies'),
           fetch('/api/popular/tv')
         ]);
-
-        console.log('Movies response status:', moviesResponse.status);
-        console.log('TV response status:', tvResponse.status);
-
-        if (!moviesResponse.ok) {
-          throw new Error(`Movies API error: ${moviesResponse.status}`);
-        }
-        
-        if (!tvResponse.ok) {
-          throw new Error(`TV API error: ${tvResponse.status}`);
-        }
-
+        if (!moviesResponse.ok || !tvResponse.ok) throw new Error('API 오류');
         const moviesData = await moviesResponse.json();
         const tvData = await tvResponse.json();
 
-        console.log('Movies data:', moviesData);
-        console.log('TV data:', tvData);
-        
-        if (moviesData.results && moviesData.results.length > 0) {
-          setPopularMovies(moviesData.results.slice(0, 6));
+        // 상세 fetch 함수
+        const fetchMovieDetail = async (id: number) => {
+          try {
+            const res = await fetch(`/api/movie/${id}`);
+            if (!res.ok) return null;
+            const data = await res.json();
+            return data && !data.error ? data : null;
+          } catch { return null; }
+        };
+        const fetchTVDetail = async (id: number) => {
+          try {
+            const res = await fetch(`/api/tv/${id}`);
+            if (!res.ok) return null;
+            const data = await res.json();
+            return data && !data.error ? data : null;
+          } catch { return null; }
+        };
+
+        // 인기 영화/TV 중 상세 fetch 성공한 것만 최대 6개
+        const validMovies: PopularContent[] = [];
+        for (const movie of moviesData.results) {
+          const detail = await fetchMovieDetail(movie.id);
+          if (detail) validMovies.push({ ...movie, media_type: 'movie' });
+          if (validMovies.length >= 6) break;
         }
-        
-        if (tvData.results && tvData.results.length > 0) {
-          setPopularTVShows(tvData.results.slice(0, 6));
+        const validTVs: PopularContent[] = [];
+        for (const tv of tvData.results) {
+          const detail = await fetchTVDetail(tv.id);
+          if (detail) validTVs.push({ ...tv, media_type: 'tv' });
+          if (validTVs.length >= 6) break;
         }
+        setPopularMovies(validMovies);
+        setPopularTVShows(validTVs);
       } catch (error) {
-        console.error('Error fetching popular content:', error);
         setError('콘텐츠를 불러오는 중 오류가 발생했습니다.');
-        // 에러가 발생해도 기본 데이터는 유지
       } finally {
         setLoading(false);
       }
     };
-
     fetchPopularContent();
   }, []);
 
@@ -406,203 +413,157 @@ export default function Home() {
             </motion.div>
           </div>
 
-          {/* 인기 콘텐츠 스크롤 버튼 - 고급 디자인 */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 1.2 }}
-            className="absolute bottom-12 left-1/2 transform -translate-x-1/2 z-20"
-          >
-            <motion.button
-              onClick={() => {
-                const popularSection = document.getElementById('popular-content');
-                if (popularSection) {
-                  popularSection.scrollIntoView({ behavior: 'smooth' });
-                }
-              }}
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.95 }}
-              className="group relative px-8 py-4 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 backdrop-blur-sm border border-yellow-500/30 rounded-full shadow-2xl hover:shadow-yellow-500/25 transition-all duration-300"
-            >
-              <div className="flex items-center space-x-3">
-                <motion.div
-                  animate={{ y: [0, 3, 0] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="text-yellow-400 font-semibold text-lg"
-                >
+          {/* 인기 콘텐츠 섹션 */}
+          <section id="popular-content" className="py-16 px-6">
+            <div className="max-w-7xl mx-auto">
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                className="text-center mb-12"
+              >
+                <h2 className="text-4xl font-bold text-white mb-4 flex items-center justify-center">
+                  <TrendingUp className="w-8 h-8 mr-3 text-yellow-500" />
                   인기 콘텐츠
-                </motion.div>
-                <motion.div
-                  animate={{ y: [0, 2, 0] }}
-                  transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-                  className="w-5 h-5"
+                </h2>
+                <p className="text-gray-400 text-lg">지금 가장 인기 있는 영화와 드라마</p>
+              </motion.div>
+
+              {/* 로딩 상태 */}
+              {loading && (
+                <motion.div 
+                  className="flex justify-center items-center py-20"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
                 >
-                  <svg className="w-5 h-5 text-yellow-400 group-hover:text-yellow-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                  </svg>
+                  <div className="cinematic-spinner w-12 h-12"></div>
+                  <span className="text-white ml-4">콘텐츠를 불러오는 중...</span>
                 </motion.div>
-              </div>
-              
-              {/* 호버 효과 */}
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                initial={false}
-              />
-            </motion.button>
-          </motion.div>
-        </section>
-      </div>
+              )}
 
-      {/* 인기 콘텐츠 섹션 */}
-      <section id="popular-content" className="py-16 px-6">
-        <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-12"
-          >
-            <h2 className="text-4xl font-bold text-white mb-4 flex items-center justify-center">
-              <TrendingUp className="w-8 h-8 mr-3 text-yellow-500" />
-              인기 콘텐츠
-            </h2>
-            <p className="text-gray-400 text-lg">지금 가장 인기 있는 영화와 드라마</p>
-          </motion.div>
-
-          {/* 로딩 상태 */}
-          {loading && (
-            <motion.div 
-              className="flex justify-center items-center py-20"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-            >
-              <div className="cinematic-spinner w-12 h-12"></div>
-              <span className="text-white ml-4">콘텐츠를 불러오는 중...</span>
-            </motion.div>
-          )}
-
-          {/* 에러 상태 */}
-          {error && (
-            <motion.div 
-              className="text-center py-8"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-            >
-              <div className="max-w-md mx-auto">
-                <div className="w-16 h-16 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-yellow-500 text-2xl">⚠️</span>
-                </div>
-                <p className="text-yellow-400 text-sm mb-4">
-                  {error} (임시 데이터를 표시합니다)
-                </p>
-              </div>
-            </motion.div>
-          )}
-
-          {/* 콘텐츠 표시 */}
-          {!loading && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* 인기 영화 */}
-              <motion.div
-                initial={{ opacity: 0, x: -50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8 }}
-                className="space-y-4"
-              >
-                <h3 className="text-2xl font-bold text-white mb-6">인기 영화</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {popularMovies.length > 0 ? (
-                    popularMovies.map((movie, index) => (
-                      <motion.div
-                        key={movie.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: index * 0.1 }}
-                        className="bg-black/20 border border-gray-600/20 rounded-lg overflow-hidden hover:border-yellow-500/30 transition-colors cursor-pointer"
-                        onClick={() => handleContentClick(movie)}
-                      >
-                        <img
-                          src={movie.poster_path.startsWith('http') ? movie.poster_path : `https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                          alt={movie.title}
-                          className="w-full h-48 object-cover"
-                          onError={(e) => {
-                            e.currentTarget.src = '/placeholder-poster.jpg';
-                          }}
-                        />
-                        <div className="p-4">
-                          <h4 className="text-white font-semibold mb-2 line-clamp-2">
-                            {movie.title}
-                          </h4>
-                          <div className="flex items-center justify-between text-sm text-gray-400">
-                            <div className="flex items-center">
-                              <Star className="w-4 h-4 text-yellow-500 mr-1" />
-                              <span>{movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A'}</span>
-                            </div>
-                            <span>{movie.release_date?.split('-')[0]}</span>
-                          </div>
-                        </div>
-                      </motion.div>
-                    ))
-                  ) : (
-                    <div className="col-span-2 text-center py-8">
-                      <p className="text-gray-400">영화 정보를 불러올 수 없습니다.</p>
+              {/* 에러 상태 */}
+              {error && (
+                <motion.div 
+                  className="text-center py-8"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                >
+                  <div className="max-w-md mx-auto">
+                    <div className="w-16 h-16 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <span className="text-yellow-500 text-2xl">⚠️</span>
                     </div>
-                  )}
-                </div>
-              </motion.div>
+                    <p className="text-yellow-400 text-sm mb-4">
+                      {error} (임시 데이터를 표시합니다)
+                    </p>
+                  </div>
+                </motion.div>
+              )}
 
-              {/* 인기 드라마 */}
-              <motion.div
-                initial={{ opacity: 0, x: 50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8 }}
-                className="space-y-4"
-              >
-                <h3 className="text-2xl font-bold text-white mb-6">인기 드라마</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {popularTVShows.length > 0 ? (
-                    popularTVShows.map((show, index) => (
-                      <motion.div
-                        key={show.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: index * 0.1 }}
-                        className="bg-black/20 border border-gray-600/20 rounded-lg overflow-hidden hover:border-yellow-500/30 transition-colors cursor-pointer"
-                        onClick={() => handleContentClick(show)}
-                      >
-                        <img
-                          src={show.poster_path.startsWith('http') ? show.poster_path : `https://image.tmdb.org/t/p/w500${show.poster_path}`}
-                          alt={show.name || show.title}
-                          className="w-full h-48 object-cover"
-                          onError={(e) => {
-                            e.currentTarget.src = '/placeholder-poster.jpg';
-                          }}
-                        />
-                        <div className="p-4">
-                          <h4 className="text-white font-semibold mb-2 line-clamp-2">
-                            {show.name || show.title}
-                          </h4>
-                          <div className="flex items-center justify-between text-sm text-gray-400">
-                            <div className="flex items-center">
-                              <Star className="w-4 h-4 text-yellow-500 mr-1" />
-                              <span>{show.vote_average ? show.vote_average.toFixed(1) : 'N/A'}</span>
+              {/* 콘텐츠 표시 */}
+              {!loading && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* 인기 영화 */}
+                  <motion.div
+                    initial={{ opacity: 0, x: -50 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.8 }}
+                    className="space-y-4"
+                  >
+                    <h3 className="text-2xl font-bold text-white mb-6">인기 영화</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {popularMovies.length > 0 ? (
+                        popularMovies.map((movie, index) => (
+                          <motion.div
+                            key={movie.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6, delay: index * 0.1 }}
+                            className="bg-black/20 border border-gray-600/20 rounded-lg overflow-hidden hover:border-yellow-500/30 transition-colors cursor-pointer"
+                            onClick={() => handleContentClick(movie)}
+                          >
+                            <img
+                              src={movie.poster_path.startsWith('http') ? movie.poster_path : `https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                              alt={movie.title}
+                              className="w-full h-48 object-cover"
+                              onError={(e) => {
+                                e.currentTarget.src = '/placeholder-poster.jpg';
+                              }}
+                            />
+                            <div className="p-4">
+                              <h4 className="text-white font-semibold mb-2 line-clamp-2">
+                                {movie.title}
+                              </h4>
+                              <div className="flex items-center justify-between text-sm text-gray-400">
+                                <div className="flex items-center">
+                                  <Star className="w-4 h-4 text-yellow-500 mr-1" />
+                                  <span>{movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A'}</span>
+                                </div>
+                                <span>{movie.release_date?.split('-')[0]}</span>
+                              </div>
                             </div>
-                            <span>{show.first_air_date?.split('-')[0]}</span>
-                          </div>
+                          </motion.div>
+                        ))
+                      ) : (
+                        <div className="col-span-2 text-center py-8">
+                          <p className="text-gray-400">영화 정보를 불러올 수 없습니다.</p>
                         </div>
-                      </motion.div>
-                    ))
-                  ) : (
-                    <div className="col-span-2 text-center py-8">
-                      <p className="text-gray-400">드라마 정보를 불러올 수 없습니다.</p>
+                      )}
                     </div>
-                  )}
+                  </motion.div>
+
+                  {/* 인기 드라마 */}
+                  <motion.div
+                    initial={{ opacity: 0, x: 50 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.8 }}
+                    className="space-y-4"
+                  >
+                    <h3 className="text-2xl font-bold text-white mb-6">인기 드라마</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {popularTVShows.length > 0 ? (
+                        popularTVShows.map((show, index) => (
+                          <motion.div
+                            key={show.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6, delay: index * 0.1 }}
+                            className="bg-black/20 border border-gray-600/20 rounded-lg overflow-hidden hover:border-yellow-500/30 transition-colors cursor-pointer"
+                            onClick={() => handleContentClick(show)}
+                          >
+                            <img
+                              src={show.poster_path.startsWith('http') ? show.poster_path : `https://image.tmdb.org/t/p/w500${show.poster_path}`}
+                              alt={show.name || show.title}
+                              className="w-full h-48 object-cover"
+                              onError={(e) => {
+                                e.currentTarget.src = '/placeholder-poster.jpg';
+                              }}
+                            />
+                            <div className="p-4">
+                              <h4 className="text-white font-semibold mb-2 line-clamp-2">
+                                {show.name || show.title}
+                              </h4>
+                              <div className="flex items-center justify-between text-sm text-gray-400">
+                                <div className="flex items-center">
+                                  <Star className="w-4 h-4 text-yellow-500 mr-1" />
+                                  <span>{show.vote_average ? show.vote_average.toFixed(1) : 'N/A'}</span>
+                                </div>
+                                <span>{show.first_air_date?.split('-')[0]}</span>
+                              </div>
+                            </div>
+                          </motion.div>
+                        ))
+                      ) : (
+                        <div className="col-span-2 text-center py-8">
+                          <p className="text-gray-400">드라마 정보를 불러올 수 없습니다.</p>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
                 </div>
-              </motion.div>
+              )}
             </div>
-          )}
+          </section>
         </div>
-      </section>
 
       {/* 푸터 */}
       <Footer />

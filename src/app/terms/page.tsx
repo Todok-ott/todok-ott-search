@@ -25,8 +25,7 @@ export default function TermsPage() {
               transition={{ duration: 0.2 }}
               onClick={() => window.location.href = '/'}
             >
-                              <span className="text-[#FFD700]">토독</span>
-              <span className="text-white">SEARCH</span>
+                              <span className="text-[#FFD700]">토독</span> <span className="text-white">(Todok)</span>
             </motion.h1>
             
             <button
