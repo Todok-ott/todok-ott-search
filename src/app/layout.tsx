@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
-import { loadAdSenseScript } from '@/lib/adUtils';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -43,11 +42,6 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // AdSense 스크립트 로드
-  if (typeof window !== 'undefined') {
-    loadAdSenseScript();
-  }
-
   return (
     <html lang="ko">
       <head>
