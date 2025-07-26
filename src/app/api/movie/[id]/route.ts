@@ -11,9 +11,13 @@ export async function GET(
     const { id } = await params;
     const movieId = parseInt(id);
     
-    console.log('Movie API 호출:', { id, movieId });
+    console.log('=== Movie API 호출 시작 ===');
+    console.log('요청 URL:', request.url);
+    console.log('파라미터:', { id, movieId });
+    console.log('요청 헤더:', Object.fromEntries(request.headers.entries()));
     
     if (isNaN(movieId)) {
+      console.error('잘못된 영화 ID:', id);
       return NextResponse.json(
         { error: '잘못된 영화 ID입니다.' },
         { status: 400 }

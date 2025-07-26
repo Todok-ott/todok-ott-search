@@ -102,11 +102,16 @@ function SearchResultsContent() {
   const handleResultSelect = (movie: Movie) => {
     // 기존 방식으로 라우팅 (상세 페이지 접근 가능하도록)
     const mediaType = movie.media_type || 'movie';
-    if (mediaType === 'tv') {
-      window.location.href = `/tv/${movie.id}`;
-    } else {
-      window.location.href = `/movie/${movie.id}`;
-    }
+    const targetUrl = mediaType === 'tv' ? `/tv/${movie.id}` : `/movie/${movie.id}`;
+    
+    console.log('영화 클릭:', {
+      id: movie.id,
+      title: movie.title || movie.name,
+      mediaType,
+      targetUrl
+    });
+    
+    window.location.href = targetUrl;
   };
 
   const handleSearch = (newQuery: string) => {
