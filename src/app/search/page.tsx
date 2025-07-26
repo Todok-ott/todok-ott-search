@@ -46,16 +46,18 @@ function SearchResultsContent() {
       
       // OTT 정보가 없는 콘텐츠는 제외
       filteredResults = filteredResults.filter((item: Movie) => {
-        // TMDB ott_providers: flatrate만 체크
-        const hasTMDB = item.ott_providers && Array.isArray(item.ott_providers.flatrate) && item.ott_providers.flatrate.length > 0;
+        // TMDB ott_providers: flatrate만 체크 (undefined, null, 빈 배열, 빈 객체 모두 제외)
+        const hasTMDB = !!(
+          item.ott_providers &&
+          Array.isArray(item.ott_providers.flatrate) &&
+          item.ott_providers.flatrate.length > 0
+        );
         // Korean ott_providers: MovieWithKoreanOTT 타입으로 안전하게 체크
-        const hasKorean = (item as MovieWithKoreanOTT).korean_ott_providers && Array.isArray((item as MovieWithKoreanOTT).korean_ott_providers) && (item as MovieWithKoreanOTT).korean_ott_providers!.length > 0;
-        
-        // 디버깅용 로그
-        if (!hasTMDB && !hasKorean) {
-          console.log('OTT 정보 없는 콘텐츠 제외:', item.title || item.name);
-        }
-        
+        const hasKorean = !!(
+          (item as MovieWithKoreanOTT).korean_ott_providers &&
+          Array.isArray((item as MovieWithKoreanOTT).korean_ott_providers) &&
+          (item as MovieWithKoreanOTT).korean_ott_providers!.length > 0
+        );
         return hasTMDB || hasKorean;
       });
       
@@ -203,6 +205,25 @@ function SearchResultsContent() {
 
       {/* 메인 콘텐츠 */}
       <main className="max-w-7xl mx-auto px-6 py-8">
+        {/* 검색 결과 상단 광고 배너 */}
+        <div className="w-full flex justify-center my-8">
+          <div style={{
+            width: '100%',
+            maxWidth: 728,
+            height: 90,
+            background: 'linear-gradient(45deg, #FFD700, #FFA500)',
+            color: '#000',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 8,
+            border: '2px dashed #FF6B35',
+            fontWeight: 'bold',
+            fontSize: '20px'
+          }}>
+            🎬 광고 영역 (샘플) - 항상 보임
+          </div>
+        </div>
         {/* 검색 결과 헤더 */}
         <motion.div 
           className="mb-8"
