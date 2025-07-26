@@ -26,7 +26,7 @@ interface MovieDetails {
   ott_providers?: CombinedOTTInfo[];
 }
 
-export default function MovieDetail({ params }: { params: { id: string } }) {
+export default function MovieDetail({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const [movie, setMovie] = useState<MovieDetails | null>(null);
   const [loading, setLoading] = useState(true);
@@ -34,7 +34,8 @@ export default function MovieDetail({ params }: { params: { id: string } }) {
   useEffect(() => {
     const fetchMovieDetails = async () => {
       try {
-        const response = await fetch(`/api/movie/${params.id}`);
+        const { id } = await params;
+        const response = await fetch(`/api/movie/${id}`);
         const data = await response.json();
         setMovie(data);
       } catch (error) {
@@ -45,7 +46,7 @@ export default function MovieDetail({ params }: { params: { id: string } }) {
     };
 
     fetchMovieDetails();
-  }, [params.id]);
+  }, [params]);
 
   if (loading) {
     return (

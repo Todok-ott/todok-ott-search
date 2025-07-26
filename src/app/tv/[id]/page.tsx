@@ -29,7 +29,7 @@ interface TVDetails {
   ott_providers?: CombinedOTTInfo[];
 }
 
-export default function TVDetail({ params }: { params: { id: string } }) {
+export default function TVDetail({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const [tv, setTV] = useState<TVDetails | null>(null);
   const [loading, setLoading] = useState(true);
@@ -37,7 +37,8 @@ export default function TVDetail({ params }: { params: { id: string } }) {
   useEffect(() => {
     const fetchTVDetails = async () => {
       try {
-        const response = await fetch(`/api/tv/${params.id}`);
+        const { id } = await params;
+        const response = await fetch(`/api/tv/${id}`);
         const data = await response.json();
         setTV(data);
       } catch (error) {
@@ -48,7 +49,7 @@ export default function TVDetail({ params }: { params: { id: string } }) {
     };
 
     fetchTVDetails();
-  }, [params.id]);
+  }, [params]);
 
   if (loading) {
     return (
