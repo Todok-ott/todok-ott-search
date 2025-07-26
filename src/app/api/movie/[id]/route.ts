@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { tmdbClient } from '@/lib/tmdb';
+import { tmdbClient, Movie } from '@/lib/tmdb';
 import { combineOTTData, OTTProvider } from '@/lib/ottUtils';
 import { findKoreanOTTProviders } from '@/lib/koreanOTTs';
 
@@ -42,7 +42,7 @@ export async function GET(
     try {
       // 여러 검색 시도
       let searchResults = null;
-      let selectedResult = null;
+      let selectedResult: Movie | null = null;
       
       // 1. 원본 검색어로 먼저 시도
       console.log('1차 검색 시도:', searchQuery);
@@ -264,7 +264,7 @@ export async function GET(
 }
 
 // 최적의 매칭을 찾는 함수
-function findBestMatch(results: any[], searchQuery: string) {
+function findBestMatch(results: Movie[], searchQuery: string): Movie {
   const searchQueryLower = searchQuery.toLowerCase();
   
   // 1. 정확한 매칭
@@ -294,7 +294,7 @@ function findBestMatch(results: any[], searchQuery: string) {
 }
 
 // 좋은 매칭인지 확인하는 함수
-function isGoodMatch(result: any, searchQuery: string): boolean {
+function isGoodMatch(result: Movie, searchQuery: string): boolean {
   const resultTitle = (result.title || result.name || '').toLowerCase();
   const searchQueryLower = searchQuery.toLowerCase();
   
