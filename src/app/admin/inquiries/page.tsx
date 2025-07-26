@@ -36,7 +36,7 @@ export default function AdminInquiriesPage() {
         } else {
           setError(data.error || '문의 목록을 불러올 수 없습니다.');
         }
-      } catch (error) {
+      } catch {
         setError('네트워크 오류가 발생했습니다.');
       } finally {
         setLoading(false);
