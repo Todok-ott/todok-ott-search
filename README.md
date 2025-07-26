@@ -1,165 +1,89 @@
-# 🎬 Cinema Search - 시네마틱 다크 OTT 검색 서비스
+# 토독 (Todok) - OTT 검색 서비스
 
-모든 OTT 플랫폼의 콘텐츠를 한 번에 검색하고, 당신만을 위한 완벽한 시청 경험을 제공하는 영화 큐레이션 서비스입니다.
+영화, 드라마, 애니메이션 등 다양한 콘텐츠가 어떤 OTT 플랫폼에서 시청 가능한지 한눈에 확인할 수 있는 서비스입니다.
 
-## ✨ 주요 특징
+## 🚀 배포 상태
 
-### 🎨 시네마틱 다크 디자인
-- **다크 모드 기본 채택**: 눈의 피로를 덜어주고 영화 포스터를 돋보이게 하는 어두운 배경
-- **미니멀리즘**: 불필요한 요소 제거와 충분한 여백으로 각 콘텐츠가 주인공이 되도록 설계
-- **고급스러운 타이포그래피**: Inter 폰트를 사용한 세련된 텍스트 디자인
-- **마이크로 인터랙션**: 부드럽고 미세한 애니메이션으로 살아있는 듯한 느낌
+- **배포 URL**: https://todok-ott-search.vercel.app/
+- **최종 업데이트**: 2024년 12월 (인터페이스 이름 수정 완료)
+- **상태**: 배포 중 - 연결 확인 필요
 
-### 🔍 스마트 검색 기능
-- **실시간 검색**: 타이핑과 동시에 관련 작품 목록 표시
-- **OTT 플랫폼 정보**: 각 작품이 어떤 플랫폼에서 시청 가능한지 표시
-- **고급 필터링**: 평점, 연도, 제목별 정렬 및 영화/드라마 타입 필터링
+## ✨ 주요 기능
 
-### 🎯 사용자 경험
-- **직관적인 네비게이션**: 스크롤에 반응하는 헤더와 부드러운 페이지 전환
-- **반응형 디자인**: 모든 디바이스에서 최적화된 경험
-- **접근성**: 키보드 네비게이션과 스크린 리더 지원
+- **OTT 정보 검색**: 영화/드라마 제목으로 시청 가능한 플랫폼 검색
+- **국내/해외 OTT 통합**: Netflix, Disney+, Wavve, Tving, Watcha, Laftel 등
+- **상세 정보 제공**: 가격, 특징, 장단점, 시청 가능 콘텐츠
+- **실시간 검색**: TMDB API 연동으로 최신 정보 제공
+- **반응형 디자인**: 모바일/데스크톱 최적화
 
-## 🎨 디자인 시스템
+## 🛠 기술 스택
 
-### 컬러 팔레트
-- **배경**: `#121212` (깊고 부드러운 차콜 그레이)
-- **주요 텍스트**: `#FFFFFF` (순수한 흰색)
-- **보조 텍스트**: `#E0E0E0` (밝은 회색)
-- **포인트 컬러**: `#FFD700` (세련된 골드)
+- **Frontend**: Next.js 15, TypeScript, Tailwind CSS
+- **Animation**: Framer Motion
+- **API**: TMDB (The Movie Database)
+- **Deployment**: Vercel
+- **Analytics**: Google Analytics
+- **Advertising**: Google AdSense, Amazon Associates
 
-### 애니메이션
-- **Framer Motion**을 활용한 부드러운 페이지 전환
-- **호버 효과**: 카드 확대, 색상 변화, 그림자 효과
-- **로딩 애니메이션**: 시네마틱한 스피너와 페이드 인 효과
+## 📱 지원 OTT 서비스
 
-## 🚀 시작하기
+### 글로벌 서비스
+- **Netflix**: 다양한 오리지널 콘텐츠
+- **Disney+**: 디즈니, 마블, 스타워즈 콘텐츠
+- **Apple TV+**: 애플 오리지널 콘텐츠
+- **Amazon Prime**: 아마존 오리지널과 다양한 콘텐츠
 
-### 필수 요구사항
-- Node.js 18.0.0 이상
-- npm 또는 yarn
+### 국내 서비스
+- **Wavve**: KBS, MBC, SBS 방송 콘텐츠
+- **Tving**: tvN, JTBC 등 케이블 방송 콘텐츠
+- **Watcha**: 독립 영화와 예술 영화 전문
+- **Laftel**: 애니메이션 전문 스트리밍 서비스
 
-### 설치 및 실행
+## 🔧 개발 환경 설정
 
 ```bash
 # 저장소 클론
-git clone [repository-url]
-cd ott-search
+git clone https://github.com/Todok-ott/todok-ott-search.git
+cd todok-ott-search
 
 # 의존성 설치
 npm install
+
+# 환경 변수 설정
+cp .env.example .env.local
+# TMDB API 키 설정 필요
 
 # 개발 서버 실행
 npm run dev
 ```
 
-브라우저에서 [http://localhost:3000](http://localhost:3000)을 열어 결과를 확인하세요.
+## 🌐 배포 가이드
 
-## 🛠️ 기술 스택
+### Vercel 배포
 
-- **프레임워크**: Next.js 14 (App Router)
-- **언어**: TypeScript
-- **스타일링**: Tailwind CSS
-- **애니메이션**: Framer Motion
-- **아이콘**: Lucide React
-- **폰트**: Inter (Google Fonts)
-- **API**: TMDB (The Movie Database)
+1. **Vercel CLI 설치**
+   ```bash
+   npm i -g vercel
+   ```
 
-## 📁 프로젝트 구조
+2. **로그인 및 배포**
+   ```bash
+   vercel login
+   vercel
+   ```
 
-```
-src/
-├── app/                    # Next.js App Router
-│   ├── page.tsx           # 메인 랜딩 페이지
-│   ├── search/            # 검색 결과 페이지
-│   ├── movie/[id]/        # 영화 상세 페이지
-│   └── api/               # API 라우트
-├── components/            # 재사용 가능한 컴포넌트
-│   ├── SearchBar.tsx     # 검색바 컴포넌트
-│   ├── Footer.tsx        # 푸터 컴포넌트
-│   └── ...
-├── lib/                  # 유틸리티 및 설정
-│   └── tmdb.ts          # TMDB API 설정
-└── styles/              # 전역 스타일
-    └── globals.css      # 시네마틱 다크 테마
-```
+3. **환경 변수 설정**
+   - Vercel 대시보드 → 프로젝트 설정 → Environment Variables
+   - `NEXT_PUBLIC_TMDB_API_KEY`: TMDB API 키
+   - `NEXT_PUBLIC_GA_MEASUREMENT_ID`: Google Analytics ID (선택사항)
 
-## 🎯 주요 기능
+## 📊 현재 상태
 
-### 1. 메인 랜딩 페이지
-- **동적 배경**: 8초마다 전환되는 영화 스틸컷
-- **중앙 검색바**: 실시간 검색 제안과 드롭다운
-- **인기 콘텐츠**: 현재 인기 있는 영화/드라마 표시
-
-### 2. 검색 결과 페이지
-- **고급 필터링**: 정렬 및 타입 필터
-- **OTT 정보**: 시청 가능한 플랫폼 표시
-- **상세 정보**: 평점, 연도, 줄거리 미리보기
-
-### 3. 영화 상세 페이지
-- **상세 정보**: 출연진, 감독, 줄거리
-- **OTT 링크**: 직접 시청 페이지로 이동
-- **관련 작품**: 비슷한 콘텐츠 추천
-
-## 🎨 디자인 철학
-
-### "시네마틱 다크 (Cinematic Dark)"
-단순한 검색 도구가 아닌, 마치 잘 만들어진 영화 큐레이션 서비스에 들어온 듯한 경험을 제공하는 것을 목표로 합니다.
-
-**핵심 요소:**
-- **다크 모드 기본**: 어두운 배경으로 영화 포스터를 돋보이게 함
-- **미니멀리즘**: 충분한 여백과 불필요한 요소 제거
-- **타이포그래피**: 가독성 높은 Inter 폰트 사용
-- **마이크로 인터랙션**: 부드러운 애니메이션으로 살아있는 느낌
-
-## 🔧 개발 가이드
-
-### 새로운 컴포넌트 추가
-```typescript
-// components/NewComponent.tsx
-'use client';
-
-import { motion } from 'framer-motion';
-
-export default function NewComponent() {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-black/20 backdrop-blur-sm rounded-xl"
-    >
-      {/* 컴포넌트 내용 */}
-    </motion.div>
-  );
-}
-```
-
-### 스타일 가이드
-- **배경**: `bg-[#121212]` 또는 `bg-black/20`
-- **텍스트**: `text-white`, `text-gray-300`, `text-[#FFD700]`
-- **버튼**: `bg-[#FFD700] text-black hover:bg-[#FFA500]`
-- **카드**: `bg-black/30 backdrop-blur-md border border-gray-600/30`
-
-## 📱 반응형 디자인
-
-- **모바일**: 320px 이상
-- **태블릿**: 768px 이상
-- **데스크톱**: 1024px 이상
-- **대형 화면**: 1280px 이상
-
-## 🚀 배포
-
-### Vercel 배포 (권장)
-```bash
-npm run build
-npm run start
-```
-
-### 환경 변수 설정
-```env
-NEXT_PUBLIC_TMDB_API_KEY=your_tmdb_api_key
-NEXT_PUBLIC_TMDB_BASE_URL=https://api.themoviedb.org/3
-```
+- ✅ **빌드 성공**: TypeScript 오류 해결 완료
+- ✅ **API 정상**: TMDB API 연동 완료
+- ✅ **OTT 정보**: 정확한 스트리밍 정보 표시
+- ✅ **UI 개선**: 네비게이션, 로고, 정확한 정보
+- 🔄 **배포 확인**: 연결 상태 점검 중
 
 ## 🤝 기여하기
 
@@ -171,15 +95,12 @@ NEXT_PUBLIC_TMDB_BASE_URL=https://api.themoviedb.org/3
 
 ## 📄 라이선스
 
-이 프로젝트는 MIT 라이선스 하에 배포됩니다. 자세한 내용은 `LICENSE` 파일을 참조하세요.
+이 프로젝트는 MIT 라이선스 하에 배포됩니다.
 
-## 🙏 감사의 말
+## 📞 문의
 
-- [TMDB](https://www.themoviedb.org/) - 영화 데이터 제공
-- [Next.js](https://nextjs.org/) - React 프레임워크
-- [Framer Motion](https://www.framer.com/motion/) - 애니메이션 라이브러리
-- [Tailwind CSS](https://tailwindcss.com/) - CSS 프레임워크
+프로젝트에 대한 문의사항이 있으시면 이슈를 생성해주세요.
 
 ---
 
-**Made with ❤️ for cinema lovers**
+**토독 (Todok)** - 당신의 OTT 검색 파트너 🎬
