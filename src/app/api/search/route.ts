@@ -44,11 +44,19 @@ export async function GET(request: NextRequest) {
           const bTitle = (b.title || b.name || '').toLowerCase();
           const queryLower = searchQuery.toLowerCase();
           
+          // 정확한 매칭 우선
           const aExact = aTitle.includes(queryLower);
           const bExact = bTitle.includes(queryLower);
           
           if (aExact && !bExact) return -1;
           if (!aExact && bExact) return 1;
+          
+          // 한국어 콘텐츠 우선
+          const aKorean = /[가-힣]/.test(aTitle);
+          const bKorean = /[가-힣]/.test(bTitle);
+          
+          if (aKorean && !bKorean) return -1;
+          if (!aKorean && bKorean) return 1;
           
           return 0;
         });

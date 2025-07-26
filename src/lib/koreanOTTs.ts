@@ -67,6 +67,7 @@ export const KOREAN_CONTENT_DATABASE: Record<string, KoreanOTTProvider[]> = {
   '무한도전': [KOREAN_OTT_PLATFORMS[3]], // 티빙
   '1박2일': [KOREAN_OTT_PLATFORMS[3]], // 티빙
   '라디오스타': [KOREAN_OTT_PLATFORMS[3]], // 티빙
+  '라디오 스타': [KOREAN_OTT_PLATFORMS[3]], // 티빙 (공백 포함)
   '개그콘서트': [KOREAN_OTT_PLATFORMS[3]], // 티빙
   '해피투게더': [KOREAN_OTT_PLATFORMS[3]], // 티빙
   '놀면뭐하니': [KOREAN_OTT_PLATFORMS[3]], // 티빙

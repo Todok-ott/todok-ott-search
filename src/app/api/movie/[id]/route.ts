@@ -120,6 +120,20 @@ export async function GET(
       }
     }
     
+    // 한국어 콘텐츠인 경우 기본 OTT 정보 추가
+    if (/[가-힣]/.test(movieTitle)) {
+      const koreanProviders = findKoreanOTTProviders(movieTitle);
+      if (koreanProviders.length > 0) {
+        const movieWithKoreanOTT = {
+          ...(movieDetails as Record<string, unknown>),
+          ott_providers: combinedOTTInfo,
+          korean_ott_providers: koreanProviders
+        };
+        console.log('한국 OTT 정보 추가 (기본):', koreanProviders);
+        return NextResponse.json(movieWithKoreanOTT);
+      }
+    }
+    
     // 결합된 OTT 정보를 영화 상세 정보에 추가
     const movieWithOTT = {
       ...(movieDetails as Record<string, unknown>),
