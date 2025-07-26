@@ -1,7 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { tmdbClient, Movie } from '@/lib/tmdb';
+import { tmdbClient } from '@/lib/tmdb';
 import { enhanceWithKoreanOTTInfo } from '@/lib/koreanOTTs';
 import moviesData from '@/data/movies.json';
+
+// 검색 결과 타입 정의
+type SearchResult = {
+  id: number;
+  title?: string;
+  name?: string;
+  media_type?: 'movie' | 'tv';
+  original_title?: string;
+  display_title?: string;
+  overview?: string;
+  poster_path?: string;
+  vote_average?: number;
+  release_date?: string;
+  first_air_date?: string;
+  genre_ids?: number[];
+  popularity?: number;
+  vote_count?: number;
+  origin_country?: string[];
+  original_language?: string;
+  backdrop_path?: string;
+  ott_providers?: unknown;
+  local_data?: boolean;
+  [key: string]: unknown;
+};
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,7 +48,7 @@ export async function GET(request: NextRequest) {
     console.log('로컬 검색 결과:', localResults.length);
 
     // 2단계: TMDB API로 검색 (영어 제목 우선)
-    let tmdbResults = [];
+    let tmdbResults: unknown[] = [];
     try {
       const searchQuery = query.trim();
       const isKorean = /[가-힣]/.test(searchQuery);
@@ -73,12 +97,13 @@ export async function GET(request: NextRequest) {
       combinedResults.slice(0, 5).map(async (item) => {
         try {
           let ottInfo = null;
-          if (item.media_type === 'movie') {
-            const providers = await tmdbClient.getMovieWatchProviders(item.id);
+          const itemTyped = item as SearchResult;
+          if (itemTyped.media_type === 'movie') {
+            const providers = await tmdbClient.getMovieWatchProviders(itemTyped.id);
             const providerData = providers as { results?: { KR?: unknown } };
             ottInfo = providerData.results?.KR || null;
-          } else if (item.media_type === 'tv') {
-            const providers = await tmdbClient.getTVWatchProviders(item.id);
+          } else if (itemTyped.media_type === 'tv') {
+            const providers = await tmdbClient.getTVWatchProviders(itemTyped.id);
             const providerData = providers as { results?: { KR?: unknown } };
             ottInfo = providerData.results?.KR || null;
           }
@@ -97,7 +122,8 @@ export async function GET(request: NextRequest) {
     // 5단계: 한국어 콘텐츠에 한국 OTT 정보 추가
     resultsWithOTT = await Promise.all(
       resultsWithOTT.map(async (item) => {
-        const title = item.title || item.name || '';
+        const itemTyped = item as SearchResult;
+        const title = itemTyped.title || itemTyped.name || '';
         if (/[가-힣]/.test(title)) {
           const koreanOTTInfo = await enhanceWithKoreanOTTInfo(item);
           return koreanOTTInfo;
@@ -128,8 +154,8 @@ export async function GET(request: NextRequest) {
 }
 
 // 로컬 데이터 검색 함수
-function searchLocalData(query: string) {
-  const results = [];
+function searchLocalData(query: string): SearchResult[] {
+  const results: SearchResult[] = [];
   const queryLower = query.toLowerCase();
   
   // 영화 검색
@@ -208,7 +234,7 @@ function searchLocalData(query: string) {
 
 // 한국어 검색어에 대한 영어 제목 매핑
 function getEnglishTitlesForKorean(koreanQuery: string): string[] {
-  const englishTitles = [];
+  const englishTitles: string[] = [];
   
   // 로컬 데이터에서 매칭되는 영어 제목 찾기
   for (const movie of moviesData.movies) {
@@ -232,10 +258,11 @@ function getEnglishTitlesForKorean(koreanQuery: string): string[] {
 }
 
 // 중복 제거 함수
-function removeDuplicates(results: any[]): any[] {
-  const seen = new Set();
+function removeDuplicates(results: unknown[]): unknown[] {
+  const seen = new Set<string>();
   return results.filter(item => {
-    const key = `${item.id}-${item.media_type}`;
+    const itemTyped = item as SearchResult;
+    const key = `${itemTyped.id}-${itemTyped.media_type}`;
     if (seen.has(key)) {
       return false;
     }
