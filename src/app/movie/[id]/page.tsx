@@ -116,7 +116,18 @@ export default function MovieDetail({ params }: { params: Promise<{ id: string }
         }
         
         console.log('API 호출 시작:', `/api/movie/${id}`);
-        const response = await fetch(`/api/movie/${id}`);
+        
+        // URL에서 제목 정보 추출 (예: /movie/244808?title=누키타시%20THE%20ANOMATION)
+        const urlParams = new URLSearchParams(window.location.search);
+        const titleParam = urlParams.get('title');
+        
+        // 제목 파라미터가 있으면 제목으로 검색, 없으면 ID로 검색
+        const apiUrl = titleParam 
+          ? `/api/movie/${id}?title=${encodeURIComponent(titleParam)}`
+          : `/api/movie/${id}`;
+        
+        console.log('최종 API URL:', apiUrl);
+        const response = await fetch(apiUrl);
         console.log('API 응답 상태:', response.status, response.statusText);
         
         if (!response.ok) {
