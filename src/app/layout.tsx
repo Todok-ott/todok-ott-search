@@ -54,6 +54,7 @@ export default function RootLayout({
             src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
             crossOrigin="anonymous"
             strategy="afterInteractive"
+            id="adsbygoogle-script"
           />
         )}
         {/* GoogleAnalytics는 조건부로 로드 */}

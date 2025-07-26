@@ -76,7 +76,8 @@ function SearchResultsContent() {
   }, [performSearch]);
 
   const handleResultSelect = (movie: Movie) => {
-    window.location.href = `/movie/${movie.id}`;
+    const mediaType = movie.media_type || 'movie';
+    window.location.href = `/content/${movie.id}?type=${mediaType}`;
   };
 
   const handleSearch = (newQuery: string) => {
