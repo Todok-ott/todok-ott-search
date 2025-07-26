@@ -4,10 +4,11 @@ import { combineOTTInfo } from '@/lib/ottUtils';
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const movieId = parseInt(params.id);
+    const { id } = await params;
+    const movieId = parseInt(id);
     
     if (isNaN(movieId)) {
       return NextResponse.json(
@@ -23,11 +24,12 @@ export async function GET(
     ]);
     
     // OTT 정보 결합
-    const combinedOTTInfo = combineOTTInfo(ottProviders.results?.KR || ottProviders.results?.US || {});
+    const ottData = ottProviders as { results?: { KR?: unknown; US?: unknown } };
+    const combinedOTTInfo = combineOTTInfo(ottData.results?.KR || ottData.results?.US || {});
     
     // 결합된 OTT 정보를 영화 상세 정보에 추가
     const movieWithOTT = {
-      ...movieDetails,
+      ...(movieDetails as Record<string, unknown>),
       ott_providers: combinedOTTInfo
     };
     
