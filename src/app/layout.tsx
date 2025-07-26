@@ -45,44 +45,20 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
-        {/* Google AdSense */}
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
-          crossOrigin="anonymous"
-        />
-        
-        {/* 광고 차단 감지 스크립트 */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                // 클라이언트 사이드에서만 실행
-                if (typeof window !== 'undefined' && document && document.body) {
-                  var testAd = document.createElement('div');
-                  testAd.innerHTML = '&nbsp;';
-                  testAd.className = 'adsbox';
-                  document.body.appendChild(testAd);
-                  
-                  setTimeout(function() {
-                    if (testAd.offsetHeight === 0) {
-                      // 광고 차단 감지
-                      console.log('Ad blocker detected');
-                      // 광고 차단 메시지 표시 로직
-                    }
-                    if (document.body && testAd.parentNode) {
-                      document.body.removeChild(testAd);
-                    }
-                  }, 100);
-                }
-              })();
-            `
-          }}
-        />
+        {/* Google AdSense - 조건부 로드 */}
+        {process.env.NODE_ENV === 'production' && (
+          <script
+            async
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
+            crossOrigin="anonymous"
+            onError={() => console.log('AdSense 로드 실패 - 광고 차단기로 인한 차단 가능')}
+          />
+        )}
       </head>
       <body className={inter.className}>
         {children}
-        <GoogleAnalytics />
+        {/* GoogleAnalytics는 조건부로 로드 */}
+        {process.env.NODE_ENV === 'production' && <GoogleAnalytics />}
       </body>
     </html>
   );

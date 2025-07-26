@@ -134,93 +134,12 @@ export default function Home() {
       event.preventDefault();
     };
 
-    // DOM 변경 감지 및 에러 방지 (선택적 차단)
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.type === 'childList') {
-          mutation.addedNodes.forEach((node) => {
-            if (node.nodeType === Node.ELEMENT_NODE) {
-              const element = node as Element;
-              
-              // 스크립트 태그 처리
-              if (element.tagName === 'SCRIPT') {
-                const src = element.getAttribute('src');
-                if (src) {
-                  // 문제가 되는 도메인만 차단 (광고는 허용)
-                  const blockedDomains = [
-                    'ep2.adtrafficquality.google',
-                    'www.google.com/recaptcha'
-                  ];
-                  
-                  const shouldBlock = blockedDomains.some(domain => 
-                    src.includes(domain)
-                  );
-                  
-                  if (shouldBlock) {
-                    console.warn('문제 스크립트 차단:', src);
-                    try {
-                      element.remove();
-                    } catch (e) {
-                      console.warn('스크립트 제거 실패:', e);
-                    }
-                  } else {
-                    console.log('허용된 스크립트:', src);
-                  }
-                }
-              }
-              
-              // iframe 태그 처리
-              if (element.tagName === 'IFRAME') {
-                const src = element.getAttribute('src');
-                if (src) {
-                  const blockedDomains = [
-                    'ep2.adtrafficquality.google',
-                    'www.google.com/recaptcha'
-                  ];
-                  
-                  const shouldBlock = blockedDomains.some(domain => 
-                    src.includes(domain)
-                  );
-                  
-                  if (shouldBlock) {
-                    console.warn('문제 iframe 차단:', src);
-                    try {
-                      element.remove();
-                    } catch (e) {
-                      console.warn('iframe 제거 실패:', e);
-                    }
-                  } else {
-                    console.log('허용된 iframe:', src);
-                  }
-                }
-              }
-            }
-          });
-        }
-      });
-    });
 
-    // 더 빠른 감지를 위해 즉시 시작
-    if (document.body) {
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true
-      });
-    } else {
-      // body가 아직 없으면 DOMContentLoaded 대기
-      document.addEventListener('DOMContentLoaded', () => {
-        observer.observe(document.body, {
-          childList: true,
-          subtree: true
-        });
-      });
-    }
 
     window.addEventListener('error', handleError);
     window.addEventListener('unhandledrejection', handleUnhandledRejection);
     
     return () => {
-      observer.disconnect();
       window.removeEventListener('error', handleError);
       window.removeEventListener('unhandledrejection', handleUnhandledRejection);
     };

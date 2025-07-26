@@ -10,7 +10,8 @@ interface GoogleAdSenseProps {
 
 export default function GoogleAdSense({ adSlot, adFormat, className = '' }: GoogleAdSenseProps) {
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    // 개발 환경이나 광고 차단기가 있을 때는 광고를 로드하지 않음
+    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
       try {
         // AdSense 스크립트가 로드되었는지 확인
         if ((window as unknown as { adsbygoogle?: { push: (config: unknown) => void } }).adsbygoogle) {
