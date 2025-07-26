@@ -295,8 +295,10 @@ export default function MovieDetail({ params }: { params: Promise<{ id: string }
         </div>
       </div>
 
-      {/* 푸터 */}
-      <Footer />
+      {/* 푸터 - 항상 보이도록 수정 */}
+      <div className="relative z-10 mt-16">
+        <Footer />
+      </div>
     </div>
   );
 } 
