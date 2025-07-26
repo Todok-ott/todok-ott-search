@@ -21,6 +21,73 @@ interface PopularContent {
   media_type: 'movie' | 'tv';
 }
 
+// 임시 데이터
+const fallbackMovies: PopularContent[] = [
+  {
+    id: 1,
+    title: "인터스텔라",
+    overview: "우주를 배경으로 한 SF 영화",
+    poster_path: "/placeholder-poster.jpg",
+    vote_average: 8.6,
+    release_date: "2014",
+    media_type: "movie"
+  },
+  {
+    id: 2,
+    title: "듄",
+    overview: "사막 행성 아라키스의 이야기",
+    poster_path: "/placeholder-poster.jpg",
+    vote_average: 8.0,
+    release_date: "2021",
+    media_type: "movie"
+  },
+  {
+    id: 3,
+    title: "오펜하이머",
+    overview: "원자폭탄 개발의 역사",
+    poster_path: "/placeholder-poster.jpg",
+    vote_average: 8.4,
+    release_date: "2023",
+    media_type: "movie"
+  }
+];
+
+const fallbackTVShows: PopularContent[] = [
+  {
+    id: 4,
+    title: "스트레인저 씽즈",
+    name: "스트레인저 씽즈",
+    overview: "초자연적 현상을 다루는 드라마",
+    poster_path: "/placeholder-poster.jpg",
+    vote_average: 8.7,
+    release_date: "2016",
+    first_air_date: "2016",
+    media_type: "tv"
+  },
+  {
+    id: 5,
+    title: "브레이킹 배드",
+    name: "브레이킹 배드",
+    overview: "화학 교사의 범죄 이야기",
+    poster_path: "/placeholder-poster.jpg",
+    vote_average: 9.5,
+    release_date: "2008",
+    first_air_date: "2008",
+    media_type: "tv"
+  },
+  {
+    id: 6,
+    title: "게임 오브 스론즈",
+    name: "게임 오브 스론즈",
+    overview: "판타지 세계의 권력 다툼",
+    poster_path: "/placeholder-poster.jpg",
+    vote_average: 9.3,
+    release_date: "2011",
+    first_air_date: "2011",
+    media_type: "tv"
+  }
+];
+
 export default function Home() {
   const [popularMovies, setPopularMovies] = useState<PopularContent[]>([]);
   const [popularTVShows, setPopularTVShows] = useState<PopularContent[]>([]);
@@ -59,11 +126,14 @@ export default function Home() {
         console.log('Movies data:', moviesData);
         console.log('TV data:', tvData);
 
-        setPopularMovies(moviesData.results?.slice(0, 6) || []);
-        setPopularTVShows(tvData.results?.slice(0, 6) || []);
+        setPopularMovies(moviesData.results?.slice(0, 6) || fallbackMovies);
+        setPopularTVShows(tvData.results?.slice(0, 6) || fallbackTVShows);
       } catch (error) {
         console.error('Error fetching popular content:', error);
         setError('콘텐츠를 불러오는 중 오류가 발생했습니다.');
+        // 에러 발생 시 임시 데이터 사용
+        setPopularMovies(fallbackMovies);
+        setPopularTVShows(fallbackTVShows);
       } finally {
         setLoading(false);
       }
@@ -204,34 +274,23 @@ export default function Home() {
             {/* 에러 상태 */}
             {error && (
               <motion.div 
-                className="text-center py-20"
+                className="text-center py-8"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
               >
                 <div className="max-w-md mx-auto">
-                  <div className="w-24 h-24 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <span className="text-red-500 text-4xl">⚠️</span>
+                  <div className="w-16 h-16 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-yellow-500 text-2xl">⚠️</span>
                   </div>
-                  <h3 className="text-2xl font-bold text-white mb-4">
-                    오류가 발생했습니다
-                  </h3>
-                  <p className="text-gray-400 mb-6">
-                    {error}
+                  <p className="text-yellow-400 text-sm mb-4">
+                    {error} (임시 데이터를 표시합니다)
                   </p>
-                  <motion.button
-                    onClick={() => window.location.reload()}
-                    className="bg-yellow-500 text-black px-6 py-3 rounded-full font-medium hover:bg-yellow-400 transition-colors duration-200"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    다시 시도
-                  </motion.button>
                 </div>
               </motion.div>
             )}
 
             {/* 콘텐츠 표시 */}
-            {!loading && !error && (
+            {!loading && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* 인기 영화 */}
                 <motion.div
@@ -253,9 +312,12 @@ export default function Home() {
                           onClick={() => handleContentClick(movie)}
                         >
                           <img
-                            src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                            src={movie.poster_path.startsWith('http') ? movie.poster_path : `https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                             alt={movie.title}
                             className="w-full h-48 object-cover"
+                            onError={(e) => {
+                              e.currentTarget.src = '/placeholder-poster.jpg';
+                            }}
                           />
                           <div className="p-4">
                             <h4 className="text-white font-semibold mb-2 line-clamp-2">
@@ -299,9 +361,12 @@ export default function Home() {
                           onClick={() => handleContentClick(show)}
                         >
                           <img
-                            src={`https://image.tmdb.org/t/p/w500${show.poster_path}`}
+                            src={show.poster_path.startsWith('http') ? show.poster_path : `https://image.tmdb.org/t/p/w500${show.poster_path}`}
                             alt={show.name || show.title}
                             className="w-full h-48 object-cover"
+                            onError={(e) => {
+                              e.currentTarget.src = '/placeholder-poster.jpg';
+                            }}
                           />
                           <div className="p-4">
                             <h4 className="text-white font-semibold mb-2 line-clamp-2">
@@ -328,7 +393,7 @@ export default function Home() {
             )}
 
             {/* 콘텐츠 광고 */}
-            {contentAds.length > 0 && !loading && !error && (
+            {contentAds.length > 0 && !loading && (
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
