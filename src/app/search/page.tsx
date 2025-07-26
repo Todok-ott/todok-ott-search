@@ -3,8 +3,9 @@
 import { useState, useEffect, Suspense, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Star, Play, Info, Filter } from 'lucide-react';
+import { Search, Star, Play, Info, TrendingUp } from 'lucide-react';
 import SearchBar from '@/components/SearchBar';
+import AdBanner from '@/components/AdBanner';
 import Footer from '@/components/Footer';
 import { Movie } from '@/lib/tmdb';
 
@@ -153,7 +154,7 @@ function SearchResultsContent() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <Filter className="w-5 h-5" />
+                <TrendingUp className="w-5 h-5" />
               </motion.button>
             </div>
           </div>
@@ -233,24 +234,7 @@ function SearchResultsContent() {
 
         {/* 광고 배너 - 검색 결과 헤더 아래 */}
         {!isLoading && results.length > 0 && (
-          <div className="w-full flex justify-center mb-8">
-            <div style={{
-              width: '100%',
-              maxWidth: 728,
-              height: 90,
-              background: 'linear-gradient(45deg, #FFD700, #FFA500)',
-              color: '#000',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: 8,
-              border: '2px dashed #FF6B35',
-              fontWeight: 'bold',
-              fontSize: '20px'
-            }}>
-              🎬 광고 영역 (샘플) - 검색 결과 상단
-            </div>
-          </div>
+          <AdBanner />
         )}
 
         {/* 로딩 상태 */}

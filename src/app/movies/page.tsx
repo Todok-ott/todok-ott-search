@@ -93,6 +93,28 @@ export default function MoviesPage() {
 
       {/* 메인 콘텐츠 */}
       <main className="max-w-7xl mx-auto px-6 py-8">
+        
+        {/* 광고 배너 - 영화 페이지 상단 */}
+        <div className="w-full flex justify-center mb-8">
+          <div style={{
+            width: '100%',
+            maxWidth: 728,
+            height: 90,
+            background: 'linear-gradient(45deg, #FF6B35, #E55A2B)',
+            color: '#fff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 8,
+            border: '2px dashed #D84315',
+            fontWeight: 'bold',
+            fontSize: '20px'
+          }}>
+            🎬 광고 영역 (샘플) - 영화 페이지
+          </div>
+        </div>
+
+        {/* 페이지 헤더 */}
         <motion.div 
           className="mb-8"
           initial={{ opacity: 0, y: 20 }}

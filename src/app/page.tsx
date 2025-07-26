@@ -359,6 +359,27 @@ export default function Home() {
       {/* 인기 콘텐츠 섹션 */}
       <section id="popular-content" className="py-2 px-6">
         <div className="max-w-7xl mx-auto">
+          
+          {/* 광고 배너 - 인기 콘텐츠 섹션 상단 */}
+          <div className="w-full flex justify-center mb-8">
+            <div style={{
+              width: '100%',
+              maxWidth: 728,
+              height: 90,
+              background: 'linear-gradient(45deg, #4CAF50, #45a049)',
+              color: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: 8,
+              border: '2px dashed #2E7D32',
+              fontWeight: 'bold',
+              fontSize: '20px'
+            }}>
+              🎬 광고 영역 (샘플) - 메인 페이지
+            </div>
+          </div>
+          
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}

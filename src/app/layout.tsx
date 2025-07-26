@@ -47,14 +47,12 @@ export default function RootLayout({
     <html lang="ko">
       <body className={inter.className}>
         {children}
-        {/* Google AdSense - 조건부 로드 */}
-        {process.env.NODE_ENV === 'production' && (
-          <script
-            async
-            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
-            crossOrigin="anonymous"
-          />
-        )}
+        {/* Google AdSense - 항상 로드 (개발/프로덕션 모두) */}
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
+          crossOrigin="anonymous"
+        />
         {/* GoogleAnalytics는 조건부로 로드 */}
         {process.env.NODE_ENV === 'production' && <GoogleAnalytics />}
       </body>
