@@ -100,8 +100,13 @@ function SearchResultsContent() {
   }, [performSearch]);
 
   const handleResultSelect = (movie: Movie) => {
+    // 기존 방식으로 라우팅 (상세 페이지 접근 가능하도록)
     const mediaType = movie.media_type || 'movie';
-    window.location.href = `/content/${movie.id}?type=${mediaType}`;
+    if (mediaType === 'tv') {
+      window.location.href = `/tv/${movie.id}`;
+    } else {
+      window.location.href = `/movie/${movie.id}`;
+    }
   };
 
   const handleSearch = (newQuery: string) => {
@@ -205,25 +210,7 @@ function SearchResultsContent() {
 
       {/* 메인 콘텐츠 */}
       <main className="max-w-7xl mx-auto px-6 py-8">
-        {/* 검색 결과 상단 광고 배너 */}
-        <div className="w-full flex justify-center my-8">
-          <div style={{
-            width: '100%',
-            maxWidth: 728,
-            height: 90,
-            background: 'linear-gradient(45deg, #FFD700, #FFA500)',
-            color: '#000',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: 8,
-            border: '2px dashed #FF6B35',
-            fontWeight: 'bold',
-            fontSize: '20px'
-          }}>
-            🎬 광고 영역 (샘플) - 항상 보임
-          </div>
-        </div>
+
         {/* 검색 결과 헤더 */}
         <motion.div 
           className="mb-8"
@@ -238,6 +225,28 @@ function SearchResultsContent() {
             {isLoading ? '검색 중...' : `${results.length}개의 결과를 찾았습니다.`}
           </p>
         </motion.div>
+
+        {/* 광고 배너 - 검색 결과 헤더 아래 */}
+        {!isLoading && results.length > 0 && (
+          <div className="w-full flex justify-center mb-8">
+            <div style={{
+              width: '100%',
+              maxWidth: 728,
+              height: 90,
+              background: 'linear-gradient(45deg, #FFD700, #FFA500)',
+              color: '#000',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: 8,
+              border: '2px dashed #FF6B35',
+              fontWeight: 'bold',
+              fontSize: '20px'
+            }}>
+              🎬 광고 영역 (샘플) - 검색 결과 상단
+            </div>
+          </div>
+        )}
 
         {/* 로딩 상태 */}
         {isLoading && (
@@ -334,26 +343,11 @@ function SearchResultsContent() {
                       )}
                     </div>
                   </motion.div>
-                  {/* 광고 샘플: 8번째 카드 아래에 표시 */}
-                  {index === 7 && (
-                    <div className="w-full flex justify-center my-8 col-span-full">
-                      {/* 실제 광고 삽입 시 Script 및 ins 태그 사용 */}
-                      <div style={{ width: '100%', maxWidth: 728, height: 90, background: 'linear-gradient(45deg, #FFD700, #FFA500)', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8, border: '2px dashed #FF6B35', fontWeight: 'bold', fontSize: '16px' }}>
-                        🎬 광고 영역 (샘플) - 실제 광고가 여기에 표시됩니다
-                      </div>
-                    </div>
-                  )}
+
                   </>
                 ))}
                 
-                {/* 추가 광고 배너: 검색 결과 끝에 표시 */}
-                {results.length > 0 && (
-                  <div className="w-full flex justify-center my-8 col-span-full">
-                    <div style={{ width: '100%', maxWidth: 728, height: 90, background: 'linear-gradient(45deg, #4CAF50, #45a049)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8, border: '2px dashed #2E7D32', fontWeight: 'bold', fontSize: '16px' }}>
-                      📺 추가 광고 영역 (샘플) - 검색 결과 하단
-                    </div>
-                  </div>
-                )}
+
               </motion.div>
             ) : (
               <motion.div 
