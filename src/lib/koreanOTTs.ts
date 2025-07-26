@@ -102,16 +102,18 @@ export const KOREAN_CONTENT_DATABASE: Record<string, KoreanOTTProvider[]> = {
 export function findKoreanOTTProviders(title: string): KoreanOTTProvider[] {
   const normalizedTitle = title.toLowerCase().replace(/[^\w\s가-힣]/g, '');
   
-  // 개봉 예정/극장 상영 중인 영화들 제외
+  // 개봉 예정/극장 상영 중인 영화들 제외 (한글 + 영문)
   const theaterOnlyMovies = [
     '메간 2.0', 'm3gan 2.0', 'megan 2.0',
     '슈퍼맨', 'superman', 'super man',
     '드래곤 길들이기', 'how to train your dragon',
+    '판타스틱4', 'fantastic 4', 'fantastic four', 'fantastic4',
     '극장판', 'theatrical', 'movie'
   ];
   
   for (const movie of theaterOnlyMovies) {
     if (normalizedTitle.includes(movie.toLowerCase())) {
+      console.log('극장 전용 영화 필터링:', title, '->', movie);
       return []; // 극장 전용 영화는 OTT 정보 없음
     }
   }

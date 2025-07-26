@@ -187,6 +187,14 @@ export async function GET(
     // 개봉일 확인 - 아직 개봉하지 않은 영화는 OTT 정보 추가하지 않음
     const isReleased = releaseDate && new Date(releaseDate) <= new Date();
     
+    console.log('OTT 정보 필터링:', {
+      title: movieTitle,
+      releaseDate,
+      isReleased,
+      hasKoreanTitle: /[가-힣]/.test(movieTitle),
+      hasOTTInfo: combinedOTTInfo.length > 0
+    });
+    
     if (/[가-힣]/.test(movieTitle) && combinedOTTInfo.length === 0 && isReleased) {
       const koreanProviders = findKoreanOTTProviders(movieTitle);
       if (koreanProviders.length > 0) {
