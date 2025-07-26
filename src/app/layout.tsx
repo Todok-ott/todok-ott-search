@@ -51,7 +51,6 @@ export default function RootLayout({
             async
             src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
             crossOrigin="anonymous"
-            onError={() => console.log('AdSense 로드 실패 - 광고 차단기로 인한 차단 가능')}
           />
         )}
       </head>
