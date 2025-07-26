@@ -9,6 +9,7 @@ export interface KoreanOTT {
     monthly?: string;
     yearly?: string;
     basic?: string;
+    standard?: string;
     premium?: string;
   };
   features: string[];
