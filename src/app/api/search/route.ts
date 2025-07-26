@@ -127,12 +127,14 @@ export async function GET(request: NextRequest) {
       })
     );
 
-    // 5단계: 한국어 콘텐츠에 한국 OTT 정보 추가
+    // 5단계: 한국어 콘텐츠에 한국 OTT 정보 추가 (로컬 데이터가 아닌 경우만)
     resultsWithOTT = await Promise.all(
       resultsWithOTT.map(async (item: unknown) => {
         const itemTyped = item as SearchResult;
         const title = itemTyped.title || itemTyped.name || '';
-        if (/[가-힣]/.test(title)) {
+        
+        // 로컬 데이터가 아닌 경우에만 한국 OTT 정보 추가
+        if (/[가-힣]/.test(title) && !itemTyped.local_data) {
           try {
             const koreanOTTInfo = await enhanceWithKoreanOTTInfo([itemTyped]);
             return koreanOTTInfo[0] || itemTyped;

@@ -67,6 +67,40 @@
       "cast": ["미정"],
       "searchKeywords": ["누키타시", "Nukitashi", "THE ANIMATION", "애니메이션"],
       "tmdbId": 244808
+    },
+    {
+      "id": 5,
+      "title": "The Karate Kid",
+      "originalTitle": "가라테 키드",
+      "displayTitle": "가라테 키드",
+      "type": "movie",
+      "year": 1984,
+      "rating": 7.3,
+      "posterUrl": "https://picsum.photos/300/450?random=5",
+      "overview": "새로운 도시로 이사한 다니엘이 가라테를 배우며 자신감을 찾는 이야기",
+      "ottPlatforms": ["넷플릭스", "디즈니플러스"],
+      "genre": ["액션", "드라마", "스포츠"],
+      "director": "존 G. 아빌드슨",
+      "cast": ["랄프 마치오", "팻 모리타", "엘리자베스 슈"],
+      "searchKeywords": ["가라테 키드", "가라데 키즈", "Karate Kid", "랄프 마치오", "액션"],
+      "tmdbId": 1374
+    },
+    {
+      "id": 6,
+      "title": "The Man with No Name",
+      "originalTitle": "맨 위드 노 네임",
+      "displayTitle": "맨 위드 노 네임",
+      "type": "movie",
+      "year": 1964,
+      "rating": 8.0,
+      "posterUrl": "https://picsum.photos/300/450?random=6",
+      "overview": "이름 없는 총잡이가 황금을 찾아 떠나는 서부극",
+      "ottPlatforms": ["넷플릭스"],
+      "genre": ["서부극", "액션", "드라마"],
+      "director": "세르조 레오네",
+      "cast": ["클린트 이스트우드", "리 반 클리프", "이리 월라치"],
+      "searchKeywords": ["맨 위드 노 네임", "맨 위드 노 패스트", "Man with No Name", "클린트 이스트우드", "서부극"],
+      "tmdbId": 429
     }
   ],
   "dramas": [
@@ -120,13 +154,30 @@
       "cast": ["헨리 카빌", "프레야 앨런", "아냐 찰로트라"],
       "searchKeywords": ["위쳐", "헨리 카빌", "판타지", "The Witcher"],
       "tmdbId": 71912
+    },
+    {
+      "id": 104,
+      "title": "Squid Game",
+      "originalTitle": "오징어 게임",
+      "displayTitle": "오징어 게임",
+      "type": "drama",
+      "year": 2021,
+      "rating": 8.1,
+      "posterUrl": "https://picsum.photos/300/450?random=104",
+      "overview": "생존 게임에 참가한 사람들의 이야기",
+      "ottPlatforms": ["넷플릭스"],
+      "genre": ["스릴러", "드라마", "서바이벌"],
+      "director": "황동혁",
+      "cast": ["이정재", "박희순", "위하준"],
+      "searchKeywords": ["오징어 게임", "Squid Game", "이정재", "스릴러", "넷플릭스"],
+      "tmdbId": 93405
     }
   ],
   "metadata": {
-    "totalMovies": 4,
-    "totalDramas": 3,
+    "totalMovies": 6,
+    "totalDramas": 4,
     "lastUpdated": "2024-01-25",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "searchStrategy": "english_title_priority"
   }
 } 
