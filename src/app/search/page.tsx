@@ -39,6 +39,15 @@ function SearchResultsContent() {
       
       let filteredResults = data.results || [];
       
+      // OTT 정보가 없는 콘텐츠는 제외
+      filteredResults = filteredResults.filter((item: Movie) => {
+        // TMDB ott_providers: flatrate만 체크
+        const hasTMDB = item.ott_providers && Array.isArray(item.ott_providers.flatrate) && item.ott_providers.flatrate.length > 0;
+        // Korean ott_providers: any 타입 단언 후 배열 체크
+        const hasKorean = (item as any).korean_ott_providers && Array.isArray((item as any).korean_ott_providers) && (item as any).korean_ott_providers.length > 0;
+        return hasTMDB || hasKorean;
+      });
+      
       // 타입 필터링
       if (filterType !== 'all') {
         filteredResults = filteredResults.filter((item: Movie) => 
@@ -218,6 +227,7 @@ function SearchResultsContent() {
                 transition={{ duration: 0.6 }}
               >
                 {results.map((item, index) => (
+                  <>
                   <motion.div
                     key={item.id}
                     initial={{ opacity: 0, y: 30 }}
@@ -290,6 +300,16 @@ function SearchResultsContent() {
                       )}
                     </div>
                   </motion.div>
+                  {/* 광고 샘플: 8번째 카드 아래에 표시 */}
+                  {index === 7 && (
+                    <div className="w-full flex justify-center my-8">
+                      {/* 실제 광고 삽입 시 Script 및 ins 태그 사용 */}
+                      <div style={{ width: '100%', maxWidth: 728, height: 90, background: '#f5f5f5', color: '#888', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8, border: '1px dashed #ccc' }}>
+                        광고 영역 (샘플)
+                      </div>
+                    </div>
+                  )}
+                  </>
                 ))}
               </motion.div>
             ) : (
