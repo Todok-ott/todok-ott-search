@@ -1,7 +1,26 @@
 import { NextResponse } from 'next/server';
 
+interface AdPerformanceRecord {
+  adId: string;
+  metric: string;
+  value: number;
+  timestamp: string;
+  createdAt: string;
+}
+
+interface MetricStats {
+  count: number;
+  total: number;
+}
+
+interface Stats {
+  totalRecords: number;
+  averageValue: number;
+  byMetric: Record<string, MetricStats>;
+}
+
 // 광고 성능 데이터 저장 (실제로는 데이터베이스에 저장)
-let adPerformanceData: any[] = [];
+let adPerformanceData: AdPerformanceRecord[] = [];
 
 export async function POST(request: Request) {
   try {
@@ -17,7 +36,7 @@ export async function POST(request: Request) {
     }
 
     // 광고 성능 데이터 저장
-    const performanceRecord = {
+    const performanceRecord: AdPerformanceRecord = {
       adId,
       metric,
       value,
@@ -74,7 +93,7 @@ export async function GET(request: Request) {
     );
 
     // 통계 계산
-    const stats = {
+    const stats: Stats = {
       totalRecords: filteredData.length,
       averageValue: filteredData.length > 0 
         ? filteredData.reduce((sum, record) => sum + record.value, 0) / filteredData.length 
@@ -86,7 +105,7 @@ export async function GET(request: Request) {
         acc[record.metric].count++;
         acc[record.metric].total += record.value;
         return acc;
-      }, {} as any)
+      }, {} as Record<string, MetricStats>)
     };
 
     return NextResponse.json({

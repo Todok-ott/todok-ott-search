@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Star, Play, Info } from 'lucide-react';
+import Link from 'next/link';
 import Footer from '@/components/Footer';
 import { Movie } from '@/lib/tmdb';
 import { getContentTag } from '@/lib/genreUtils';
@@ -68,18 +69,18 @@ export default function TVPage() {
                 영화
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#FFD700] transition-all duration-300 group-hover:w-full"></span>
               </a>
-              <a href="/tv" className="text-[#FFD700] transition-colors duration-300 relative group">
+              <Link href="/tv" className="text-[#FFD700] transition-colors duration-300 relative group">
                 드라마
                 <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-[#FFD700]"></span>
-              </a>
-              <a href="/popular" className="hover:text-[#FFD700] transition-colors duration-300 relative group">
+              </Link>
+              <Link href="/popular" className="hover:text-[#FFD700] transition-colors duration-300 relative group">
                 인기
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#FFD700] transition-all duration-300 group-hover:w-full"></span>
-              </a>
-              <a href="/latest" className="hover:text-[#FFD700] transition-colors duration-300 relative group">
+              </Link>
+              <Link href="/latest" className="hover:text-[#FFD700] transition-colors duration-300 relative group">
                 신규
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#FFD700] transition-all duration-300 group-hover:w-full"></span>
-              </a>
+              </Link>
             </motion.nav>
           </div>
         </div>

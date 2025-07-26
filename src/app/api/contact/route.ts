@@ -1,7 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+interface Inquiry {
+  id: string;
+  name: string;
+  email: string;
+  type: string;
+  message: string;
+  createdAt: string;
+  status: 'pending' | 'read' | 'replied';
+}
+
 // 간단한 인메모리 저장소 (실제로는 데이터베이스를 사용해야 함)
-let inquiries: any[] = [];
+const inquiries: Inquiry[] = [];
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,7 +36,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 새 문의 생성
-    const inquiry = {
+    const inquiry: Inquiry = {
       id: Date.now().toString(),
       name,
       email,
