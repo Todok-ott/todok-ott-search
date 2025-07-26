@@ -8,6 +8,11 @@ import SearchBar from '@/components/SearchBar';
 import Footer from '@/components/Footer';
 import { Movie } from '@/lib/tmdb';
 
+// Movie 타입을 확장하여 korean_ott_providers 속성 추가
+interface MovieWithKoreanOTT extends Movie {
+  korean_ott_providers?: unknown[];
+}
+
 export default function SearchResults() {
   return (
     <Suspense fallback={
@@ -43,8 +48,8 @@ function SearchResultsContent() {
       filteredResults = filteredResults.filter((item: Movie) => {
         // TMDB ott_providers: flatrate만 체크
         const hasTMDB = item.ott_providers && Array.isArray(item.ott_providers.flatrate) && item.ott_providers.flatrate.length > 0;
-        // Korean ott_providers: any 타입 단언 후 배열 체크
-        const hasKorean = (item as any).korean_ott_providers && Array.isArray((item as any).korean_ott_providers) && (item as any).korean_ott_providers.length > 0;
+        // Korean ott_providers: MovieWithKoreanOTT 타입으로 안전하게 체크
+        const hasKorean = (item as MovieWithKoreanOTT).korean_ott_providers && Array.isArray((item as MovieWithKoreanOTT).korean_ott_providers) && (item as MovieWithKoreanOTT).korean_ott_providers!.length > 0;
         return hasTMDB || hasKorean;
       });
       
