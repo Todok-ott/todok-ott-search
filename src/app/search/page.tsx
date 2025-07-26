@@ -176,7 +176,7 @@ export default function SearchResults() {
           transition={{ duration: 0.6 }}
         >
           <h2 className="text-3xl font-bold text-white mb-2">
-            "{query}" 검색 결과
+            &quot;{query}&quot; 검색 결과
           </h2>
           <p className="text-gray-400">
             {isLoading ? '검색 중...' : `${results.length}개의 결과를 찾았습니다.`}
