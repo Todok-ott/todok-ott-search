@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { tmdbClient } from '@/lib/tmdb';
 import { combineOTTData, OTTProvider } from '@/lib/ottUtils';
+import { findKoreanOTTProviders } from '@/lib/koreanOTTs';
 
 export async function GET(
   request: Request,
@@ -100,6 +101,22 @@ export async function GET(
       } catch (error) {
         console.error('OTT 정보 결합 실패:', error);
         // OTT 정보 결합 실패는 무시
+      }
+    }
+    
+    // 한국어 콘텐츠인 경우 한국 OTT 정보 추가
+    const movieTitle = (movieDetails as { title?: string }).title || '';
+    if (/[가-힣]/.test(movieTitle) && combinedOTTInfo.length === 0) {
+      const koreanProviders = findKoreanOTTProviders(movieTitle);
+      if (koreanProviders.length > 0) {
+        // 한국 OTT 정보를 별도 필드로 추가
+        const movieWithKoreanOTT = {
+          ...(movieDetails as Record<string, unknown>),
+          ott_providers: combinedOTTInfo,
+          korean_ott_providers: koreanProviders
+        };
+        console.log('한국 OTT 정보 추가:', koreanProviders);
+        return NextResponse.json(movieWithKoreanOTT);
       }
     }
     

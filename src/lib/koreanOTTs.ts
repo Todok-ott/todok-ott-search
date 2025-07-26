@@ -1,144 +1,148 @@
-// 국내 OTT 정보 데이터
-export interface KoreanOTT {
-  id: string;
+// 국내 OTT 정보 제공자
+export interface KoreanOTTProvider {
   name: string;
   logo: string;
-  description: string;
-  features: string[];
-  strengths: string[];
-  weaknesses: string[];
-  availableContent: string[];
+  url: string;
+  available: boolean;
 }
 
-export const koreanOTTs: KoreanOTT[] = [
+// 국내 OTT 플랫폼 목록
+export const KOREAN_OTT_PLATFORMS: KoreanOTTProvider[] = [
   {
-    id: 'netflix',
-    name: 'Netflix',
+    name: '넷플릭스',
     logo: '/ott-logos/netflix.svg',
-    description: '글로벌 스트리밍 서비스의 대표주자',
-    features: ['4K 화질', '다중 프로필', '오프라인 시청', '다국어 자막'],
-    strengths: ['다양한 오리지널 콘텐츠', '글로벌 콘텐츠', '고품질 화질'],
-    weaknesses: ['한국 콘텐츠 상대적으로 적음', '가격이 비쌈'],
-    availableContent: ['인터스텔라', '듄', '오펜하이머', '브레이킹 배드', '스트레인저 씽즈', '케이팝 데몬 헌터스', '인셉션', '다크 나이트', '포레스트 검프', '쇼생크 탈출']
+    url: 'https://www.netflix.com',
+    available: true
   },
   {
-    id: 'disney-plus',
-    name: 'Disney+',
+    name: '디즈니플러스',
     logo: '/ott-logos/disney-plus.svg',
-    description: '디즈니, 마블, 스타워즈 콘텐츠 전문',
-    features: ['4K HDR', '다중 프로필', '오프라인 시청', 'IMAX Enhanced'],
-    strengths: ['디즈니/마블/스타워즈 콘텐츠', '가족 친화적', '고품질 오리지널'],
-    weaknesses: ['한국 콘텐츠 부족', '성인 콘텐츠 제한적'],
-    availableContent: ['듄', '인터스텔라', '게임 오브 스론즈', '인셉션', '다크 나이트', '포레스트 검프', '쇼생크 탈출']
+    url: 'https://www.disneyplus.com',
+    available: true
   },
   {
-    id: 'wavve',
-    name: 'Wavve',
+    name: '웨이브',
     logo: '/ott-logos/wavve.svg',
-    description: 'KBS, MBC, SBS 방송 콘텐츠 전문',
-    features: ['실시간 방송', 'VOD 서비스', '다중 프로필', '오프라인 시청'],
-    strengths: ['한국 방송 콘텐츠', '실시간 방송', '합리적인 가격'],
-    weaknesses: ['해외 콘텐츠 부족', '영화 라이브러리 제한적'],
-    availableContent: ['브레이킹 배드', '스트레인저 씽즈', '게임 오브 스론즈']
+    url: 'https://www.wavve.com',
+    available: true
   },
   {
-    id: 'tving',
-    name: 'Tving',
+    name: '티빙',
     logo: '/ott-logos/tving.svg',
-    description: 'tvN, JTBC 등 케이블 방송 콘텐츠',
-    features: ['실시간 방송', 'VOD 서비스', '다중 프로필', '오프라인 시청'],
-    strengths: ['한국 드라마 전문', '실시간 방송', '다양한 예능'],
-    weaknesses: ['영화 콘텐츠 부족', '해외 콘텐츠 제한적'],
-    availableContent: ['브레이킹 배드', '게임 오브 스론즈', '스트레인저 씽즈']
+    url: 'https://www.tving.com',
+    available: true
   },
   {
-    id: 'watcha',
-    name: 'Watcha',
+    name: '왓챠',
     logo: '/ott-logos/watcha.svg',
-    description: '독립 영화와 예술 영화 전문',
-    features: ['다양한 장르', '독립 영화', '다중 프로필', '오프라인 시청'],
-    strengths: ['독립 영화', '다양한 장르', '합리적인 가격'],
-    weaknesses: ['메이저 영화 부족', '해외 콘텐츠 제한적'],
-    availableContent: ['인터스텔라', '오펜하이머', '인셉션', '다크 나이트', '포레스트 검프', '쇼생크 탈출']
+    url: 'https://www.watcha.com',
+    available: true
   },
   {
-    id: 'laftel',
-    name: 'Laftel',
+    name: '라프텔',
     logo: '/ott-logos/laftel.svg',
-    description: '애니메이션 전문 스트리밍 서비스',
-    features: ['애니메이션 전문', '다중 프로필', '오프라인 시청', '자막 옵션'],
-    strengths: ['애니메이션 전문', '다양한 장르', '합리적인 가격'],
-    weaknesses: ['실사 영화/드라마 부족', '일본 애니 중심'],
-    availableContent: ['스트레인저 씽즈', '케이팝 데몬 헌터스']
+    url: 'https://laftel.net',
+    available: true
   },
   {
-    id: 'apple-tv',
-    name: 'Apple TV+',
+    name: '애플TV',
     logo: '/ott-logos/apple-tv.svg',
-    description: '애플 오리지널 콘텐츠 전문',
-    features: ['4K HDR', '다중 프로필', '오프라인 시청', 'Spatial Audio'],
-    strengths: ['고품질 오리지널', '합리적인 가격', '애플 생태계 연동'],
-    weaknesses: ['콘텐츠 수량 적음', '한국 콘텐츠 부족'],
-    availableContent: ['인터스텔라', '듄', '인셉션', '다크 나이트', '포레스트 검프', '쇼생크 탈출']
+    url: 'https://tv.apple.com',
+    available: true
   },
   {
-    id: 'amazon-prime',
-    name: 'Amazon Prime',
+    name: '아마존프라임',
     logo: '/ott-logos/amazon-prime.svg',
-    description: '아마존 오리지널과 다양한 콘텐츠',
-    features: ['4K HDR', '다중 프로필', '오프라인 시청', 'Prime 배송 혜택'],
-    strengths: ['다양한 콘텐츠', '합리적인 가격', '배송 혜택'],
-    weaknesses: ['한국 콘텐츠 부족', '인터페이스 복잡'],
-    availableContent: ['인터스텔라', '듄', '브레이킹 배드', '게임 오브 스론즈', '인셉션', '다크 나이트', '포레스트 검프', '쇼생크 탈출', '케이팝 데몬 헌터스']
+    url: 'https://www.primevideo.com',
+    available: true
   }
 ];
 
-// 최신 개봉 영화 목록 (스트리밍 불가능)
-export const recentTheaterMovies = [
-  '슈퍼맨',
-  'Superman',
-  'Man of Steel',
-  'Batman v Superman',
-  'Justice League',
-  'The Flash',
-  'Aquaman',
-  'Wonder Woman',
-  'Black Adam',
-  'Shazam',
-  'Blue Beetle',
-  'The Marvels',
-  'Ant-Man',
-  'Black Panther',
-  'Thor',
-  'Spider-Man',
-  'Doctor Strange',
-  'Captain Marvel',
-  'Avengers',
-  'Iron Man'
-];
+// 한국어 콘텐츠 매핑 데이터베이스
+export const KOREAN_CONTENT_DATABASE: Record<string, KoreanOTTProvider[]> = {
+  // 예능
+  '런닝맨': [KOREAN_OTT_PLATFORMS[3]], // 티빙
+  '무한도전': [KOREAN_OTT_PLATFORMS[3]], // 티빙
+  '1박2일': [KOREAN_OTT_PLATFORMS[3]], // 티빙
+  '라디오스타': [KOREAN_OTT_PLATFORMS[3]], // 티빙
+  '개그콘서트': [KOREAN_OTT_PLATFORMS[3]], // 티빙
+  '해피투게더': [KOREAN_OTT_PLATFORMS[3]], // 티빙
+  '놀면뭐하니': [KOREAN_OTT_PLATFORMS[3]], // 티빙
+  '신서유기': [KOREAN_OTT_PLATFORMS[3]], // 티빙
+  '미운우리새끼': [KOREAN_OTT_PLATFORMS[3]], // 티빙
+  '동상이몽': [KOREAN_OTT_PLATFORMS[3]], // 티빙
+  
+  // 드라마
+  '기생충': [KOREAN_OTT_PLATFORMS[0]], // 넷플릭스
+  '오징어게임': [KOREAN_OTT_PLATFORMS[0]], // 넷플릭스
+  '킹덤': [KOREAN_OTT_PLATFORMS[0]], // 넷플릭스
+  '스위트홈': [KOREAN_OTT_PLATFORMS[0]], // 넷플릭스
+  '지옥': [KOREAN_OTT_PLATFORMS[0]], // 넷플릭스
+  '더글로리': [KOREAN_OTT_PLATFORMS[0]], // 넷플릭스
+  '마스크걸': [KOREAN_OTT_PLATFORMS[0]], // 넷플릭스
+  '종이의집': [KOREAN_OTT_PLATFORMS[0]], // 넷플릭스
+  '사냥개들': [KOREAN_OTT_PLATFORMS[0]], // 넷플릭스
+  '마이데몬': [KOREAN_OTT_PLATFORMS[0]], // 넷플릭스
+  
+  // 영화
+  '부산행': [KOREAN_OTT_PLATFORMS[0], KOREAN_OTT_PLATFORMS[2]], // 넷플릭스, 웨이브
+  '옥자': [KOREAN_OTT_PLATFORMS[0]], // 넷플릭스
+  '마더': [KOREAN_OTT_PLATFORMS[0]], // 넷플릭스
+  '올드보이': [KOREAN_OTT_PLATFORMS[0]], // 넷플릭스
+  '괴물': [KOREAN_OTT_PLATFORMS[0]], // 넷플릭스
+  '살인의추억': [KOREAN_OTT_PLATFORMS[0]], // 넷플릭스
+  '친절한금자씨': [KOREAN_OTT_PLATFORMS[0]], // 넷플릭스
+  '아가씨': [KOREAN_OTT_PLATFORMS[0]], // 넷플릭스
+};
 
-// 스트리밍 가능한 영화 목록
-export const streamingAvailableMovies = [
-  '인터스텔라',
-  'Interstellar',
-  '듄',
-  'Dune',
-  '오펜하이머',
-  'Oppenheimer',
-  '브레이킹 배드',
-  'Breaking Bad',
-  '스트레인저 씽즈',
-  'Stranger Things',
-  '게임 오브 스론즈',
-  'Game of Thrones',
-  '인셉션',
-  'Inception',
-  '다크 나이트',
-  'The Dark Knight',
-  '포레스트 검프',
-  'Forrest Gump',
-  '쇼생크 탈출',
-  'The Shawshank Redemption',
-  '케이팝 데몬 헌터스',
-  'K-pop Demon Hunters'
-]; 
+// 한국어 콘텐츠 검색 함수
+export function findKoreanOTTProviders(title: string): KoreanOTTProvider[] {
+  const normalizedTitle = title.toLowerCase().replace(/[^\w\s가-힣]/g, '');
+  
+  // 정확한 매칭
+  for (const [key, providers] of Object.entries(KOREAN_CONTENT_DATABASE)) {
+    if (normalizedTitle.includes(key.toLowerCase())) {
+      return providers;
+    }
+  }
+  
+  // 부분 매칭 (한국어 키워드)
+  const koreanKeywords = ['런닝맨', '무한도전', '라디오스타', '개그콘서트', '해피투게더', '놀면뭐하니', '신서유기', '미운우리새끼', '동상이몽'];
+  
+  for (const keyword of koreanKeywords) {
+    if (normalizedTitle.includes(keyword.toLowerCase())) {
+      return [KOREAN_OTT_PLATFORMS[3]]; // 티빙 (예능 주로)
+    }
+  }
+  
+  // 한국어 콘텐츠 감지 (한글 포함)
+  if (/[가-힣]/.test(title)) {
+    // 한국어 콘텐츠는 주로 티빙, 웨이브, 왓챠에서 찾을 수 있음
+    return [KOREAN_OTT_PLATFORMS[2], KOREAN_OTT_PLATFORMS[3], KOREAN_OTT_PLATFORMS[4]]; // 웨이브, 티빙, 왓챠
+  }
+  
+  return [];
+}
+
+// OTT 정보를 TMDB 결과와 결합하는 함수
+export function enhanceWithKoreanOTTInfo(tmdbResults: any[], query: string): any[] {
+  return tmdbResults.map(result => {
+    const title = result.title || result.name || '';
+    const koreanProviders = findKoreanOTTProviders(title);
+    
+    // 기존 TMDB OTT 정보가 있으면 유지, 없으면 한국 OTT 정보 추가
+    if (!result.ott_providers && koreanProviders.length > 0) {
+      result.ott_providers = {
+        KR: {
+          flatrate: koreanProviders.map(provider => ({
+            provider_id: Math.random(), // 임시 ID
+            provider_name: provider.name,
+            logo_path: provider.logo
+          }))
+        }
+      };
+    }
+    
+    return result;
+  });
+} 

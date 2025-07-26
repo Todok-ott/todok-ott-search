@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { tmdbClient, Movie } from '@/lib/tmdb';
+import { enhanceWithKoreanOTTInfo } from '@/lib/koreanOTTs';
 
 export async function GET(request: NextRequest) {
   try {
@@ -75,7 +76,7 @@ export async function GET(request: NextRequest) {
     }
     
     // 각 결과에 OTT 정보 추가 (최대 5개까지만 처리하여 성능 최적화)
-    const resultsWithOTT = await Promise.all(
+    let resultsWithOTT = await Promise.all(
       searchResult.results.slice(0, 5).map(async (item) => {
         try {
           let ottInfo = null;
@@ -99,6 +100,12 @@ export async function GET(request: NextRequest) {
         }
       })
     );
+    
+    // 한국어 검색인 경우 한국 OTT 정보 추가
+    const isKorean = /[가-힣]/.test(query.trim());
+    if (isKorean) {
+      resultsWithOTT = enhanceWithKoreanOTTInfo(resultsWithOTT, query.trim());
+    }
     
     return NextResponse.json({
       results: resultsWithOTT,
