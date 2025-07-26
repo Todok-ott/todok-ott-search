@@ -147,13 +147,10 @@ export default function Home() {
               if (element.tagName === 'SCRIPT') {
                 const src = element.getAttribute('src');
                 if (src) {
-                  // 문제가 되는 도메인만 차단
+                  // 문제가 되는 도메인만 차단 (광고는 허용)
                   const blockedDomains = [
                     'ep2.adtrafficquality.google',
-                    'www.google.com/recaptcha',
-                    'googleads.g.doubleclick.net',
-                    'pagead2.googlesyndication.com',
-                    'securepubads.g.doubleclick.net'
+                    'www.google.com/recaptcha'
                   ];
                   
                   const shouldBlock = blockedDomains.some(domain => 
@@ -179,9 +176,7 @@ export default function Home() {
                 if (src) {
                   const blockedDomains = [
                     'ep2.adtrafficquality.google',
-                    'www.google.com/recaptcha',
-                    'googleads.g.doubleclick.net',
-                    'pagead2.googlesyndication.com'
+                    'www.google.com/recaptcha'
                   ];
                   
                   const shouldBlock = blockedDomains.some(domain => 
@@ -415,44 +410,55 @@ export default function Home() {
                />
              </motion.div>
 
-             {/* 인기 콘텐츠 스크롤 버튼 */}
-             <motion.div
-               initial={{ opacity: 0 }}
-               animate={{ opacity: 1 }}
-               transition={{ duration: 1, delay: 1 }}
-               className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-             >
-               <motion.button
-                 onClick={() => {
-                   const popularSection = document.getElementById('popular-content');
-                   if (popularSection) {
-                     popularSection.scrollIntoView({ behavior: 'smooth' });
-                   }
-                 }}
-                 whileHover={{ scale: 1.05 }}
-                 whileTap={{ scale: 0.95 }}
-                 className="flex items-center space-x-2 text-white hover:text-yellow-500 transition-colors cursor-pointer"
-               >
-                 <motion.div
-                   animate={{ y: [0, 5, 0] }}
-                   transition={{ duration: 2, repeat: Infinity }}
-                   className="text-sm font-medium"
-                 >
-                   인기 콘텐츠
-                 </motion.div>
-                 <motion.div
-                   animate={{ y: [0, 3, 0] }}
-                   transition={{ duration: 2, repeat: Infinity }}
-                   className="w-4 h-4"
-                 >
-                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                   </svg>
-                 </motion.div>
-               </motion.button>
-             </motion.div>
            </div>
          </section>
+
+         {/* 인기 콘텐츠 스크롤 버튼 - 고급 디자인 */}
+         <motion.div
+           initial={{ opacity: 0, y: 20 }}
+           animate={{ opacity: 1, y: 0 }}
+           transition={{ duration: 1, delay: 1.2 }}
+           className="absolute bottom-12 left-1/2 transform -translate-x-1/2 z-20"
+         >
+           <motion.button
+             onClick={() => {
+               const popularSection = document.getElementById('popular-content');
+               if (popularSection) {
+                 popularSection.scrollIntoView({ behavior: 'smooth' });
+               }
+             }}
+             whileHover={{ scale: 1.05, y: -2 }}
+             whileTap={{ scale: 0.95 }}
+             className="group relative px-8 py-4 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 backdrop-blur-sm border border-yellow-500/30 rounded-full shadow-2xl hover:shadow-yellow-500/25 transition-all duration-300"
+           >
+             <div className="flex items-center space-x-3">
+               <motion.div
+                 animate={{ y: [0, 3, 0] }}
+                 transition={{ duration: 2, repeat: Infinity }}
+                 className="text-yellow-400 font-semibold text-lg"
+               >
+                 인기 콘텐츠
+               </motion.div>
+               <motion.div
+                 animate={{ y: [0, 2, 0] }}
+                 transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+                 className="w-5 h-5"
+               >
+                 <svg className="w-5 h-5 text-yellow-400 group-hover:text-yellow-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                 </svg>
+               </motion.div>
+             </div>
+             
+             {/* 호버 효과 */}
+             <motion.div
+               className="absolute inset-0 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+               initial={false}
+             />
+           </motion.button>
+         </motion.div>
+       </div>
+     </section>
 
          {/* 인기 콘텐츠 섹션 */}
          <section id="popular-content" className="py-16 px-6">

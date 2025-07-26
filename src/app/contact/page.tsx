@@ -89,7 +89,7 @@ export default function ContactPage() {
               transition={{ duration: 0.2 }}
               onClick={() => window.location.href = '/'}
             >
-              <span className="text-[#FFD700]">CINEMA</span>
+                              <span className="text-[#FFD700]">토독</span>
               <span className="text-white">SEARCH</span>
             </motion.h1>
             
@@ -131,7 +131,7 @@ export default function ContactPage() {
                   <Mail className="w-6 h-6 text-[#FFD700]" />
                   <div>
                     <p className="text-white font-medium">이메일</p>
-                    <p className="text-gray-300">contact@cinemasearch.com</p>
+                    <p className="text-gray-300">contact@todok.com</p>
                   </div>
                 </div>
                 
@@ -139,7 +139,7 @@ export default function ContactPage() {
                   <MessageSquare className="w-6 h-6 text-[#FFD700]" />
                   <div>
                     <p className="text-white font-medium">카카오톡</p>
-                    <p className="text-gray-300">@cinemasearch</p>
+                    <p className="text-gray-300">@todok</p>
                   </div>
                 </div>
                 
@@ -156,7 +156,7 @@ export default function ContactPage() {
               <div className="mt-8 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
                 <p className="text-yellow-500 text-sm font-medium mb-2">관리자 전용</p>
                 <a 
-                  href="/admin/inquiries?adminKey=cinemasearch2024" 
+                  href="/admin/inquiries?adminKey=todok2024" 
                   className="text-yellow-400 hover:text-yellow-300 text-sm underline"
                 >
                   문의 관리 페이지 →

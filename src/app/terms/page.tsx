@@ -25,7 +25,7 @@ export default function TermsPage() {
               transition={{ duration: 0.2 }}
               onClick={() => window.location.href = '/'}
             >
-              <span className="text-[#FFD700]">CINEMA</span>
+                              <span className="text-[#FFD700]">토독</span>
               <span className="text-white">SEARCH</span>
             </motion.h1>
             
@@ -56,7 +56,7 @@ export default function TermsPage() {
             <section>
               <h2 className="text-2xl font-semibold text-white mb-4">1. 서비스 이용</h2>
               <p>
-                Cinema Search는 영화 및 드라마 정보 검색 서비스를 제공합니다.
+                토독 (Todok)은 영화 및 드라마 정보 검색 서비스를 제공합니다.
                 사용자는 본 서비스를 개인적인 용도로만 이용할 수 있으며, 상업적 목적으로 사용할 수 없습니다.
               </p>
             </section>

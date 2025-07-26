@@ -25,7 +25,7 @@ export default function PrivacyPage() {
               transition={{ duration: 0.2 }}
               onClick={() => window.location.href = '/'}
             >
-              <span className="text-[#FFD700]">CINEMA</span>
+                              <span className="text-[#FFD700]">토독</span>
               <span className="text-white">SEARCH</span>
             </motion.h1>
             
@@ -56,7 +56,7 @@ export default function PrivacyPage() {
             <section>
               <h2 className="text-2xl font-semibold text-white mb-4">1. 개인정보 수집 및 이용</h2>
               <p>
-                Cinema Search는 사용자의 개인정보를 최소한으로 수집하며, 서비스 제공을 위한 목적으로만 이용합니다.
+                토독 (Todok)은 사용자의 개인정보를 최소한으로 수집하며, 서비스 제공을 위한 목적으로만 이용합니다.
                 수집하는 정보는 검색 쿼리와 기본적인 사용 통계에 한정됩니다.
               </p>
             </section>
@@ -89,7 +89,7 @@ export default function PrivacyPage() {
               <h2 className="text-2xl font-semibold text-white mb-4">5. 문의 및 연락처</h2>
               <p>
                 개인정보처리방침에 대한 문의사항이 있으시면 언제든지 연락해 주시기 바랍니다.
-                이메일: privacy@cinemasearch.com
+                이메일: privacy@todok.com
               </p>
             </section>
           </div>

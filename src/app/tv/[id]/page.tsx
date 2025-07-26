@@ -89,13 +89,10 @@ export default function TVDetail({ params }: { params: Promise<{ id: string }> }
               if (element.tagName === 'SCRIPT') {
                 const src = element.getAttribute('src');
                 if (src) {
-                  // 문제가 되는 도메인만 차단
+                  // 문제가 되는 도메인만 차단 (광고는 허용)
                   const blockedDomains = [
                     'ep2.adtrafficquality.google',
-                    'www.google.com/recaptcha',
-                    'googleads.g.doubleclick.net',
-                    'pagead2.googlesyndication.com',
-                    'securepubads.g.doubleclick.net'
+                    'www.google.com/recaptcha'
                   ];
                   
                   const shouldBlock = blockedDomains.some(domain => 
@@ -121,9 +118,7 @@ export default function TVDetail({ params }: { params: Promise<{ id: string }> }
                 if (src) {
                   const blockedDomains = [
                     'ep2.adtrafficquality.google',
-                    'www.google.com/recaptcha',
-                    'googleads.g.doubleclick.net',
-                    'pagead2.googlesyndication.com'
+                    'www.google.com/recaptcha'
                   ];
                   
                   const shouldBlock = blockedDomains.some(domain => 
