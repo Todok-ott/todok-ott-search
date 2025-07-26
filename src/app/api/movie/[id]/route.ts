@@ -34,12 +34,18 @@ export async function GET(
     
     try {
       console.log('TMDB API 호출 시작 - 영화 ID:', movieId);
+      console.log('TMDB API URL 예상:', `https://api.themoviedb.org/3/movie/${movieId}?api_key=...&language=ko-KR`);
+      
       movieDetails = await tmdbClient.getMovieDetails(movieId);
+      
+      console.log('TMDB API 호출 완료');
       console.log('영화 상세 정보 성공:', {
         id: (movieDetails as Record<string, unknown>)?.id,
         title: (movieDetails as Record<string, unknown>)?.title,
         name: (movieDetails as Record<string, unknown>)?.name,
-        hasData: !!movieDetails
+        hasData: !!movieDetails,
+        dataType: typeof movieDetails,
+        isObject: movieDetails && typeof movieDetails === 'object'
       });
       
       // 데이터 유효성 검사 추가
