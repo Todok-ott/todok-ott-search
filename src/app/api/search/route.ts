@@ -125,8 +125,13 @@ export async function GET(request: NextRequest) {
         const itemTyped = item as SearchResult;
         const title = itemTyped.title || itemTyped.name || '';
         if (/[가-힣]/.test(title)) {
-          const koreanOTTInfo = await enhanceWithKoreanOTTInfo(itemTyped);
-          return koreanOTTInfo;
+          try {
+            const koreanOTTInfo = await enhanceWithKoreanOTTInfo(itemTyped as any);
+            return koreanOTTInfo;
+          } catch (error) {
+            console.error('한국 OTT 정보 추가 실패:', error);
+            return itemTyped;
+          }
         }
         return itemTyped;
       })
