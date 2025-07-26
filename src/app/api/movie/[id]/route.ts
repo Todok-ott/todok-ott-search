@@ -57,12 +57,18 @@ export async function GET(
         // 멀티 검색으로 영화와 TV 쇼 모두 검색
         const searchResults = await tmdbClient.searchMulti(searchQuery);
         console.log('검색 결과 개수:', Array.isArray(searchResults.results) ? searchResults.results.length : 0);
+        console.log('전체 검색 결과:', searchResults.results?.slice(0, 5).map(r => ({
+          title: r.title || r.name,
+          id: r.id,
+          media_type: r.media_type
+        })));
         
-                 if (searchResults && searchResults.results && searchResults.results.length > 0) {
-           // 정확한 제목 매칭 시도
-           const bestMatch = searchResults.results[0];
-           let exactMatch = null;
-           let partialMatch = null;
+        if (searchResults && searchResults.results && searchResults.results.length > 0) {
+          // 정확한 제목 매칭 시도
+          const bestMatch = searchResults.results[0];
+          let exactMatch = null;
+          let partialMatch = null;
+          let closeMatch = null;
           
           // 정확한 제목 매칭 찾기
           for (const result of searchResults.results) {
@@ -86,18 +92,26 @@ export async function GET(
               break;
             }
             
-            // 부분 매칭 (포함 관계)
+            // 부분 매칭 (포함 관계) - 더 엄격한 조건
             if (currentTitle.includes(searchQueryLower) || searchQueryLower.includes(currentTitle)) {
-              partialMatch = result;
-              console.log('부분 매칭 발견:', resultTitle);
+              // 검색어가 제목의 70% 이상 포함되거나, 제목이 검색어의 70% 이상 포함될 때만 매칭
+              const similarity = Math.min(currentTitle.length, searchQueryLower.length) / Math.max(currentTitle.length, searchQueryLower.length);
+              if (similarity > 0.7) {
+                closeMatch = result;
+                console.log('유사 매칭 발견:', resultTitle, '유사도:', similarity);
+              } else {
+                partialMatch = result;
+                console.log('부분 매칭 발견:', resultTitle);
+              }
             }
           }
           
-          const selectedResult = exactMatch || partialMatch || bestMatch;
+          const selectedResult = exactMatch || closeMatch || partialMatch || bestMatch;
           console.log('최종 선택된 결과:', {
             title: selectedResult.title || selectedResult.name,
             id: selectedResult.id,
-            media_type: selectedResult.media_type
+            media_type: selectedResult.media_type,
+            matchType: exactMatch ? 'exact' : closeMatch ? 'close' : partialMatch ? 'partial' : 'first'
           });
           
           // 선택된 결과의 ID로 상세 정보 가져오기
