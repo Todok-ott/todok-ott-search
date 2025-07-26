@@ -32,9 +32,9 @@ export async function GET(
       console.log('TMDB API 호출 시작 - 영화 ID:', movieId);
       movieDetails = await tmdbClient.getMovieDetails(movieId);
       console.log('영화 상세 정보 성공:', {
-        id: (movieDetails as any)?.id,
-        title: (movieDetails as any)?.title,
-        name: (movieDetails as any)?.name,
+        id: (movieDetails as Record<string, unknown>)?.id,
+        title: (movieDetails as Record<string, unknown>)?.title,
+        name: (movieDetails as Record<string, unknown>)?.name,
         hasData: !!movieDetails
       });
       
@@ -50,11 +50,11 @@ export async function GET(
           console.log('검색 결과:', searchResults);
           
           if (searchResults && Array.isArray(searchResults) && searchResults.length > 0) {
-            const firstResult = searchResults[0] as any;
+            const firstResult = searchResults[0] as Record<string, unknown>;
             console.log('검색으로 찾은 영화:', firstResult);
             
             // 검색 결과로 상세 정보 다시 가져오기
-            const detailedResult = await tmdbClient.getMovieDetails(firstResult.id);
+            const detailedResult = await tmdbClient.getMovieDetails(firstResult.id as number);
             if (detailedResult) {
               movieDetails = detailedResult;
               console.log('검색을 통한 상세 정보 성공:', movieDetails);
@@ -92,8 +92,8 @@ export async function GET(
           try {
             const searchResults = await tmdbClient.searchMovies(movieId.toString());
             if (searchResults && Array.isArray(searchResults) && searchResults.length > 0) {
-              const firstResult = searchResults[0] as any;
-              const detailedResult = await tmdbClient.getMovieDetails(firstResult.id);
+              const firstResult = searchResults[0] as Record<string, unknown>;
+              const detailedResult = await tmdbClient.getMovieDetails(firstResult.id as number);
               if (detailedResult) {
                 movieDetails = detailedResult;
                 console.log('검색을 통한 상세 정보 성공:', movieDetails);
