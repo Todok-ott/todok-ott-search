@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { tmdbClient } from '@/lib/tmdb';
-import { combineOTTData } from '@/lib/ottUtils';
+import { combineOTTData, OTTProvider } from '@/lib/ottUtils';
 
 export async function GET(
   request: Request,
@@ -44,7 +44,7 @@ export async function GET(
     }
     
     // OTT 정보 결합 (실패해도 기본 정보는 반환)
-    let combinedOTTInfo: any[] = [];
+    let combinedOTTInfo: OTTProvider[] = [];
     if (ottProviders) {
       try {
         const ottData = ottProviders as { results?: { KR?: unknown; US?: unknown } };
