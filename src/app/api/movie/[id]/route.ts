@@ -7,17 +7,21 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  console.log('=== Movie API 호출 시작 ===');
+  console.log('요청 URL:', request.url);
+  console.log('요청 메서드:', request.method);
+  console.log('요청 헤더:', Object.fromEntries(request.headers.entries()));
+  
   try {
     const { id } = await params;
+    console.log('받은 ID:', id);
     
     // URL에서 제목 파라미터 추출
     const url = new URL(request.url);
     const titleParam = url.searchParams.get('title');
+    console.log('제목 파라미터:', titleParam);
     
-    console.log('=== Movie API 호출 시작 ===');
-    console.log('요청 URL:', request.url);
     console.log('파라미터:', { id, titleParam });
-    console.log('요청 헤더:', Object.fromEntries(request.headers.entries()));
     
     let movieDetails;
     let ottProviders = null;
@@ -40,6 +44,7 @@ export async function GET(
     
     try {
       // 멀티 검색으로 영화와 TV 쇼 모두 검색
+      console.log('TMDB API 호출 시작...');
       const searchResults = await tmdbClient.searchMulti(searchQuery);
       console.log('검색 결과 개수:', Array.isArray(searchResults.results) ? searchResults.results.length : 0);
       console.log('전체 검색 결과:', searchResults.results?.slice(0, 5).map(r => ({
@@ -101,6 +106,7 @@ export async function GET(
         
         // 선택된 결과의 ID로 상세 정보 가져오기
         let detailedResult;
+        console.log('상세 정보 가져오기 시작...');
         if (selectedResult.media_type === 'tv') {
           detailedResult = await tmdbClient.getTVDetails(selectedResult.id);
         } else {
@@ -117,6 +123,10 @@ export async function GET(
       }
     } catch (searchError) {
       console.error('검색 실패:', searchError);
+      return NextResponse.json(
+        { error: `검색 중 오류가 발생했습니다: ${searchError instanceof Error ? searchError.message : 'Unknown error'}` },
+        { status: 500 }
+      );
     }
     
     // 최종적으로 영화 정보를 찾지 못한 경우
