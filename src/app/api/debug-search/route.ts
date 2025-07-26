@@ -13,14 +13,39 @@ export async function GET(request: Request) {
     console.log('=== 디버그 검색 시작 ===');
     console.log('검색어:', query);
     
-    const searchResults = await tmdbClient.searchMulti(query);
+    // 여러 검색어로 테스트
+    const searchQueries = [
+      query,
+      query.replace('THE ANOMATION', 'THE ANIMATION'), // 오타 수정
+      'Nukitashi',
+      'Nukitashi THE ANIMATION',
+      '누키타시',
+      '누키타시 THE ANIMATION'
+    ];
     
-    console.log('검색 결과:', searchResults);
+    const allResults = [];
+    
+    for (const searchQuery of searchQueries) {
+      console.log(`검색 시도: "${searchQuery}"`);
+      const searchResults = await tmdbClient.searchMulti(searchQuery);
+      
+      if (searchResults?.results?.length > 0) {
+        allResults.push({
+          searchQuery,
+          results: searchResults.results.slice(0, 5),
+          total: searchResults.total_results
+        });
+        console.log(`"${searchQuery}" 검색 성공: ${searchResults.total_results}개 결과`);
+      } else {
+        console.log(`"${searchQuery}" 검색 실패: 결과 없음`);
+      }
+    }
     
     return NextResponse.json({
-      query,
-      results: searchResults?.results?.slice(0, 10) || [],
-      total: searchResults?.total_results || 0
+      originalQuery: query,
+      searchQueries,
+      successfulResults: allResults,
+      totalSuccessful: allResults.length
     });
     
   } catch (error) {
