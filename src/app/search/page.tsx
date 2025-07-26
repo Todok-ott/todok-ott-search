@@ -101,8 +101,8 @@ function SearchResultsContent() {
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.2 }}
             >
-              <span className="text-[#FFD700]">CINEMA</span>
-              <span className="text-white">SEARCH</span>
+              <span className="text-[#FFD700]">토독</span>
+              <span className="text-white">(Todok)</span>
             </motion.h1>
             
             <div className="flex items-center space-x-4">

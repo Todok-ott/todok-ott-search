@@ -5,13 +5,6 @@ export interface OTTProvider {
   name: string;
   logo: string;
   description: string;
-  price: {
-    monthly?: string;
-    yearly?: string;
-    basic?: string;
-    premium?: string;
-    standard?: string;
-  };
   features: string[];
   strengths: string[];
   weaknesses: string[];
@@ -38,7 +31,6 @@ export const combineOTTData = (tmdbProviders: unknown, movieTitle: string): OTTP
       name: '극장 상영',
       logo: '/ott-logos/theater.svg',
       description: '현재 극장에서만 상영 중입니다',
-      price: {},
       features: ['극장에서만 관람 가능'],
       strengths: ['최신 영화', '최고 화질'],
       weaknesses: ['스트리밍 불가', '가격이 비쌈'],
@@ -46,19 +38,9 @@ export const combineOTTData = (tmdbProviders: unknown, movieTitle: string): OTTP
     }];
   }
   
-  // 스트리밍 가능한 영화가 아니라면 제한적 정보 표시
+  // 스트리밍 가능한 영화가 아니라면 아무것도 표시하지 않음
   if (!isStreamingAvailable) {
-    return [{
-      id: 'limited-info',
-      name: '정보 제한',
-      logo: '/ott-logos/info.svg',
-      description: '스트리밍 정보가 제한적입니다',
-      price: {},
-      features: ['정보 확인 필요'],
-      strengths: ['정확한 정보'],
-      weaknesses: ['제한적 정보'],
-      availableContent: []
-    }];
+    return [];
   }
   
   // TMDB 데이터 처리
@@ -80,7 +62,6 @@ export const combineOTTData = (tmdbProviders: unknown, movieTitle: string): OTTP
               name: koreanOTT.name,
               logo: koreanOTT.logo,
               description: koreanOTT.description,
-              price: koreanOTT.price,
               features: koreanOTT.features,
               strengths: koreanOTT.strengths,
               weaknesses: koreanOTT.weaknesses,
@@ -106,7 +87,6 @@ export const combineOTTData = (tmdbProviders: unknown, movieTitle: string): OTTP
           name: ott.name,
           logo: ott.logo,
           description: ott.description,
-          price: ott.price,
           features: ott.features,
           strengths: ott.strengths,
           weaknesses: ott.weaknesses,

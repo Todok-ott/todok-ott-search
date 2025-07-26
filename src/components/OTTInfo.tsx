@@ -12,28 +12,14 @@ interface OTTInfoProps {
 
 export default function OTTInfo({ ottProviders, title = "시청 가능 플랫폼" }: OTTInfoProps) {
   const [showDetails, setShowDetails] = useState<{ [key: string]: boolean }>({});
-  const [sortBy, setSortBy] = useState<'name' | 'price'>('name');
   
+  // 시청가능 플랫폼이 없으면 아무것도 표시하지 않음
   if (!ottProviders || ottProviders.length === 0) {
-    return (
-      <div className="mb-6">
-        <h3 className="text-xl font-semibold text-white mb-3">{title}</h3>
-        <div className="text-gray-400 text-center py-8">
-          <AlertCircle className="w-12 h-12 mx-auto mb-4 text-gray-600" />
-          <p>현재 시청 가능한 플랫폼 정보가 없습니다.</p>
-        </div>
-      </div>
-    );
+    return null;
   }
 
-  // 정렬된 OTT 목록
-  const sortedOTTs = sortBy === 'price' 
-    ? [...ottProviders].sort((a, b) => {
-        const aPrice = a.price.monthly || a.price.basic || '₩0';
-        const bPrice = b.price.monthly || b.price.basic || '₩0';
-        return aPrice.localeCompare(bPrice);
-      })
-    : [...ottProviders].sort((a, b) => a.name.localeCompare(b.name));
+  // 이름순으로 정렬된 OTT 목록
+  const sortedOTTs = [...ottProviders].sort((a, b) => a.name.localeCompare(b.name));
 
   const toggleDetails = (ottId: string) => {
     setShowDetails(prev => ({
@@ -46,16 +32,6 @@ export default function OTTInfo({ ottProviders, title = "시청 가능 플랫폼
     <div className="mb-8">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xl font-semibold text-white">{title}</h3>
-        <div className="flex items-center space-x-2">
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as 'name' | 'price')}
-            className="bg-black/50 border border-gray-600 rounded px-3 py-1 text-white text-sm focus:outline-none focus:border-[#FFD700]"
-          >
-            <option value="name">이름순</option>
-            <option value="price">가격순</option>
-          </select>
-        </div>
       </div>
 
       {/* OTT 목록 */}
@@ -79,11 +55,6 @@ export default function OTTInfo({ ottProviders, title = "시청 가능 플랫폼
               />
               <div className="flex-1">
                 <h5 className="text-white font-medium">{ott.name}</h5>
-                {ott.price && (
-                  <p className="text-[#FFD700] text-sm">
-                    {ott.price.monthly || ott.price.basic || '가격 정보 없음'}
-                  </p>
-                )}
               </div>
               <button
                 onClick={() => toggleDetails(ott.id)}
@@ -169,22 +140,10 @@ export default function OTTInfo({ ottProviders, title = "시청 가능 플랫폼
 
       {/* 통계 정보 */}
       <div className="mt-6 p-4 bg-black/20 border border-gray-600/20 rounded-lg">
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
+        <div className="grid grid-cols-1 gap-4 text-center">
           <div>
             <p className="text-[#FFD700] font-semibold">{ottProviders.length}</p>
-            <p className="text-gray-400 text-sm">총 플랫폼</p>
-          </div>
-          <div>
-            <p className="text-[#FFD700] font-semibold">
-              {ottProviders.filter(ott => ott.price && (ott.price.monthly || ott.price.basic)).length}
-            </p>
-            <p className="text-gray-400 text-sm">유료 서비스</p>
-          </div>
-          <div>
-            <p className="text-[#FFD700] font-semibold">
-              {ottProviders.filter(ott => !ott.price || (!ott.price.monthly && !ott.price.basic)).length}
-            </p>
-            <p className="text-gray-400 text-sm">무료 서비스</p>
+            <p className="text-gray-400 text-sm">시청 가능 플랫폼</p>
           </div>
         </div>
       </div>
