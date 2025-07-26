@@ -57,19 +57,24 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
-                var testAd = document.createElement('div');
-                testAd.innerHTML = '&nbsp;';
-                testAd.className = 'adsbox';
-                document.body.appendChild(testAd);
-                
-                setTimeout(function() {
-                  if (testAd.offsetHeight === 0) {
-                    // 광고 차단 감지
-                    console.log('Ad blocker detected');
-                    // 광고 차단 메시지 표시 로직
-                  }
-                  document.body.removeChild(testAd);
-                }, 100);
+                // 클라이언트 사이드에서만 실행
+                if (typeof window !== 'undefined' && document && document.body) {
+                  var testAd = document.createElement('div');
+                  testAd.innerHTML = '&nbsp;';
+                  testAd.className = 'adsbox';
+                  document.body.appendChild(testAd);
+                  
+                  setTimeout(function() {
+                    if (testAd.offsetHeight === 0) {
+                      // 광고 차단 감지
+                      console.log('Ad blocker detected');
+                      // 광고 차단 메시지 표시 로직
+                    }
+                    if (document.body && testAd.parentNode) {
+                      document.body.removeChild(testAd);
+                    }
+                  }, 100);
+                }
               })();
             `
           }}
