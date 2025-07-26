@@ -2,6 +2,11 @@
 const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY || '4ac15bcba7db3269d7674467f5f70168';
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 
+// API 키 유효성 검사
+if (!TMDB_API_KEY || TMDB_API_KEY === 'undefined') {
+  console.error('TMDB API 키가 설정되지 않았습니다.');
+}
+
 export interface Movie {
   id: number;
   title: string;
@@ -37,6 +42,10 @@ class TMDBClient {
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5분 캐시
 
   private async fetchAPI(endpoint: string, params: Record<string, string> = {}) {
+    if (!TMDB_API_KEY || TMDB_API_KEY === 'undefined') {
+      throw new Error('TMDB API 키가 설정되지 않았습니다.');
+    }
+
     const url = new URL(`${TMDB_BASE_URL}${endpoint}`);
     url.searchParams.set('api_key', TMDB_API_KEY);
     url.searchParams.set('language', 'ko-KR');
@@ -57,9 +66,12 @@ class TMDBClient {
     // API 요청 제한 준수 (초당 50회 미만)
     await this.delay(20); // 20ms 딜레이로 초당 최대 50회 요청
 
+    console.log('TMDB API 요청:', url.toString());
+
     const response = await fetch(url.toString());
     if (!response.ok) {
-      throw new Error(`TMDB API Error: ${response.status}`);
+      console.error('TMDB API 응답 오류:', response.status, response.statusText);
+      throw new Error(`TMDB API Error: ${response.status} - ${response.statusText}`);
     }
     
     const data = await response.json();
@@ -76,55 +88,100 @@ class TMDBClient {
 
   // 인기 영화 가져오기
   async getPopularMovies(page: number = 1): Promise<SearchResult> {
-    return this.fetchAPI('/movie/popular', { page: page.toString() });
+    try {
+      return await this.fetchAPI('/movie/popular', { page: page.toString() });
+    } catch (error) {
+      console.error('인기 영화 가져오기 실패:', error);
+      throw error;
+    }
   }
 
   // 인기 TV 쇼 가져오기
   async getPopularTVShows(page: number = 1): Promise<SearchResult> {
-    return this.fetchAPI('/tv/popular', { page: page.toString() });
+    try {
+      return await this.fetchAPI('/tv/popular', { page: page.toString() });
+    } catch (error) {
+      console.error('인기 TV 쇼 가져오기 실패:', error);
+      throw error;
+    }
   }
 
   // Trending 콘텐츠 가져오기 (영화 + TV)
   async getTrending(timeWindow: 'day' | 'week' = 'week'): Promise<SearchResult> {
-    return this.fetchAPI('/trending/all/week', { time_window: timeWindow });
+    try {
+      return await this.fetchAPI('/trending/all/week', { time_window: timeWindow });
+    } catch (error) {
+      console.error('Trending 콘텐츠 가져오기 실패:', error);
+      throw error;
+    }
   }
 
   // 검색 기능
   async searchMulti(query: string, page: number = 1): Promise<SearchResult> {
-    return this.fetchAPI('/search/multi', { 
-      query, 
-      page: page.toString(),
-      include_adult: 'false'
-    });
+    try {
+      return await this.fetchAPI('/search/multi', { 
+        query, 
+        page: page.toString(),
+        include_adult: 'false'
+      });
+    } catch (error) {
+      console.error('검색 실패:', error);
+      throw error;
+    }
   }
 
   // 영화 상세 정보
   async getMovieDetails(id: number): Promise<unknown> {
-    return this.fetchAPI(`/movie/${id}`, {
-      append_to_response: 'credits,videos,similar'
-    });
+    try {
+      return await this.fetchAPI(`/movie/${id}`, {
+        append_to_response: 'credits,videos,similar'
+      });
+    } catch (error) {
+      console.error('영화 상세 정보 가져오기 실패:', error);
+      throw error;
+    }
   }
 
   // TV 쇼 상세 정보
   async getTVDetails(id: number): Promise<unknown> {
-    return this.fetchAPI(`/tv/${id}`, {
-      append_to_response: 'credits,videos,similar'
-    });
+    try {
+      return await this.fetchAPI(`/tv/${id}`, {
+        append_to_response: 'credits,videos,similar'
+      });
+    } catch (error) {
+      console.error('TV 쇼 상세 정보 가져오기 실패:', error);
+      throw error;
+    }
   }
 
   // 영화 Watch Provider 정보 (OTT 플랫폼)
   async getMovieWatchProviders(id: number): Promise<unknown> {
-    return this.fetchAPI(`/movie/${id}/watch/providers`);
+    try {
+      return await this.fetchAPI(`/movie/${id}/watch/providers`);
+    } catch (error) {
+      console.error('영화 OTT 정보 가져오기 실패:', error);
+      throw error;
+    }
   }
 
   // TV 쇼 Watch Provider 정보 (OTT 플랫폼)
   async getTVWatchProviders(id: number): Promise<unknown> {
-    return this.fetchAPI(`/tv/${id}/watch/providers`);
+    try {
+      return await this.fetchAPI(`/tv/${id}/watch/providers`);
+    } catch (error) {
+      console.error('TV 쇼 OTT 정보 가져오기 실패:', error);
+      throw error;
+    }
   }
 
   // 장르 목록 가져오기
   async getGenres(): Promise<{ genres: Genre[] }> {
-    return this.fetchAPI('/genre/movie/list');
+    try {
+      return await this.fetchAPI('/genre/movie/list');
+    } catch (error) {
+      console.error('장르 목록 가져오기 실패:', error);
+      throw error;
+    }
   }
 
   // 이미지 URL 생성
