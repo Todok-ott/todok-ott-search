@@ -336,7 +336,7 @@ function SearchResultsContent() {
                           <div className="flex items-center justify-between text-sm text-gray-400">
                               <div className="flex items-center">
                                 <Star className="w-4 h-4 text-yellow-500 mr-1" />
-                                <span>{item.vote_average ? item.vote_average.toFixed(1) : 'N/A'}</span>
+                                <span>{item.vote_average && typeof item.vote_average === 'number' ? item.vote_average.toFixed(1) : 'N/A'}</span>
                               </div>
                               <div className="flex items-center">
                                 <span className="text-xs bg-white/20 px-2 py-1 rounded">
