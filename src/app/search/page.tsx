@@ -242,13 +242,13 @@ function SearchResultsContent() {
                           <h4 className="text-white font-semibold text-lg mb-2 truncate">
                             {item.title || item.name}
                           </h4>
-                          <div className="flex items-center justify-between text-sm text-gray-300 mb-3">
-                            <span>{item.release_date?.split('-')[0] || item.first_air_date?.split('-')[0] || 'N/A'}</span>
-                            <div className="flex items-center">
-                              <Star className="w-4 h-4 text-[#FFD700] mr-1" />
-                              <span>{item.vote_average.toFixed(1)}</span>
+                          <div className="flex items-center justify-between text-sm text-gray-400">
+                              <div className="flex items-center">
+                                <Star className="w-4 h-4 text-yellow-500 mr-1" />
+                                <span>{item.vote_average ? item.vote_average.toFixed(1) : 'N/A'}</span>
+                              </div>
+                              <span>{item.release_date?.split('-')[0] || item.first_air_date?.split('-')[0] || 'N/A'}</span>
                             </div>
-                          </div>
                           {item.overview && (
                             <p className="text-gray-300 text-sm line-clamp-2 mb-4">
                               {item.overview}

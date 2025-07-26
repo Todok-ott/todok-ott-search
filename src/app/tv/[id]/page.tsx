@@ -17,8 +17,8 @@ interface TVDetails {
   backdrop_path: string;
   release_date?: string;
   first_air_date: string;
-  vote_average: number;
-  vote_count: number;
+  vote_average?: number;
+  vote_count?: number;
   runtime?: number;
   episode_run_time?: number[];
   genres: { id: number; name: string }[];
@@ -33,16 +33,29 @@ export default function TVDetail({ params }: { params: Promise<{ id: string }> }
   const router = useRouter();
   const [tv, setTV] = useState<TVDetails | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchTVDetails = async () => {
       try {
         const { id } = await params;
         const response = await fetch(`/api/tv/${id}`);
+        
+        if (!response.ok) {
+          throw new Error(`API Error: ${response.status}`);
+        }
+        
         const data = await response.json();
+        
+        // 데이터 유효성 검사
+        if (!data || !data.name) {
+          throw new Error('유효하지 않은 TV 쇼 데이터입니다.');
+        }
+        
         setTV(data);
       } catch (error) {
         console.error('Error fetching TV details:', error);
+        setError(error instanceof Error ? error.message : '드라마 정보를 불러오는 중 오류가 발생했습니다.');
       } finally {
         setLoading(false);
       }
@@ -59,13 +72,26 @@ export default function TVDetail({ params }: { params: Promise<{ id: string }> }
     );
   }
 
-  if (!tv) {
+  if (error || !tv) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-white text-xl">드라마를 찾을 수 없습니다.</div>
+        <div className="text-center text-white">
+          <h1 className="text-2xl font-bold mb-4">드라마를 찾을 수 없습니다</h1>
+          <p className="text-gray-400 mb-6">{error || '요청하신 드라마를 찾을 수 없습니다.'}</p>
+          <button
+            onClick={() => router.back()}
+            className="bg-yellow-500 text-black px-6 py-3 rounded-full font-medium hover:bg-yellow-400 transition-colors"
+          >
+            뒤로 가기
+          </button>
+        </div>
       </div>
     );
   }
+
+  // 안전한 평점 처리
+  const voteAverage = tv.vote_average || 0;
+  const voteCount = tv.vote_count || 0;
 
   return (
     <div className="min-h-screen bg-black">
@@ -101,88 +127,83 @@ export default function TVDetail({ params }: { params: Promise<{ id: string }> }
             <img
               src={`https://image.tmdb.org/t/p/w500${tv.poster_path}`}
               alt={tv.name}
-              className="w-full rounded-xl shadow-2xl"
+              className="w-full rounded-lg shadow-2xl"
+              onError={(e) => {
+                e.currentTarget.src = '/placeholder-poster.jpg';
+              }}
             />
           </motion.div>
 
-          {/* 상세 정보 */}
+          {/* 정보 */}
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="lg:col-span-2 space-y-6"
+            className="lg:col-span-2"
           >
-            <div>
-              <h1 className="text-4xl font-bold text-white mb-4">{tv.name}</h1>
-              
-              <div className="flex items-center space-x-4 text-gray-300 mb-4">
-                <div className="flex items-center">
-                  <Star className="w-5 h-5 text-yellow-500 mr-2" />
-                  <span>{tv.vote_average.toFixed(1)}</span>
-                </div>
-                <div className="flex items-center">
-                  <Calendar className="w-5 h-5 mr-2" />
-                  <span>{tv.first_air_date?.split('-')[0] || 'N/A'}</span>
-                </div>
-                {tv.episode_run_time && tv.episode_run_time[0] && (
-                  <div className="flex items-center">
-                    <Clock className="w-5 h-5 mr-2" />
-                    <span>{tv.episode_run_time[0]}분</span>
-                  </div>
-                )}
+            <h1 className="text-4xl font-bold text-white mb-4">{tv.name}</h1>
+            
+            {/* 평점 */}
+            <div className="flex items-center space-x-4 mb-6">
+              <div className="flex items-center space-x-2">
+                <Star className="w-6 h-6 text-yellow-500" />
+                <span className="text-white text-xl font-semibold">
+                  {voteAverage > 0 ? voteAverage.toFixed(1) : 'N/A'}
+                </span>
               </div>
-
-              <div className="flex flex-wrap gap-2 mb-6">
-                {tv.genres?.map((genre) => (
-                  <span
-                    key={genre.id}
-                    className="px-3 py-1 bg-yellow-500 text-black text-sm rounded-full font-medium"
-                  >
-                    {genre.name}
-                  </span>
-                ))}
-              </div>
-
-              <p className="text-gray-300 leading-relaxed text-lg">
-                {tv.overview || '줄거리 정보가 없습니다.'}
-              </p>
+              {voteCount > 0 && (
+                <span className="text-gray-400">({voteCount.toLocaleString()}명 평가)</span>
+              )}
             </div>
+
+            {/* 개요 */}
+            {tv.overview && (
+              <p className="text-gray-300 text-lg mb-6 leading-relaxed">
+                {tv.overview}
+              </p>
+            )}
+
+            {/* 메타데이터 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+              {tv.first_air_date && (
+                <div className="flex items-center space-x-2">
+                  <Calendar className="w-5 h-5 text-gray-400" />
+                  <span className="text-gray-300">
+                    {new Date(tv.first_air_date).getFullYear()}
+                  </span>
+                </div>
+              )}
+              
+              {tv.episode_run_time && tv.episode_run_time.length > 0 && (
+                <div className="flex items-center space-x-2">
+                  <Clock className="w-5 h-5 text-gray-400" />
+                  <span className="text-gray-300">
+                    {tv.episode_run_time[0]}분
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* 장르 */}
+            {tv.genres && tv.genres.length > 0 && (
+              <div className="mb-8">
+                <h3 className="text-white font-semibold mb-3">장르</h3>
+                <div className="flex flex-wrap gap-2">
+                  {tv.genres.map((genre) => (
+                    <span
+                      key={genre.id}
+                      className="px-3 py-1 bg-yellow-500/20 text-yellow-500 rounded-full text-sm"
+                    >
+                      {genre.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* OTT 정보 */}
             {tv.ott_providers && tv.ott_providers.length > 0 && (
               <OTTInfo ottProviders={tv.ott_providers} />
-            )}
-
-            {/* 액션 버튼 */}
-            <div className="flex space-x-4">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center space-x-2 bg-yellow-500 text-black px-6 py-3 rounded-lg font-semibold hover:bg-yellow-400 transition-colors"
-              >
-                <Play className="w-5 h-5" />
-                <span>시청하기</span>
-              </motion.button>
-            </div>
-
-            {/* 출연진 */}
-            {tv.credits?.cast && tv.credits.cast.length > 0 && (
-              <div className="mt-8">
-                <h3 className="text-2xl font-bold text-white mb-4">출연진</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {tv.credits.cast.slice(0, 8).map((actor) => (
-                    <div key={actor.id} className="text-center">
-                      <img
-                        src={actor.profile_path ? `https://image.tmdb.org/t/p/w200${actor.profile_path}` : '/placeholder-avatar.jpg'}
-                        alt={actor.name}
-                        className="w-16 h-16 rounded-full mx-auto mb-2 object-cover"
-                      />
-                      <p className="text-white text-sm font-medium">{actor.name}</p>
-                      <p className="text-gray-400 text-xs">{actor.character}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
             )}
           </motion.div>
         </div>

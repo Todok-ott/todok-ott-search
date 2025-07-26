@@ -395,7 +395,7 @@ export default function Home() {
                              <div className="flex items-center justify-between text-sm text-gray-400">
                                <div className="flex items-center">
                                  <Star className="w-4 h-4 text-yellow-500 mr-1" />
-                                 <span>{movie.vote_average.toFixed(1)}</span>
+                                 <span>{movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A'}</span>
                                </div>
                                <span>{movie.release_date?.split('-')[0]}</span>
                              </div>
@@ -444,7 +444,7 @@ export default function Home() {
                              <div className="flex items-center justify-between text-sm text-gray-400">
                                <div className="flex items-center">
                                  <Star className="w-4 h-4 text-yellow-500 mr-1" />
-                                 <span>{show.vote_average.toFixed(1)}</span>
+                                 <span>{show.vote_average ? show.vote_average.toFixed(1) : 'N/A'}</span>
                                </div>
                                <span>{show.first_air_date?.split('-')[0]}</span>
                              </div>
