@@ -7,11 +7,11 @@ import Image from 'next/image';
 import { OTTProvider } from '@/lib/ottUtils';
 
 interface OTTInfoProps {
-  ottProviders: OTTProvider[];
+  ottProviders?: OTTProvider[];
   title?: string;
 }
 
-export default function OTTInfo({ ottProviders, title = "시청 가능 플랫폼" }: OTTInfoProps) {
+export default function OTTInfo({ ottProviders = [], title = "시청 가능 플랫폼" }: OTTInfoProps) {
   const [showDetails, setShowDetails] = useState<{ [key: string]: boolean }>({});
   
   // 시청가능 플랫폼이 없으면 아무것도 표시하지 않음
