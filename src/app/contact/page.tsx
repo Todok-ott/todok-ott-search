@@ -62,7 +62,7 @@ export default function ContactPage() {
           message: data.error || '문의 접수 중 오류가 발생했습니다.'
         });
       }
-    } catch (error) {
+    } catch {
       setSubmitStatus({
         type: 'error',
         message: '네트워크 오류가 발생했습니다.'
