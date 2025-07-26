@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+import Script from 'next/script';
 import './globals.css';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
 
@@ -44,18 +45,17 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
-      <head>
+      <body className={inter.className}>
+        {children}
         {/* Google AdSense - 조건부 로드 */}
         {process.env.NODE_ENV === 'production' && (
-          <script
+          <Script
             async
             src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
             crossOrigin="anonymous"
+            strategy="afterInteractive"
           />
         )}
-      </head>
-      <body className={inter.className}>
-        {children}
         {/* GoogleAnalytics는 조건부로 로드 */}
         {process.env.NODE_ENV === 'production' && <GoogleAnalytics />}
       </body>
