@@ -133,7 +133,7 @@ export async function GET(
     }
     
     // 데이터 유효성 검사
-    const movieDetailsTyped = movieDetails as { title?: string; name?: string };
+    const movieDetailsTyped = movieDetails as { title?: string; name?: string; first_air_date?: string; release_date?: string };
     if (!movieDetailsTyped.title && !movieDetailsTyped.name) {
       console.error('영화 상세 정보가 유효하지 않음:', movieDetails);
       return NextResponse.json(
@@ -152,6 +152,17 @@ export async function GET(
       keys: Object.keys(movieDetails || {}),
       fullData: movieDetails
     });
+
+    // TV 쇼인 경우 TV API로 리다이렉트하도록 신호 전송
+    if (movieDetailsTyped.first_air_date && !movieDetailsTyped.release_date) {
+      console.log('TV 쇼 감지, TV API로 리다이렉트 신호 전송');
+      return NextResponse.json({
+        ...movieDetails,
+        is_tv_show: true,
+        redirect_to_tv: true,
+        tv_id: actualMovieId
+      });
+    }
 
     // OTT 정보는 선택적으로 가져오기 (실제 영화 ID가 있는 경우만)
     if (actualMovieId) {
