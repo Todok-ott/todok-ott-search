@@ -55,6 +55,17 @@ export default function MovieDetail({ params }: { params: Promise<{ id: string }
         event.preventDefault();
         return false;
       }
+      
+      // 기타 DOM 관련 에러 처리
+      if (event.error && event.error.message && (
+        event.error.message.includes('insertBefore') ||
+        event.error.message.includes('removeChild') ||
+        event.error.message.includes('replaceChild')
+      )) {
+        console.warn('DOM 조작 에러 무시:', event.error);
+        event.preventDefault();
+        return false;
+      }
     };
 
     // unhandledrejection 에러도 처리
@@ -63,10 +74,34 @@ export default function MovieDetail({ params }: { params: Promise<{ id: string }
       event.preventDefault();
     };
 
+    // DOM 변경 감지 및 에러 방지
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList') {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              const element = node as Element;
+              // 스크립트 태그가 추가되면 에러 방지
+              if (element.tagName === 'SCRIPT') {
+                console.warn('외부 스크립트 차단:', element);
+                element.remove();
+              }
+            }
+          });
+        }
+      });
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+
     window.addEventListener('error', handleError);
     window.addEventListener('unhandledrejection', handleUnhandledRejection);
     
     return () => {
+      observer.disconnect();
       window.removeEventListener('error', handleError);
       window.removeEventListener('unhandledrejection', handleUnhandledRejection);
     };
@@ -80,7 +115,16 @@ export default function MovieDetail({ params }: { params: Promise<{ id: string }
         // ID 유효성 검사
         const movieId = parseInt(id);
         if (isNaN(movieId)) {
-          throw new Error('잘못된 영화 ID입니다.');
+          setError('잘못된 영화 ID입니다.');
+          setLoading(false);
+          return;
+        }
+        
+        // ID 범위 검사 (TMDB 영화 ID는 보통 1-999999 범위)
+        if (movieId < 1 || movieId > 999999) {
+          setError('존재하지 않는 영화입니다.');
+          setLoading(false);
+          return;
         }
         
         const response = await fetch(`/api/movie/${id}`);
@@ -88,21 +132,25 @@ export default function MovieDetail({ params }: { params: Promise<{ id: string }
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           const errorMessage = errorData.error || `API Error: ${response.status}`;
-          throw new Error(errorMessage);
+          setError(errorMessage);
+          setLoading(false);
+          return;
         }
         
         const data = await response.json();
         
         // 데이터 유효성 검사
         if (!data || !data.title) {
-          throw new Error('유효하지 않은 영화 데이터입니다.');
+          setError('유효하지 않은 영화 데이터입니다.');
+          setLoading(false);
+          return;
         }
         
         setMovie(data);
+        setLoading(false);
       } catch (error) {
         console.error('Error fetching movie details:', error);
         setError(error instanceof Error ? error.message : '영화 정보를 불러오는 중 오류가 발생했습니다.');
-      } finally {
         setLoading(false);
       }
     };
