@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ExternalLink, Info, Star, AlertCircle } from 'lucide-react';
+import { Star, Play, Heart, Info, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 import { OTTProvider } from '@/lib/ottUtils';
 

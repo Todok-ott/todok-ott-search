@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Star, Play, Info, Filter, SortAsc, SortDesc } from 'lucide-react';
+import { Search, Star, Play, Info, Filter } from 'lucide-react';
 import SearchBar from '@/components/SearchBar';
 import Footer from '@/components/Footer';
 import { Movie } from '@/lib/tmdb';
@@ -29,13 +29,9 @@ function SearchResultsContent() {
   const [filterType, setFilterType] = useState<'all' | 'movie' | 'tv'>('all');
   const [showFilters, setShowFilters] = useState(false);
 
-  useEffect(() => {
-    if (query) {
-      performSearch();
-    }
-  }, [query, sortBy, filterType]);
-
-  const performSearch = async () => {
+  const performSearch = useCallback(async () => {
+    if (!query) return;
+    
     setIsLoading(true);
     try {
       const response = await fetch(`/api/search?query=${encodeURIComponent(query)}`);
@@ -73,7 +69,11 @@ function SearchResultsContent() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [query, sortBy, filterType]);
+
+  useEffect(() => {
+    performSearch();
+  }, [performSearch]);
 
   const handleResultSelect = (movie: Movie) => {
     window.location.href = `/movie/${movie.id}`;

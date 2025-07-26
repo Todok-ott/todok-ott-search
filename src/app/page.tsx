@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Star, ArrowRight, TrendingUp, Calendar, Film, Tv, Flame, Clock } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Star, TrendingUp, Film, Tv, Flame, Clock } from 'lucide-react';
 import Link from 'next/link';
 import SearchBar from '@/components/SearchBar';
 import Footer from '@/components/Footer';
@@ -90,8 +90,8 @@ const fallbackTVShows: PopularContent[] = [
 ];
 
 export default function Home() {
-  const [popularMovies, setPopularMovies] = useState<PopularContent[]>([]);
-  const [popularTVShows, setPopularTVShows] = useState<PopularContent[]>([]);
+  const [popularMovies, setPopularMovies] = useState<PopularContent[]>(fallbackMovies);
+  const [popularTVShows, setPopularTVShows] = useState<PopularContent[]>(fallbackTVShows);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -104,6 +104,11 @@ export default function Home() {
       try {
         setLoading(true);
         setError(null);
+        
+        // API 호출 전에 기본 데이터로 설정
+        setPopularMovies(fallbackMovies);
+        setPopularTVShows(fallbackTVShows);
+        
         console.log('Fetching popular content...');
         const [moviesResponse, tvResponse] = await Promise.all([
           fetch('/api/popular/movies'),
@@ -126,13 +131,18 @@ export default function Home() {
 
         console.log('Movies data:', moviesData);
         console.log('TV data:', tvData);
-        setPopularMovies(moviesData.results?.slice(0, 6) || fallbackMovies);
-        setPopularTVShows(tvData.results?.slice(0, 6) || fallbackTVShows);
+        
+        if (moviesData.results && moviesData.results.length > 0) {
+          setPopularMovies(moviesData.results.slice(0, 6));
+        }
+        
+        if (tvData.results && tvData.results.length > 0) {
+          setPopularTVShows(tvData.results.slice(0, 6));
+        }
       } catch (error) {
         console.error('Error fetching popular content:', error);
         setError('콘텐츠를 불러오는 중 오류가 발생했습니다.');
-        setPopularMovies(fallbackMovies);
-        setPopularTVShows(fallbackTVShows);
+        // 에러가 발생해도 기본 데이터는 유지
       } finally {
         setLoading(false);
       }
@@ -142,9 +152,32 @@ export default function Home() {
   }, []);
 
   const handleContentClick = (item: PopularContent) => {
-    const path = item.media_type === 'movie' ? `/movie/${item.id}` : `/tv/${item.id}`;
-    window.location.href = path;
+    try {
+      const path = item.media_type === 'movie' ? `/movie/${item.id}` : `/tv/${item.id}`;
+      window.location.href = path;
+    } catch (error) {
+      console.error('Navigation error:', error);
+    }
   };
+
+  // 에러가 발생한 경우 기본 페이지 표시
+  if (error && !loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
+        <div className="text-center text-white">
+          <h1 className="text-4xl font-bold mb-4">토독 (Todok)</h1>
+          <p className="text-xl mb-8">OTT 검색 서비스</p>
+          <p className="text-gray-400 mb-4">일시적인 오류가 발생했습니다.</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="bg-yellow-500 text-black px-6 py-3 rounded-full font-medium hover:bg-yellow-400 transition-colors"
+          >
+            새로고침
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
@@ -241,10 +274,18 @@ export default function Home() {
              >
                <SearchBar 
                  onSearch={(query) => {
-                   window.location.href = `/search?q=${encodeURIComponent(query)}`;
+                   try {
+                     window.location.href = `/search?q=${encodeURIComponent(query)}`;
+                   } catch (error) {
+                     console.error('Search navigation error:', error);
+                   }
                  }}
                  onResultSelect={(movie) => {
-                   window.location.href = `/movie/${movie.id}`;
+                   try {
+                     window.location.href = `/movie/${movie.id}`;
+                   } catch (error) {
+                     console.error('Movie navigation error:', error);
+                   }
                  }}
                />
              </motion.div>

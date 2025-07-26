@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Filter, SortAsc, SortDesc } from 'lucide-react';
+import { Filter, SortAsc } from 'lucide-react';
 
 interface FilterSortProps {
   onSortChange: (sortBy: string) => void;

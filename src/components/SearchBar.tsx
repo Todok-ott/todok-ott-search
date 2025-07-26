@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Search, X, Star, Play, Info } from 'lucide-react';
+import { Search, X, Star, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Movie } from '@/lib/tmdb';
 
@@ -189,7 +189,7 @@ export default function SearchBar({ onSearch, onResultSelect, placeholder = "작
                          whileTap={{ scale: 0.95 }}
                          className="bg-white/10 text-white text-xs px-3 py-2 rounded-full font-medium hover:bg-white/20 transition-colors duration-200 flex items-center"
                        >
-                         <Info className="w-3 h-3 mr-1" />
+                         <Clock className="w-3 h-3 mr-1" />
                          상세보기
                        </motion.button>
                      </div>
