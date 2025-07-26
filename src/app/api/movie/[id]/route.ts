@@ -123,10 +123,7 @@ export async function GET(
       try {
         const ottData = ottProviders as { results?: { KR?: unknown; US?: unknown } };
         const movieTitle = (movieDetails as { title?: string }).title || '';
-        const releaseDate = (movieDetails as { release_date?: string }).release_date;
-        const genres = (movieDetails as { genres?: Array<{ name: string }> }).genres?.map(g => g.name);
-        
-        combinedOTTInfo = combineOTTData(ottData.results?.KR || ottData.results?.US || {}, movieTitle, genres, releaseDate);
+        combinedOTTInfo = combineOTTData(ottData.results?.KR || ottData.results?.US || {}, movieTitle);
       } catch (error) {
         console.error('OTT 정보 결합 실패:', error);
         // OTT 정보 결합 실패는 무시

@@ -11,34 +11,7 @@ export interface OTTProvider {
   availableContent: string[];
 }
 
-// OTT 정보를 숨겨야 하는 콘텐츠 필터링
-const shouldHideOTTInfo = (movieTitle: string, genres?: string[], releaseDate?: string): boolean => {
-  // 토크쇼 관련 키워드 체크
-  const talkShowKeywords = ['토크쇼', 'talkshow', 'talk show', '인터뷰', 'interview'];
-  const hasTalkShowKeyword = talkShowKeywords.some(keyword => 
-    movieTitle.toLowerCase().includes(keyword.toLowerCase())
-  );
-  
-  // 극장 상영중인 영화 체크 (최근 3개월 내 개봉)
-  const isRecentlyReleased = releaseDate && (() => {
-    const release = new Date(releaseDate);
-    const now = new Date();
-    const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
-    return release > threeMonthsAgo;
-  })();
-  
-  // 해외 콘텐츠 체크 (한국어가 아닌 제목)
-  const isForeignContent = !/[가-힣]/.test(movieTitle);
-  
-  return hasTalkShowKeyword || isRecentlyReleased || isForeignContent;
-};
-
-export const combineOTTData = (tmdbProviders: unknown, movieTitle: string, genres?: string[], releaseDate?: string): OTTProvider[] => {
-  // OTT 정보를 숨겨야 하는 콘텐츠인지 체크
-  if (shouldHideOTTInfo(movieTitle, genres, releaseDate)) {
-    return [];
-  }
-  
+export const combineOTTData = (tmdbProviders: unknown, movieTitle: string): OTTProvider[] => {
   const combinedProviders: OTTProvider[] = [];
   
   // 한국 OTT 정보 확인

@@ -80,57 +80,11 @@ export async function GET(
     if (ottProviders) {
       try {
         const ottData = ottProviders as { results?: { KR?: unknown; US?: unknown } };
-        const showTitle = (tvDetails as { name?: string }).name || '';
-        const firstAirDate = (tvDetails as { first_air_date?: string }).first_air_date;
-        const genres = (tvDetails as { genres?: Array<{ name: string }> }).genres?.map(g => g.name);
-        
-        combinedOTTInfo = combineOTTData(ottData.results?.KR || ottData.results?.US || {}, showTitle, genres, firstAirDate);
+        const tvTitle = (tvDetails as { name?: string }).name || '';
+        combinedOTTInfo = combineOTTData(ottData.results?.KR || ottData.results?.US || {}, tvTitle);
       } catch (error) {
         console.error('OTT 정보 결합 실패:', error);
         // OTT 정보 결합 실패는 무시
-      }
-    }
-    
-    // 한국어 콘텐츠인 경우 한국 OTT 정보 추가
-    const showTitle = (tvDetails as { name?: string }).name || '';
-    const firstAirDate = (tvDetails as { first_air_date?: string }).first_air_date;
-    
-    // 개봉일 확인 - 아직 개봉하지 않은 드라마는 OTT 정보 추가하지 않음
-    const isReleased = firstAirDate && new Date(firstAirDate) <= new Date();
-    
-    console.log('OTT 정보 필터링:', {
-      title: showTitle,
-      firstAirDate,
-      isReleased,
-      hasKoreanTitle: /[가-힣]/.test(showTitle),
-      hasOTTInfo: combinedOTTInfo.length > 0
-    });
-    
-    if (/[가-힣]/.test(showTitle) && combinedOTTInfo.length === 0 && isReleased) {
-      const koreanProviders = findKoreanOTTProviders(showTitle);
-      if (koreanProviders.length > 0) {
-        // 한국 OTT 정보를 별도 필드로 추가
-        const showWithKoreanOTT = {
-          ...(tvDetails as Record<string, unknown>),
-          ott_providers: combinedOTTInfo,
-          korean_ott_providers: koreanProviders
-        };
-        console.log('한국 OTT 정보 추가:', koreanProviders);
-        return NextResponse.json(showWithKoreanOTT);
-      }
-    }
-    
-    // 한국어 콘텐츠인 경우 기본 OTT 정보 추가 (개봉된 드라마만)
-    if (/[가-힣]/.test(showTitle) && isReleased) {
-      const koreanProviders = findKoreanOTTProviders(showTitle);
-      if (koreanProviders.length > 0) {
-        const showWithKoreanOTT = {
-          ...(tvDetails as Record<string, unknown>),
-          ott_providers: combinedOTTInfo,
-          korean_ott_providers: koreanProviders
-        };
-        console.log('한국 OTT 정보 추가 (기본):', koreanProviders);
-        return NextResponse.json(showWithKoreanOTT);
       }
     }
     
