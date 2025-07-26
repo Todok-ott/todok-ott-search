@@ -5,22 +5,39 @@ import { Star, Info, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 import Image from 'next/image';
 import { OTTProvider } from '@/lib/ottUtils';
+import { KoreanOTTProvider } from '@/lib/koreanOTTs';
 
 interface OTTInfoProps {
   ottProviders?: OTTProvider[];
+  koreanOTTProviders?: KoreanOTTProvider[];
   title?: string;
 }
 
-export default function OTTInfo({ ottProviders = [], title = "시청 가능 플랫폼" }: OTTInfoProps) {
+export default function OTTInfo({ ottProviders = [], koreanOTTProviders = [], title = "시청 가능 플랫폼" }: OTTInfoProps) {
   const [showDetails, setShowDetails] = useState<{ [key: string]: boolean }>({});
   
+  // KoreanOTTProvider를 OTTProvider 형식으로 변환
+  const convertedKoreanProviders: OTTProvider[] = koreanOTTProviders.map(provider => ({
+    id: provider.name.toLowerCase().replace(/\s+/g, '-'),
+    name: provider.name,
+    logo: provider.logo,
+    description: `${provider.name}에서 시청 가능합니다`,
+    features: ['VOD 서비스', '다중 프로필', '오프라인 시청'],
+    strengths: ['다양한 콘텐츠', '고품질 화질'],
+    weaknesses: ['구독료 발생'],
+    availableContent: []
+  }));
+  
+  // 모든 OTT 제공자 결합
+  const allProviders = [...ottProviders, ...convertedKoreanProviders];
+  
   // 시청가능 플랫폼이 없으면 아무것도 표시하지 않음
-  if (!ottProviders || ottProviders.length === 0) {
+  if (!allProviders || allProviders.length === 0) {
     return null;
   }
 
   // 이름순으로 정렬된 OTT 목록
-  const sortedOTTs = [...ottProviders].sort((a, b) => a.name.localeCompare(b.name));
+  const sortedOTTs = [...allProviders].sort((a, b) => a.name.localeCompare(b.name));
 
   const toggleDetails = (ottId: string) => {
     setShowDetails(prev => ({
