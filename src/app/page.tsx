@@ -20,6 +20,18 @@ interface PopularContent {
   media_type: 'movie' | 'tv';
 }
 
+interface TMDBResult {
+  id: number;
+  title?: string;
+  name?: string;
+  overview: string;
+  poster_path: string;
+  vote_average: number;
+  release_date?: string;
+  first_air_date?: string;
+  media_type?: 'movie' | 'tv';
+}
+
 // 임시 데이터
 const fallbackMovies: PopularContent[] = [
   {
@@ -182,26 +194,26 @@ export default function Home() {
         };
 
         // 인기 영화/TV 중 최대 6개만 사용 (OTT 정보 체크 제거)
-        const validMovies: PopularContent[] = moviesData.results.slice(0, 6).map((movie: any) => ({
+        const validMovies: PopularContent[] = moviesData.results.slice(0, 6).map((movie: TMDBResult) => ({
           id: movie.id,
-          title: movie.title,
+          title: movie.title || '',
           name: movie.name,
           overview: movie.overview,
           poster_path: movie.poster_path,
           vote_average: movie.vote_average,
-          release_date: movie.release_date,
+          release_date: movie.release_date || '',
           first_air_date: movie.first_air_date,
           media_type: 'movie'
         }));
         
-        const validTVs: PopularContent[] = tvData.results.slice(0, 6).map((tv: any) => ({
+        const validTVs: PopularContent[] = tvData.results.slice(0, 6).map((tv: TMDBResult) => ({
           id: tv.id,
-          title: tv.title,
+          title: tv.title || '',
           name: tv.name,
           overview: tv.overview,
           poster_path: tv.poster_path,
           vote_average: tv.vote_average,
-          release_date: tv.release_date,
+          release_date: tv.release_date || '',
           first_air_date: tv.first_air_date,
           media_type: 'tv'
         }));
