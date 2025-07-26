@@ -92,6 +92,10 @@ export default function LatestPage() {
                 신규
                 <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-[#FFD700]"></span>
               </Link>
+              <Link href="/ott-comparison" className="hover:text-[#FFD700] transition-colors duration-300 relative group">
+                OTT 비교
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#FFD700] transition-all duration-300 group-hover:w-full"></span>
+              </Link>
             </motion.nav>
           </div>
         </div>

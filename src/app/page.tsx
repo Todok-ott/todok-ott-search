@@ -162,10 +162,10 @@ export default function Home() {
         const moviesData = await moviesResponse.json();
         const tvData = await tvResponse.json();
 
-        // 상세 fetch 함수
+        // 상세 fetch 함수 (OTT 정보 포함)
         const fetchMovieDetail = async (id: number) => {
           try {
-            const res = await fetch(`/api/movie/${id}`);
+            const res = await fetch(`/api/content/${id}?type=movie`);
             if (!res.ok) return null;
             const data = await res.json();
             return data && !data.error ? data : null;
@@ -173,44 +173,48 @@ export default function Home() {
         };
         const fetchTVDetail = async (id: number) => {
           try {
-            const res = await fetch(`/api/tv/${id}`);
+            const res = await fetch(`/api/content/${id}?type=tv`);
             if (!res.ok) return null;
             const data = await res.json();
             return data && !data.error ? data : null;
           } catch { return null; }
         };
 
-        // 인기 영화/TV 중 상세 fetch 성공한 것만 최대 6개 (상세 fetch 결과의 데이터만 사용)
+        // 인기 영화/TV 중 OTT 정보가 있는 것만 최대 6개
         const validMovies: PopularContent[] = [];
         for (const movie of moviesData.results) {
           const detail = await fetchMovieDetail(movie.id);
-          if (detail) validMovies.push({
-            id: detail.id,
-            title: detail.title,
-            name: detail.name,
-            overview: detail.overview,
-            poster_path: detail.poster_path,
-            vote_average: detail.vote_average,
-            release_date: detail.release_date,
-            first_air_date: detail.first_air_date,
-            media_type: 'movie'
-          });
+          if (detail && (detail.ott_providers?.length > 0 || detail.korean_ott_providers?.length > 0)) {
+            validMovies.push({
+              id: detail.id,
+              title: detail.title,
+              name: detail.name,
+              overview: detail.overview,
+              poster_path: detail.poster_path,
+              vote_average: detail.vote_average,
+              release_date: detail.release_date,
+              first_air_date: detail.first_air_date,
+              media_type: 'movie'
+            });
+          }
           if (validMovies.length >= 6) break;
         }
         const validTVs: PopularContent[] = [];
         for (const tv of tvData.results) {
           const detail = await fetchTVDetail(tv.id);
-          if (detail) validTVs.push({
-            id: detail.id,
-            title: detail.title,
-            name: detail.name,
-            overview: detail.overview,
-            poster_path: detail.poster_path,
-            vote_average: detail.vote_average,
-            release_date: detail.release_date,
-            first_air_date: detail.first_air_date,
-            media_type: 'tv'
-          });
+          if (detail && (detail.ott_providers?.length > 0 || detail.korean_ott_providers?.length > 0)) {
+            validTVs.push({
+              id: detail.id,
+              title: detail.title,
+              name: detail.name,
+              overview: detail.overview,
+              poster_path: detail.poster_path,
+              vote_average: detail.vote_average,
+              release_date: detail.release_date,
+              first_air_date: detail.first_air_date,
+              media_type: 'tv'
+            });
+          }
           if (validTVs.length >= 6) break;
         }
         setPopularMovies(validMovies);
@@ -408,7 +412,6 @@ export default function Home() {
                 transition={{ duration: 0.8 }}
                 className="space-y-4"
               >
-                <h3 className="text-2xl font-bold text-white mb-6">인기 영화</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {popularMovies.length > 0 ? (
                     popularMovies.map((movie, index) => (
@@ -457,7 +460,6 @@ export default function Home() {
                 transition={{ duration: 0.8 }}
                 className="space-y-4"
               >
-                <h3 className="text-2xl font-bold text-white mb-6">인기 드라마</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {popularTVShows.length > 0 ? (
                     popularTVShows.map((show, index) => (
