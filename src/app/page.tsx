@@ -6,9 +6,7 @@ import { Star, TrendingUp, Film, Tv, Flame, Clock, Info } from 'lucide-react';
 import Link from 'next/link';
 import SearchBar from '@/components/SearchBar';
 import Footer from '@/components/Footer';
-import GoogleAdSense from '@/components/GoogleAdSense';
-import AmazonAssociates from '@/components/AmazonAssociates';
-import { getAdsByPosition } from '@/lib/adUtils';
+
 
 interface PopularContent {
   id: number;
@@ -118,6 +116,17 @@ export default function Home() {
         event.preventDefault();
         return false;
       }
+      
+      // 기타 DOM 관련 에러 처리
+      if (event.error && event.error.message && (
+        event.error.message.includes('insertBefore') ||
+        event.error.message.includes('removeChild') ||
+        event.error.message.includes('replaceChild')
+      )) {
+        console.warn('DOM 조작 에러 무시:', event.error);
+        event.preventDefault();
+        return false;
+      }
     };
 
     // unhandledrejection 에러도 처리
@@ -126,18 +135,45 @@ export default function Home() {
       event.preventDefault();
     };
 
+    // DOM 변경 감지 및 에러 방지
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList') {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              const element = node as Element;
+              // 스크립트 태그가 추가되면 에러 방지
+              if (element.tagName === 'SCRIPT') {
+                console.warn('외부 스크립트 차단:', element);
+                element.remove();
+              }
+              // iframe 태그도 차단 (광고 등)
+              if (element.tagName === 'IFRAME') {
+                console.warn('외부 iframe 차단:', element);
+                element.remove();
+              }
+            }
+          });
+        }
+      });
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+
     window.addEventListener('error', handleError);
     window.addEventListener('unhandledrejection', handleUnhandledRejection);
     
     return () => {
+      observer.disconnect();
       window.removeEventListener('error', handleError);
       window.removeEventListener('unhandledrejection', handleUnhandledRejection);
     };
   }, []);
 
-  // 광고 설정
-  const headerAds = getAdsByPosition('header');
-  const contentAds = getAdsByPosition('content');
+
 
   useEffect(() => {
     const fetchPopularContent = async () => {
@@ -221,21 +257,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
-      {/* 헤더 광고 */}
-      {headerAds.length > 0 && (
-        <div className="w-full bg-gray-100">
-          {headerAds.map((ad) => (
-            ad.type === 'adsense' ? (
-              <GoogleAdSense
-                key={ad.id}
-                adSlot={ad.adSlot || '1234567890'}
-                adFormat={ad.adFormat || 'banner'}
-                className="w-full"
-              />
-            ) : null
-          ))}
-        </div>
-      )}
+
 
       {/* 카테고리 네비게이션 */}
       <nav className="bg-black/50 backdrop-blur-sm border-b border-gray-700/50 sticky top-0 z-50">
@@ -522,30 +544,7 @@ export default function Home() {
                </div>
              )}
 
-             {/* 콘텐츠 광고 */}
-             {contentAds.length > 0 && !loading && (
-               <motion.div
-                 initial={{ opacity: 0, y: 30 }}
-                 whileInView={{ opacity: 1, y: 0 }}
-                 transition={{ duration: 0.8 }}
-                 className="mt-12"
-               >
-                 <h3 className="text-2xl font-bold text-white mb-6 text-center">추천 상품</h3>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                   {contentAds.map((ad) => (
-                     ad.type === 'amazon' && ad.productData ? (
-                       <AmazonAssociates
-                         key={ad.id}
-                         productTitle={ad.productData.title}
-                         productImage={ad.productData.image}
-                         productPrice={ad.productData.price}
-                         amazonUrl={ad.productData.url}
-                       />
-                     ) : null
-                   ))}
-                 </div>
-               </motion.div>
-             )}
+
            </div>
          </section>
        </div>
