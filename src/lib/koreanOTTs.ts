@@ -107,13 +107,18 @@ export function findKoreanOTTProviders(title: string): KoreanOTTProvider[] {
     '메간 2.0', 'm3gan 2.0', 'megan 2.0',
     '슈퍼맨', 'superman', 'super man',
     '드래곤 길들이기', 'how to train your dragon',
-    '판타스틱4', 'fantastic 4', 'fantastic four', 'fantastic4',
+    '판타스틱4', '판타스틱 4', '판타스틱', 'fantastic 4', 'fantastic four', 'fantastic4', 'fantastic',
     '극장판', 'theatrical', 'movie'
   ];
   
   for (const movie of theaterOnlyMovies) {
     if (normalizedTitle.includes(movie.toLowerCase())) {
-      console.log('극장 전용 영화 필터링:', title, '->', movie);
+      console.log('극장 전용 영화 필터링:', {
+        originalTitle: title,
+        normalizedTitle: normalizedTitle,
+        matchedKeyword: movie,
+        result: 'OTT 정보 제거됨'
+      });
       return []; // 극장 전용 영화는 OTT 정보 없음
     }
   }
