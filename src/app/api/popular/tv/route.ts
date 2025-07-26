@@ -5,28 +5,34 @@ export async function GET() {
   try {
     console.log('인기 TV 쇼 API 호출 시작');
     
-    // 3페이지(60개)를 가져와서 50개만 반환
-    const [page1, page2, page3] = await Promise.all([
+    // 5페이지(100개)를 가져와서 60개만 반환
+    const [page1, page2, page3, page4, page5] = await Promise.all([
       tmdbClient.getPopularTVShows(1),
       tmdbClient.getPopularTVShows(2),
-      tmdbClient.getPopularTVShows(3)
+      tmdbClient.getPopularTVShows(3),
+      tmdbClient.getPopularTVShows(4),
+      tmdbClient.getPopularTVShows(5)
     ]);
     
     console.log('TMDB TV API 응답 받음:', {
       page1Results: page1.results?.length || 0,
       page2Results: page2.results?.length || 0,
-      page3Results: page3.results?.length || 0
+      page3Results: page3.results?.length || 0,
+      page4Results: page4.results?.length || 0,
+      page5Results: page5.results?.length || 0
     });
     
     const allTVShows = [
       ...(page1.results || []),
       ...(page2.results || []),
-      ...(page3.results || [])
+      ...(page3.results || []),
+      ...(page4.results || []),
+      ...(page5.results || [])
     ];
     
     const response = {
-      results: allTVShows.slice(0, 50), // 50개로 제한
-      total_pages: 3,
+      results: allTVShows.slice(0, 60), // 60개로 증가
+      total_pages: 5,
       total_results: allTVShows.length,
       page: 1
     };

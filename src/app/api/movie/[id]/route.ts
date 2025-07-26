@@ -28,14 +28,24 @@ export async function GET(
       console.log('영화 상세 정보 성공:', movieDetails);
       
       // 데이터 유효성 검사 추가
-      const movieDetailsTyped = movieDetails as { title?: string };
-      if (!movieDetails || !movieDetailsTyped.title) {
+      const movieDetailsTyped = movieDetails as { title?: string; name?: string };
+      if (!movieDetails || (!movieDetailsTyped.title && !movieDetailsTyped.name)) {
         console.error('영화 상세 정보가 유효하지 않음:', movieDetails);
         return NextResponse.json(
           { error: '영화 정보를 찾을 수 없습니다.' },
           { status: 404 }
         );
       }
+      
+      // 추가 디버깅 정보
+      console.log('영화 데이터 구조:', {
+        hasTitle: !!movieDetailsTyped.title,
+        hasName: !!movieDetailsTyped.name,
+        title: movieDetailsTyped.title,
+        name: movieDetailsTyped.name,
+        keys: Object.keys(movieDetails || {})
+      });
+      
     } catch (error) {
       console.error('영화 상세 정보 가져오기 실패:', error);
       
@@ -55,6 +65,11 @@ export async function GET(
           return NextResponse.json(
             { error: 'API 요청 한도를 초과했습니다.' },
             { status: 429 }
+          );
+        } else if (error.message.includes('timeout')) {
+          return NextResponse.json(
+            { error: 'API 요청 시간 초과. 잠시 후 다시 시도해주세요.' },
+            { status: 408 }
           );
         }
       }
