@@ -2,8 +2,9 @@
   "movies": [
     {
       "id": 1,
-      "title": "기생충",
-      "originalTitle": "Parasite",
+      "title": "Parasite",
+      "originalTitle": "기생충",
+      "displayTitle": "기생충",
       "type": "movie",
       "year": 2019,
       "rating": 8.6,
@@ -13,12 +14,14 @@
       "genre": ["드라마", "스릴러"],
       "director": "봉준호",
       "cast": ["송강호", "이선균", "조여정", "최우식"],
-      "searchKeywords": ["기생충", "봉준호", "송강호", "오스카"]
+      "searchKeywords": ["기생충", "봉준호", "송강호", "오스카", "Parasite"],
+      "tmdbId": 496243
     },
     {
       "id": 2,
-      "title": "오펜하이머",
-      "originalTitle": "Oppenheimer",
+      "title": "Oppenheimer",
+      "originalTitle": "오펜하이머",
+      "displayTitle": "오펜하이머",
       "type": "movie",
       "year": 2023,
       "rating": 8.4,
@@ -28,12 +31,14 @@
       "genre": ["드라마", "전기"],
       "director": "크리스토퍼 놀란",
       "cast": ["킬리언 머피", "에밀리 블런트", "맷 데이먼"],
-      "searchKeywords": ["오펜하이머", "원자폭탄", "크리스토퍼 놀란"]
+      "searchKeywords": ["오펜하이머", "원자폭탄", "크리스토퍼 놀란", "Oppenheimer"],
+      "tmdbId": 872585
     },
     {
       "id": 3,
-      "title": "듄: 파트 2",
-      "originalTitle": "Dune: Part Two",
+      "title": "Dune: Part Two",
+      "originalTitle": "듄: 파트 2",
+      "displayTitle": "듄: 파트 2",
       "type": "movie",
       "year": 2024,
       "rating": 8.5,
@@ -43,14 +48,33 @@
       "genre": ["SF", "액션", "드라마"],
       "director": "드니 빌뇌브",
       "cast": ["티모시 샬라메", "제니퍼 로렌스", "오스카 아이작"],
-      "searchKeywords": ["듄", "파트 2", "티모시 샬라메", "SF"]
+      "searchKeywords": ["듄", "파트 2", "티모시 샬라메", "SF", "Dune"],
+      "tmdbId": 693134
+    },
+    {
+      "id": 4,
+      "title": "Nukitashi THE ANIMATION",
+      "originalTitle": "누키타시 THE ANIMATION",
+      "displayTitle": "누키타시 THE ANIMATION",
+      "type": "tv",
+      "year": 2025,
+      "rating": 6.4,
+      "posterUrl": "https://picsum.photos/300/450?random=4",
+      "overview": "On Seiran Island, secret society NLNS is united by Junnosuke Tachibana, who is determined to crush a law. They have found a benefactor, an unknown rich man, who offers them a secret base and cash. Their mission is to locate a mysterious girl and stop the law, keeping the SHO off their trail.",
+      "ottPlatforms": ["넷플릭스", "디즈니플러스"],
+      "genre": ["애니메이션", "액션", "드라마"],
+      "director": "미정",
+      "cast": ["미정"],
+      "searchKeywords": ["누키타시", "Nukitashi", "THE ANIMATION", "애니메이션"],
+      "tmdbId": 244808
     }
   ],
   "dramas": [
     {
       "id": 101,
-      "title": "수트",
-      "originalTitle": "The Gentlemen",
+      "title": "The Gentlemen",
+      "originalTitle": "수트",
+      "displayTitle": "수트",
       "type": "drama",
       "year": 2024,
       "rating": 8.2,
@@ -60,12 +84,14 @@
       "genre": ["범죄", "드라마"],
       "director": "가이 리치",
       "cast": ["테오 제임스", "카야 스코델라리오", "헨리 골딩"],
-      "searchKeywords": ["수트", "가이 리치", "범죄 드라마"]
+      "searchKeywords": ["수트", "가이 리치", "범죄 드라마", "The Gentlemen"],
+      "tmdbId": 1011985
     },
     {
       "id": 102,
-      "title": "브리저튼",
-      "originalTitle": "Bridgerton",
+      "title": "Bridgerton",
+      "originalTitle": "브리저튼",
+      "displayTitle": "브리저튼",
       "type": "drama",
       "year": 2020,
       "rating": 7.9,
@@ -75,12 +101,14 @@
       "genre": ["로맨스", "드라마", "사극"],
       "director": "크리스 반 더센",
       "cast": ["피비 다이너버", "레지-진 페이지", "니콜라 콜린"],
-      "searchKeywords": ["브리저튼", "로맨스", "사극"]
+      "searchKeywords": ["브리저튼", "로맨스", "사극", "Bridgerton"],
+      "tmdbId": 802372
     },
     {
       "id": 103,
-      "title": "위쳐",
-      "originalTitle": "The Witcher",
+      "title": "The Witcher",
+      "originalTitle": "위쳐",
+      "displayTitle": "위쳐",
       "type": "drama",
       "year": 2019,
       "rating": 7.8,
@@ -90,13 +118,15 @@
       "genre": ["판타지", "액션", "드라마"],
       "director": "로런 슈미트 히스리치",
       "cast": ["헨리 카빌", "프레야 앨런", "아냐 찰로트라"],
-      "searchKeywords": ["위쳐", "헨리 카빌", "판타지"]
+      "searchKeywords": ["위쳐", "헨리 카빌", "판타지", "The Witcher"],
+      "tmdbId": 71912
     }
   ],
   "metadata": {
-    "totalMovies": 3,
+    "totalMovies": 4,
     "totalDramas": 3,
     "lastUpdated": "2024-01-25",
-    "version": "1.0.0"
+    "version": "1.1.0",
+    "searchStrategy": "english_title_priority"
   }
 } 

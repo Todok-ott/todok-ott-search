@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { tmdbClient, Movie } from '@/lib/tmdb';
 import { enhanceWithKoreanOTTInfo } from '@/lib/koreanOTTs';
+import moviesData from '@/data/movies.json';
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,74 +19,58 @@ export async function GET(request: NextRequest) {
 
     console.log('검색 요청:', query.trim());
 
-    // TMDB API로 검색 (재시도 로직 포함)
-    let searchResult;
+    // 1단계: 로컬 데이터에서 영어 제목으로 검색
+    const localResults = searchLocalData(query.trim());
+    console.log('로컬 검색 결과:', localResults.length);
+
+    // 2단계: TMDB API로 검색 (영어 제목 우선)
+    let tmdbResults = [];
     try {
-      // 한국어 검색어에 대한 특별 처리
       const searchQuery = query.trim();
       const isKorean = /[가-힣]/.test(searchQuery);
       
-      // 한국어인 경우 영화와 TV를 각각 검색하여 더 정확한 결과 제공
       if (isKorean) {
-        const [movieResults, tvResults] = await Promise.all([
-          tmdbClient.searchMovies(searchQuery, parseInt(page)),
-          tmdbClient.searchTV(searchQuery, parseInt(page))
-        ]);
+        // 한국어 검색어인 경우 영어 제목으로 변환하여 검색
+        const englishTitles = getEnglishTitlesForKorean(searchQuery);
+        console.log('한국어 검색어에 대한 영어 제목들:', englishTitles);
         
-        // 결과를 합치고 정확도 순으로 정렬
-        const combinedResults = [
-          ...(movieResults.results || []).map((item: Movie) => ({ ...item, media_type: 'movie' })),
-          ...(tvResults.results || []).map((item: Movie) => ({ ...item, media_type: 'tv' }))
-        ];
+        // 각 영어 제목으로 검색
+        for (const englishTitle of englishTitles) {
+          try {
+            const result = await tmdbClient.searchMulti(englishTitle, parseInt(page));
+            if (result.results && result.results.length > 0) {
+              tmdbResults.push(...result.results);
+            }
+          } catch (error) {
+            console.error(`영어 제목 "${englishTitle}" 검색 실패:`, error);
+          }
+        }
         
-        // 제목 유사도에 따라 정렬 (한국어 검색어와 가장 유사한 것 우선)
-        combinedResults.sort((a, b) => {
-          const aTitle = (a.title || a.name || '').toLowerCase();
-          const bTitle = (b.title || b.name || '').toLowerCase();
-          const queryLower = searchQuery.toLowerCase();
-          
-          // 정확한 매칭 우선
-          const aExact = aTitle.includes(queryLower);
-          const bExact = bTitle.includes(queryLower);
-          
-          if (aExact && !bExact) return -1;
-          if (!aExact && bExact) return 1;
-          
-          // 한국어 콘텐츠 우선
-          const aKorean = /[가-힣]/.test(aTitle);
-          const bKorean = /[가-힣]/.test(bTitle);
-          
-          if (aKorean && !bKorean) return -1;
-          if (!aKorean && bKorean) return 1;
-          
-          return 0;
-        });
-        
-        searchResult = {
-          results: combinedResults.slice(0, 20), // 상위 20개만 반환
-          total_pages: Math.max(movieResults.total_pages || 0, tvResults.total_pages || 0),
-          total_results: combinedResults.length
-        };
+        // 중복 제거 및 정렬
+        tmdbResults = removeDuplicates(tmdbResults);
       } else {
         // 영어 검색은 기존 방식 사용
-        searchResult = await tmdbClient.searchMulti(searchQuery, parseInt(page));
+        const searchResult = await tmdbClient.searchMulti(searchQuery, parseInt(page));
+        tmdbResults = searchResult.results || [];
       }
     } catch (error) {
       console.error('TMDB 검색 실패:', error);
-      return NextResponse.json(
-        { 
-          error: '검색 서비스에 일시적인 문제가 있습니다. 잠시 후 다시 시도해주세요.',
-          results: [],
-          total_pages: 0,
-          total_results: 0
-        },
-        { status: 503 }
-      );
+      // TMDB 실패 시 로컬 결과만 반환
+      return NextResponse.json({
+        results: localResults,
+        total_pages: 1,
+        total_results: localResults.length,
+        source: 'local_only'
+      });
     }
-    
-    // 각 결과에 OTT 정보 추가 (최대 5개까지만 처리하여 성능 최적화)
+
+    // 3단계: 로컬 결과와 TMDB 결과 결합
+    const combinedResults = [...localResults, ...tmdbResults];
+    console.log('결합된 검색 결과:', combinedResults.length);
+
+    // 4단계: 각 결과에 OTT 정보 추가 (최대 5개까지만 처리하여 성능 최적화)
     let resultsWithOTT = await Promise.all(
-      searchResult.results.slice(0, 5).map(async (item) => {
+      combinedResults.slice(0, 5).map(async (item) => {
         try {
           let ottInfo = null;
           if (item.media_type === 'movie') {
@@ -103,29 +88,158 @@ export async function GET(request: NextRequest) {
             ott_providers: ottInfo
           };
         } catch (error) {
-          console.error(`Error fetching OTT info for ${item.id}:`, error);
+          console.error('OTT 정보 가져오기 실패:', error);
           return item;
         }
       })
     );
-    
-    // 한국어 검색인 경우 한국 OTT 정보 추가
-    const isKorean = /[가-힣]/.test(query.trim());
-    if (isKorean) {
-      resultsWithOTT = enhanceWithKoreanOTTInfo(resultsWithOTT);
-    }
-    
+
+    // 5단계: 한국어 콘텐츠에 한국 OTT 정보 추가
+    resultsWithOTT = await Promise.all(
+      resultsWithOTT.map(async (item) => {
+        const title = item.title || item.name || '';
+        if (/[가-힣]/.test(title)) {
+          const koreanOTTInfo = await enhanceWithKoreanOTTInfo(item);
+          return koreanOTTInfo;
+        }
+        return item;
+      })
+    );
+
     return NextResponse.json({
       results: resultsWithOTT,
-      total_pages: searchResult.total_pages,
-      total_results: searchResult.total_results,
-      page: parseInt(page)
+      total_pages: Math.ceil(combinedResults.length / 20),
+      total_results: combinedResults.length,
+      source: 'combined'
     });
+
   } catch (error) {
-    console.error('Search API error:', error);
+    console.error('검색 API 에러:', error);
     return NextResponse.json(
-      { error: '검색 중 오류가 발생했습니다.' },
+      { 
+        error: '검색 서비스에 일시적인 문제가 있습니다. 잠시 후 다시 시도해주세요.',
+        results: [],
+        total_pages: 0,
+        total_results: 0
+      },
       { status: 500 }
     );
   }
+}
+
+// 로컬 데이터 검색 함수
+function searchLocalData(query: string) {
+  const results = [];
+  const queryLower = query.toLowerCase();
+  
+  // 영화 검색
+  for (const movie of moviesData.movies) {
+    const title = movie.title.toLowerCase();
+    const originalTitle = movie.originalTitle.toLowerCase();
+    const displayTitle = movie.displayTitle.toLowerCase();
+    const searchKeywords = movie.searchKeywords.map(k => k.toLowerCase());
+    
+    if (title.includes(queryLower) || 
+        originalTitle.includes(queryLower) || 
+        displayTitle.includes(queryLower) ||
+        searchKeywords.some(keyword => keyword.includes(queryLower))) {
+      
+      results.push({
+        id: movie.tmdbId || movie.id,
+        title: movie.title,
+        name: movie.title, // TV 쇼용
+        original_title: movie.originalTitle,
+        display_title: movie.displayTitle,
+        media_type: movie.type === 'tv' ? 'tv' : 'movie',
+        overview: movie.overview,
+        poster_path: movie.posterUrl,
+        vote_average: movie.rating,
+        release_date: movie.year ? `${movie.year}-01-01` : undefined,
+        first_air_date: movie.type === 'tv' ? `${movie.year}-01-01` : undefined,
+        genre_ids: movie.genre.map((_, index) => index + 1),
+        popularity: movie.rating * 100,
+        vote_count: Math.floor(movie.rating * 100),
+        origin_country: ['KR'],
+        original_language: 'ko',
+        backdrop_path: movie.posterUrl,
+        ott_providers: movie.ottPlatforms,
+        local_data: true
+      });
+    }
+  }
+  
+  // 드라마 검색
+  for (const drama of moviesData.dramas) {
+    const title = drama.title.toLowerCase();
+    const originalTitle = drama.originalTitle.toLowerCase();
+    const displayTitle = drama.displayTitle.toLowerCase();
+    const searchKeywords = drama.searchKeywords.map(k => k.toLowerCase());
+    
+    if (title.includes(queryLower) || 
+        originalTitle.includes(queryLower) || 
+        displayTitle.includes(queryLower) ||
+        searchKeywords.some(keyword => keyword.includes(queryLower))) {
+      
+      results.push({
+        id: drama.tmdbId || drama.id,
+        title: drama.title,
+        name: drama.title, // TV 쇼용
+        original_title: drama.originalTitle,
+        display_title: drama.displayTitle,
+        media_type: 'tv',
+        overview: drama.overview,
+        poster_path: drama.posterUrl,
+        vote_average: drama.rating,
+        first_air_date: drama.year ? `${drama.year}-01-01` : undefined,
+        genre_ids: drama.genre.map((_, index) => index + 1),
+        popularity: drama.rating * 100,
+        vote_count: Math.floor(drama.rating * 100),
+        origin_country: ['KR'],
+        original_language: 'ko',
+        backdrop_path: drama.posterUrl,
+        ott_providers: drama.ottPlatforms,
+        local_data: true
+      });
+    }
+  }
+  
+  return results;
+}
+
+// 한국어 검색어에 대한 영어 제목 매핑
+function getEnglishTitlesForKorean(koreanQuery: string): string[] {
+  const englishTitles = [];
+  
+  // 로컬 데이터에서 매칭되는 영어 제목 찾기
+  for (const movie of moviesData.movies) {
+    if (movie.originalTitle.toLowerCase().includes(koreanQuery.toLowerCase()) ||
+        movie.displayTitle.toLowerCase().includes(koreanQuery.toLowerCase())) {
+      englishTitles.push(movie.title);
+    }
+  }
+  
+  for (const drama of moviesData.dramas) {
+    if (drama.originalTitle.toLowerCase().includes(koreanQuery.toLowerCase()) ||
+        drama.displayTitle.toLowerCase().includes(koreanQuery.toLowerCase())) {
+      englishTitles.push(drama.title);
+    }
+  }
+  
+  // 기본 영어 제목들 추가
+  englishTitles.push(koreanQuery); // 원본도 시도
+  
+  return [...new Set(englishTitles)];
+}
+
+// 중복 제거 함수
+function removeDuplicates(results: any[]): any[] {
+  const seen = new Set();
+  return results.filter(item => {
+    const key = `${item.id}-${item.media_type}`;
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
 } 

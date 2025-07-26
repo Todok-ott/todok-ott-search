@@ -13,6 +13,9 @@ import Image from 'next/image';
 // Movie 타입을 확장하여 korean_ott_providers 속성 추가
 interface MovieWithKoreanOTT extends Movie {
   korean_ott_providers?: unknown[];
+  original_title?: string;
+  display_title?: string;
+  local_data?: boolean;
 }
 
 export default function SearchResults() {
@@ -30,7 +33,7 @@ export default function SearchResults() {
 function SearchResultsContent() {
   const searchParams = useSearchParams();
   const query = searchParams.get('q') || '';
-  const [results, setResults] = useState<Movie[]>([]);
+  const [results, setResults] = useState<MovieWithKoreanOTT[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [sortBy, setSortBy] = useState<'relevance' | 'rating' | 'year' | 'title'>('relevance');
   const [filterType, setFilterType] = useState<'all' | 'movie' | 'tv'>('all');
@@ -47,7 +50,7 @@ function SearchResultsContent() {
       let filteredResults = data.results || [];
       
       // OTT 정보가 없는 콘텐츠는 제외
-      filteredResults = filteredResults.filter((item: Movie) => {
+      filteredResults = filteredResults.filter((item: MovieWithKoreanOTT) => {
         // TMDB ott_providers: flatrate만 체크 (undefined, null, 빈 배열, 빈 객체 모두 제외)
         const hasTMDB = !!(
           item.ott_providers &&
@@ -56,9 +59,9 @@ function SearchResultsContent() {
         );
         // Korean ott_providers: MovieWithKoreanOTT 타입으로 안전하게 체크
         const hasKorean = !!(
-          (item as MovieWithKoreanOTT).korean_ott_providers &&
-          Array.isArray((item as MovieWithKoreanOTT).korean_ott_providers) &&
-          (item as MovieWithKoreanOTT).korean_ott_providers!.length > 0
+          item.korean_ott_providers &&
+          Array.isArray(item.korean_ott_providers) &&
+          item.korean_ott_providers.length > 0
         );
         return hasTMDB || hasKorean;
       });
@@ -67,13 +70,13 @@ function SearchResultsContent() {
       
       // 타입 필터링
       if (filterType !== 'all') {
-        filteredResults = filteredResults.filter((item: Movie) => 
+        filteredResults = filteredResults.filter((item: MovieWithKoreanOTT) => 
           item.media_type === filterType
         );
       }
       
       // 정렬
-      filteredResults.sort((a: Movie, b: Movie) => {
+      filteredResults.sort((a: MovieWithKoreanOTT, b: MovieWithKoreanOTT) => {
         switch (sortBy) {
           case 'rating':
             return b.vote_average - a.vote_average;
@@ -101,71 +104,95 @@ function SearchResultsContent() {
     performSearch();
   }, [performSearch]);
 
-  const handleResultSelect = (movie: Movie) => {
-    // 기존 방식으로 라우팅 (상세 페이지 접근 가능하도록)
-    const mediaType = movie.media_type || 'movie';
-    const targetUrl = mediaType === 'tv' ? `/tv/${movie.id}` : `/movie/${movie.id}`;
+  const handleResultSelect = (movie: MovieWithKoreanOTT) => {
+    const movieId = movie.id;
+    const movieTitle = movie.title || movie.name || '';
     
-    console.log('영화 클릭:', {
-      id: movie.id,
-      title: movie.title || movie.name,
-      mediaType,
-      targetUrl
-    });
+    // 로컬 데이터인 경우 display_title 사용
+    const displayTitle = movie.local_data ? (movie.display_title || movie.original_title || movieTitle) : movieTitle;
     
-    // 제목 정보를 URL 파라미터로 전달
-    const titleParam = encodeURIComponent(movie.title || movie.name || '');
-    const finalUrl = `${targetUrl}?title=${titleParam}`;
+    // TV 쇼인지 확인
+    const isTV = movie.media_type === 'tv' || movie.first_air_date;
     
-    console.log('최종 URL:', finalUrl);
-    window.location.href = finalUrl;
+    if (isTV) {
+      // TV 쇼인 경우 TV 페이지로 이동
+      window.location.href = `/tv/${movieId}?title=${encodeURIComponent(displayTitle)}`;
+    } else {
+      // 영화인 경우 영화 페이지로 이동
+      window.location.href = `/movie/${movieId}?title=${encodeURIComponent(displayTitle)}`;
+    }
   };
 
   const handleSearch = (newQuery: string) => {
     if (newQuery.trim()) {
-      window.location.href = `/search?q=${encodeURIComponent(newQuery)}`;
+      window.location.href = `/search?q=${encodeURIComponent(newQuery.trim())}`;
     }
+  };
+
+  // 제목 표시 함수
+  const getDisplayTitle = (item: MovieWithKoreanOTT) => {
+    // 로컬 데이터인 경우 display_title 우선 사용
+    if (item.local_data && item.display_title) {
+      return item.display_title;
+    }
+    
+    // 한국어 제목이 있으면 한국어 제목 표시
+    if (item.original_title && /[가-힣]/.test(item.original_title)) {
+      return item.original_title;
+    }
+    
+    // 기본 제목 사용
+    return item.title || item.name || '';
+  };
+
+  // 부제목 표시 함수
+  const getSubtitle = (item: MovieWithKoreanOTT) => {
+    // 로컬 데이터인 경우 영어 제목을 부제목으로 표시
+    if (item.local_data && item.title && item.title !== item.display_title) {
+      return item.title;
+    }
+    
+    // 한국어 제목이 있고 영어 제목과 다른 경우 영어 제목을 부제목으로 표시
+    if (item.original_title && item.title && 
+        item.original_title !== item.title && 
+        /[가-힣]/.test(item.original_title)) {
+      return item.title;
+    }
+    
+    return null;
   };
 
   return (
     <div className="min-h-screen bg-[#121212]">
       {/* 헤더 */}
-      <motion.header 
-        className="sticky top-0 z-50 bg-black/90 backdrop-blur-md border-b border-gray-600/20"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-      >
+      <header className="bg-black/50 backdrop-blur-sm border-b border-white/10 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <motion.h1 
-              className="text-2xl font-bold text-white"
-              whileHover={{ scale: 1.05 }}
-              transition={{ duration: 0.2 }}
-            >
-              <span className="text-[#FFD700]">토독</span>
-              <span className="text-white">(Todok)</span>
-            </motion.h1>
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => window.history.back()}
+                className="text-white hover:text-gray-300 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <SearchBar onSearch={handleSearch} initialQuery={query} />
+            </div>
             
             <div className="flex items-center space-x-4">
-              <SearchBar 
-                onSearch={handleSearch}
-                onResultSelect={handleResultSelect}
-                placeholder="다른 작품을 검색하세요..."
-              />
-              
-              <motion.button
+              <button
                 onClick={() => setShowFilters(!showFilters)}
-                className="p-2 bg-white/10 rounded-lg hover:bg-[#FFD700] hover:text-black transition-all duration-200"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                className="text-white hover:text-gray-300 transition-colors"
               >
-                <TrendingUp className="w-5 h-5" />
-              </motion.button>
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z" />
+                </svg>
+              </button>
             </div>
           </div>
         </div>
-      </motion.header>
+      </header>
 
       {/* 필터 패널 */}
       <AnimatePresence>
@@ -174,45 +201,53 @@ function SearchResultsContent() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="bg-black/80 backdrop-blur-sm border-b border-gray-600/20 overflow-hidden"
+            className="bg-black/30 backdrop-blur-sm border-b border-white/10 overflow-hidden"
           >
             <div className="max-w-7xl mx-auto px-6 py-4">
-              <div className="flex flex-wrap items-center gap-4">
+              <div className="flex flex-wrap gap-4">
+                {/* 정렬 옵션 */}
                 <div className="flex items-center space-x-2">
                   <span className="text-white text-sm font-medium">정렬:</span>
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as 'relevance' | 'rating' | 'year' | 'title')}
-                    className="bg-white/10 text-white border border-gray-600/30 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FFD700]/50"
-                  >
-                    <option value="relevance">관련도</option>
-                    <option value="rating">평점</option>
-                    <option value="year">연도</option>
-                    <option value="title">제목</option>
-                  </select>
+                  {[
+                    { value: 'relevance', label: '관련도' },
+                    { value: 'rating', label: '평점' },
+                    { value: 'year', label: '연도' },
+                    { value: 'title', label: '제목' }
+                  ].map((sort) => (
+                    <button
+                      key={sort.value}
+                      onClick={() => setSortBy(sort.value as 'relevance' | 'rating' | 'year' | 'title')}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        sortBy === sort.value
+                          ? 'bg-[#FFD700] text-black'
+                          : 'bg-white/10 text-white hover:bg-white/20'
+                      }`}
+                    >
+                      {sort.label}
+                    </button>
+                  ))}
                 </div>
-                
+
+                {/* 타입 필터 */}
                 <div className="flex items-center space-x-2">
                   <span className="text-white text-sm font-medium">타입:</span>
-                  <div className="flex space-x-2">
-                    {[
-                      { value: 'all', label: '전체' },
-                      { value: 'movie', label: '영화' },
-                      { value: 'tv', label: '드라마' }
-                    ].map((type) => (
-                      <button
-                        key={type.value}
-                        onClick={() => setFilterType(type.value as 'all' | 'movie' | 'tv')}
-                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                          filterType === type.value
-                            ? 'bg-[#FFD700] text-black'
-                            : 'bg-white/10 text-white hover:bg-white/20'
-                        }`}
-                      >
-                        {type.label}
-                      </button>
-                    ))}
-                  </div>
+                  {[
+                    { value: 'all', label: '전체' },
+                    { value: 'movie', label: '영화' },
+                    { value: 'tv', label: '드라마' }
+                  ].map((type) => (
+                    <button
+                      key={type.value}
+                      onClick={() => setFilterType(type.value as 'all' | 'movie' | 'tv')}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        filterType === type.value
+                          ? 'bg-[#FFD700] text-black'
+                          : 'bg-white/10 text-white hover:bg-white/20'
+                      }`}
+                    >
+                      {type.label}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
@@ -265,7 +300,6 @@ function SearchResultsContent() {
                 transition={{ duration: 0.6 }}
               >
                 {results.map((item, index) => (
-                  <>
                   <motion.div
                     key={item.id}
                     initial={{ opacity: 0, y: 30 }}
@@ -277,11 +311,12 @@ function SearchResultsContent() {
                       transition: { duration: 0.3 }
                     }}
                     className="group cursor-pointer"
+                    onClick={() => handleResultSelect(item)}
                   >
                     <div className="relative overflow-hidden rounded-xl shadow-2xl poster-card">
                       <Image
                         src={item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : '/placeholder-poster.jpg'}
-                        alt={item.title || item.name || ''}
+                        alt={getDisplayTitle(item)}
                         width={500}
                         height={750}
                         className="w-full h-auto object-cover transition-all duration-500 group-hover:scale-110"
@@ -290,90 +325,50 @@ function SearchResultsContent() {
                       {/* 호버 오버레이 */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500">
                         <div className="absolute bottom-0 left-0 right-0 p-4">
-                          <h4 className="text-white font-semibold text-lg mb-2 truncate">
-                            {item.title || item.name}
+                          <h4 className="text-white font-semibold text-lg mb-1 truncate">
+                            {getDisplayTitle(item)}
                           </h4>
+                          {getSubtitle(item) && (
+                            <p className="text-gray-300 text-sm mb-2 truncate">
+                              {getSubtitle(item)}
+                            </p>
+                          )}
                           <div className="flex items-center justify-between text-sm text-gray-400">
                               <div className="flex items-center">
                                 <Star className="w-4 h-4 text-yellow-500 mr-1" />
                                 <span>{item.vote_average ? item.vote_average.toFixed(1) : 'N/A'}</span>
                               </div>
-                              <span>{item.release_date?.split('-')[0] || item.first_air_date?.split('-')[0] || 'N/A'}</span>
-                            </div>
-                          {item.overview && (
-                            <p className="text-gray-300 text-sm line-clamp-2 mb-4">
-                              {item.overview}
-                            </p>
-                          )}
-                          {/* 액션 버튼들 */}
-                          <div className="flex space-x-2">
-                            <button className="flex-1 bg-[#FFD700] text-black text-sm px-3 py-2 rounded-full font-medium hover:bg-[#FFA500] transition-colors duration-200 flex items-center justify-center">
-                              <Play className="w-4 h-4 mr-1" />
-                              재생
-                            </button>
-                            <button className="flex-1 bg-white/20 text-white text-sm px-3 py-2 rounded-full font-medium hover:bg-white/30 transition-colors duration-200 flex items-center justify-center">
-                              <Info className="w-4 h-4 mr-1" />
-                              정보
-                            </button>
+                              <div className="flex items-center">
+                                <span className="text-xs bg-white/20 px-2 py-1 rounded">
+                                  {item.media_type === 'tv' ? 'TV' : '영화'}
+                                </span>
+                              </div>
                           </div>
                         </div>
                       </div>
                       
-                      {/* 미디어 타입 배지 */}
-                      <div className="absolute top-3 right-3 bg-[#FFD700] text-black text-xs px-2 py-1 rounded-full font-medium shadow-lg">
-                        {item.media_type === 'movie' ? '영화' : '드라마'}
-                      </div>
-                      
-                      {/* OTT 플랫폼 로고들 */}
-                      {item.ott_providers?.flatrate && (
-                        <div className="absolute bottom-3 left-3 flex space-x-1">
-                          {item.ott_providers.flatrate.slice(0, 3).map((provider: { provider_id: number; provider_name: string; logo_path: string }) => (
-                            <Image
-                              key={provider.provider_id}
-                              src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
-                              alt={provider.provider_name}
-                              width={24}
-                              height={24}
-                              className="w-6 h-6 rounded opacity-80 hover:opacity-100 transition-opacity duration-200"
-                              title={provider.provider_name}
-                            />
-                          ))}
+                      {/* 플레이 버튼 */}
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+                        <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
+                          <Play className="w-8 h-8 text-white fill-white" />
                         </div>
-                      )}
+                      </div>
                     </div>
                   </motion.div>
-
-                  </>
                 ))}
-                
-
               </motion.div>
             ) : (
               <motion.div 
                 className="text-center py-20"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ duration: 0.6 }}
               >
-                <div className="max-w-md mx-auto">
-                  <div className="w-24 h-24 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Search className="w-12 h-12 text-gray-400" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-white mb-4">
-                    검색 결과를 찾을 수 없습니다
-                  </h3>
-                  <p className="text-gray-400 mb-6">
-                    다른 키워드로 검색해보시거나, 인기 콘텐츠를 확인해보세요.
-                  </p>
-                  <motion.button
-                    onClick={() => window.history.back()}
-                    className="bg-[#FFD700] text-black px-6 py-3 rounded-full font-medium hover:bg-[#FFA500] transition-colors duration-200"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    다시 검색하기
-                  </motion.button>
+                <div className="text-gray-400 text-lg mb-4">
+                  검색 결과가 없습니다.
                 </div>
+                <p className="text-gray-500">
+                  다른 키워드로 검색해보세요.
+                </p>
               </motion.div>
             )}
           </AnimatePresence>

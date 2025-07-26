@@ -8,12 +8,13 @@ import { Movie } from '@/lib/tmdb';
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
-  onResultSelect: (movie: Movie) => void;
+  onResultSelect?: (movie: Movie) => void;
   placeholder?: string;
+  initialQuery?: string;
 }
 
-export default function SearchBar({ onSearch, onResultSelect, placeholder = "작품 제목을 입력하세요..." }: SearchBarProps) {
-  const [query, setQuery] = useState('');
+export default function SearchBar({ onSearch, onResultSelect, placeholder = "작품 제목을 입력하세요...", initialQuery = "" }: SearchBarProps) {
+  const [query, setQuery] = useState(initialQuery);
   const [isFocused, setIsFocused] = useState(false);
   const [results, setResults] = useState<Movie[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -59,7 +60,9 @@ export default function SearchBar({ onSearch, onResultSelect, placeholder = "작
   };
 
   const handleResultClick = (movie: Movie) => {
-    onResultSelect(movie);
+    if (onResultSelect) {
+      onResultSelect(movie);
+    }
     setQuery('');
     setResults([]);
     // 상세 페이지로 이동
