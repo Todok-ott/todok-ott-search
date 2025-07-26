@@ -105,8 +105,8 @@ export default function MovieDetail({ params }: { params: Promise<{ id: string }
           return;
         }
         
-        // ID 범위 검사 (TMDB 영화 ID는 보통 1-999999 범위)
-        if (movieId < 1 || movieId > 999999) {
+        // ID 범위 검사 (TMDB 영화 ID는 보통 1-9999999 범위)
+        if (movieId < 1 || movieId > 9999999) {
           console.error('ID 범위 초과:', movieId);
           setError('존재하지 않는 영화입니다.');
           setLoading(false);
