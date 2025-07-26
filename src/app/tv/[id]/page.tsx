@@ -77,29 +77,69 @@ export default function TVDetail({ params }: { params: Promise<{ id: string }> }
       event.preventDefault();
     };
 
-    // DOM 변경 감지 및 에러 방지 (더 강력한 차단)
+    // DOM 변경 감지 및 에러 방지 (선택적 차단)
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (mutation.type === 'childList') {
           mutation.addedNodes.forEach((node) => {
             if (node.nodeType === Node.ELEMENT_NODE) {
               const element = node as Element;
-              // 스크립트 태그가 추가되면 즉시 제거
+              
+              // 스크립트 태그 처리
               if (element.tagName === 'SCRIPT') {
-                console.warn('외부 스크립트 차단:', element);
-                try {
-                  element.remove();
-                } catch (e) {
-                  console.warn('스크립트 제거 실패:', e);
+                const src = element.getAttribute('src');
+                if (src) {
+                  // 문제가 되는 도메인만 차단
+                  const blockedDomains = [
+                    'ep2.adtrafficquality.google',
+                    'www.google.com/recaptcha',
+                    'googleads.g.doubleclick.net',
+                    'pagead2.googlesyndication.com',
+                    'securepubads.g.doubleclick.net'
+                  ];
+                  
+                  const shouldBlock = blockedDomains.some(domain => 
+                    src.includes(domain)
+                  );
+                  
+                  if (shouldBlock) {
+                    console.warn('문제 스크립트 차단:', src);
+                    try {
+                      element.remove();
+                    } catch (e) {
+                      console.warn('스크립트 제거 실패:', e);
+                    }
+                  } else {
+                    console.log('허용된 스크립트:', src);
+                  }
                 }
               }
-              // iframe 태그도 즉시 제거
+              
+              // iframe 태그 처리
               if (element.tagName === 'IFRAME') {
-                console.warn('외부 iframe 차단:', element);
-                try {
-                  element.remove();
-                } catch (e) {
-                  console.warn('iframe 제거 실패:', e);
+                const src = element.getAttribute('src');
+                if (src) {
+                  const blockedDomains = [
+                    'ep2.adtrafficquality.google',
+                    'www.google.com/recaptcha',
+                    'googleads.g.doubleclick.net',
+                    'pagead2.googlesyndication.com'
+                  ];
+                  
+                  const shouldBlock = blockedDomains.some(domain => 
+                    src.includes(domain)
+                  );
+                  
+                  if (shouldBlock) {
+                    console.warn('문제 iframe 차단:', src);
+                    try {
+                      element.remove();
+                    } catch (e) {
+                      console.warn('iframe 제거 실패:', e);
+                    }
+                  } else {
+                    console.log('허용된 iframe:', src);
+                  }
                 }
               }
             }
