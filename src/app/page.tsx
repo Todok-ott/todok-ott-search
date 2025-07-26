@@ -181,43 +181,30 @@ export default function Home() {
           } catch { return null; }
         };
 
-        // 인기 영화/TV 중 OTT 정보가 있는 것만 최대 6개
-        const validMovies: PopularContent[] = [];
-        for (const movie of moviesData.results) {
-          const detail = await fetchMovieDetail(movie.id);
-          if (detail && (detail.ott_providers?.length > 0 || detail.korean_ott_providers?.length > 0)) {
-            validMovies.push({
-              id: detail.id,
-              title: detail.title,
-              name: detail.name,
-              overview: detail.overview,
-              poster_path: detail.poster_path,
-              vote_average: detail.vote_average,
-              release_date: detail.release_date,
-              first_air_date: detail.first_air_date,
-              media_type: 'movie'
-            });
-          }
-          if (validMovies.length >= 6) break;
-        }
-        const validTVs: PopularContent[] = [];
-        for (const tv of tvData.results) {
-          const detail = await fetchTVDetail(tv.id);
-          if (detail && (detail.ott_providers?.length > 0 || detail.korean_ott_providers?.length > 0)) {
-            validTVs.push({
-              id: detail.id,
-              title: detail.title,
-              name: detail.name,
-              overview: detail.overview,
-              poster_path: detail.poster_path,
-              vote_average: detail.vote_average,
-              release_date: detail.release_date,
-              first_air_date: detail.first_air_date,
-              media_type: 'tv'
-            });
-          }
-          if (validTVs.length >= 6) break;
-        }
+        // 인기 영화/TV 중 최대 6개만 사용 (OTT 정보 체크 제거)
+        const validMovies: PopularContent[] = moviesData.results.slice(0, 6).map((movie: any) => ({
+          id: movie.id,
+          title: movie.title,
+          name: movie.name,
+          overview: movie.overview,
+          poster_path: movie.poster_path,
+          vote_average: movie.vote_average,
+          release_date: movie.release_date,
+          first_air_date: movie.first_air_date,
+          media_type: 'movie'
+        }));
+        
+        const validTVs: PopularContent[] = tvData.results.slice(0, 6).map((tv: any) => ({
+          id: tv.id,
+          title: tv.title,
+          name: tv.name,
+          overview: tv.overview,
+          poster_path: tv.poster_path,
+          vote_average: tv.vote_average,
+          release_date: tv.release_date,
+          first_air_date: tv.first_air_date,
+          media_type: 'tv'
+        }));
         setPopularMovies(validMovies);
         setPopularTVShows(validTVs);
       } catch (error) {
