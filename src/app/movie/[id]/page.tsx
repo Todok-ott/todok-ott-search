@@ -142,6 +142,15 @@ export default function MovieDetail({ params }: { params: Promise<{ id: string }
         const data = await response.json();
         console.log('API 응답 데이터:', data);
         
+        // TV 쇼 데이터인지 확인 (first_air_date가 있으면 TV 쇼)
+        if (data.first_air_date && !data.release_date) {
+          console.log('TV 쇼 감지, TV 페이지로 리다이렉트:', data.name || data.title);
+          // TV 페이지로 리다이렉트
+          const tvUrl = `/tv/${id}${titleParam ? `?title=${encodeURIComponent(titleParam)}` : ''}`;
+          router.replace(tvUrl);
+          return;
+        }
+        
         // 데이터 유효성 검사
         if (!data || !data.title) {
           console.error('유효하지 않은 영화 데이터:', data);

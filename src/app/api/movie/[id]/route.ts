@@ -34,6 +34,10 @@ export async function GET(
       console.log('제목 파라미터로 검색:', searchQuery);
     }
     
+    // 검색어 정리 (특수문자 제거, 공백 정리)
+    searchQuery = searchQuery.replace(/[^\w\s가-힣]/g, ' ').replace(/\s+/g, ' ').trim();
+    console.log('정리된 검색어:', searchQuery);
+    
     try {
       // 멀티 검색으로 영화와 TV 쇼 모두 검색
       const searchResults = await tmdbClient.searchMulti(searchQuery);
