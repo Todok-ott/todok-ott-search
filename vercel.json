@@ -24,8 +24,5 @@
     "app/api/**/*.ts": {
       "maxDuration": 30
     }
-  },
-  "env": {
-    "NEXT_PUBLIC_TMDB_API_KEY": "@tmdb_api_key"
   }
 } 
