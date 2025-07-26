@@ -6,7 +6,7 @@ import { ArrowLeft, Star, Play, Calendar, Clock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Footer from '@/components/Footer';
 import OTTInfo from '@/components/OTTInfo';
-import { CombinedOTTInfo } from '@/lib/ottUtils';
+import { OTTProvider } from '@/lib/ottUtils';
 
 interface MovieDetails {
   id: number;
@@ -23,7 +23,7 @@ interface MovieDetails {
     cast: { id: number; name: string; character: string; profile_path: string }[];
     crew: { id: number; name: string; job: string }[];
   };
-  ott_providers?: CombinedOTTInfo[];
+  ott_providers?: OTTProvider[];
 }
 
 export default function MovieDetail({ params }: { params: Promise<{ id: string }> }) {

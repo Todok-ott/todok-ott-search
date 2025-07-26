@@ -3,10 +3,10 @@
 import { motion } from 'framer-motion';
 import { ExternalLink, Info, Star, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
-import { CombinedOTTInfo, sortOTTsByPrice, groupOTTsByType } from '@/lib/ottUtils';
+import { OTTProvider } from '@/lib/ottUtils';
 
 interface OTTInfoProps {
-  ottProviders: CombinedOTTInfo[];
+  ottProviders: OTTProvider[];
   title?: string;
 }
 
@@ -28,11 +28,12 @@ export default function OTTInfo({ ottProviders, title = "시청 가능 플랫폼
 
   // 정렬된 OTT 목록
   const sortedOTTs = sortBy === 'price' 
-    ? sortOTTsByPrice([...ottProviders])
+    ? [...ottProviders].sort((a, b) => {
+        const aPrice = a.price.monthly || a.price.basic || '₩0';
+        const bPrice = b.price.monthly || b.price.basic || '₩0';
+        return aPrice.localeCompare(bPrice);
+      })
     : [...ottProviders].sort((a, b) => a.name.localeCompare(b.name));
-
-  // OTT 타입별 분류
-  const groupedOTTs = groupOTTsByType(sortedOTTs);
 
   const toggleDetails = (ottId: string) => {
     setShowDetails(prev => ({
@@ -57,177 +58,133 @@ export default function OTTInfo({ ottProviders, title = "시청 가능 플랫폼
         </div>
       </div>
 
-      {/* 구독형 스트리밍 */}
-      {groupedOTTs.subscription.length > 0 && (
-        <div className="mb-6">
-          <h4 className="text-lg font-medium text-white mb-3">구독형 스트리밍</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {groupedOTTs.subscription.map((ott, index) => (
-              <motion.div
-                key={ott.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="bg-black/20 border border-gray-600/20 rounded-lg p-4 hover:border-gray-500/30 transition-colors"
+      {/* OTT 목록 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {sortedOTTs.map((ott, index) => (
+          <motion.div
+            key={ott.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: index * 0.1 }}
+            className="bg-black/20 border border-gray-600/20 rounded-lg p-4 hover:border-gray-500/30 transition-colors"
+          >
+            <div className="flex items-center space-x-3 mb-3">
+              <img
+                src={ott.logo}
+                alt={ott.name}
+                className="w-10 h-10 rounded object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = '/ott-logos/default.png';
+                }}
+              />
+              <div className="flex-1">
+                <h5 className="text-white font-medium">{ott.name}</h5>
+                {ott.price && (
+                  <p className="text-[#FFD700] text-sm">
+                    {ott.price.monthly || ott.price.basic || '가격 정보 없음'}
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={() => toggleDetails(ott.id)}
+                className="text-gray-400 hover:text-[#FFD700] transition-colors"
               >
-                <div className="flex items-center space-x-3 mb-3">
-                  <img
-                    src={ott.logo_path}
-                    alt={ott.name}
-                    className="w-10 h-10 rounded object-cover"
-                    onError={(e) => {
-                      e.currentTarget.src = '/ott-logos/default.png';
-                    }}
-                  />
-                  <div className="flex-1">
-                    <h5 className="text-white font-medium">{ott.name}</h5>
-                    {ott.price && (
-                      <p className="text-[#FFD700] text-sm">
-                        {ott.price.monthly || ott.price.basic}
-                      </p>
-                    )}
+                <Info className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* 상세 정보 */}
+            {showDetails[ott.id] && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="space-y-3 pt-3 border-t border-gray-600/20"
+              >
+                {/* 설명 */}
+                {ott.description && (
+                  <div>
+                    <h6 className="text-gray-300 text-sm font-medium mb-1">설명</h6>
+                    <p className="text-gray-400 text-xs">{ott.description}</p>
                   </div>
-                  <button
-                    onClick={() => toggleDetails(ott.id)}
-                    className="text-gray-400 hover:text-[#FFD700] transition-colors"
-                  >
-                    <Info className="w-4 h-4" />
-                  </button>
-                </div>
+                )}
 
-                {/* 상세 정보 */}
-                {showDetails[ott.id] && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="space-y-3 pt-3 border-t border-gray-600/20"
-                  >
-                    {/* 특징 */}
-                    {ott.features && ott.features.length > 0 && (
-                      <div>
-                        <h6 className="text-gray-300 text-sm font-medium mb-1">특징</h6>
-                        <div className="flex flex-wrap gap-1">
-                          {ott.features.map((feature, idx) => (
-                            <span
-                              key={idx}
-                              className="px-2 py-1 bg-[#FFD700]/20 text-[#FFD700] text-xs rounded"
-                            >
-                              {feature}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* 장점 */}
-                    {ott.strengths && ott.strengths.length > 0 && (
-                      <div>
-                        <h6 className="text-gray-300 text-sm font-medium mb-1 flex items-center">
-                          <Star className="w-3 h-3 mr-1 text-green-400" />
-                          장점
-                        </h6>
-                        <ul className="text-gray-400 text-xs space-y-1">
-                          {ott.strengths.map((strength, idx) => (
-                            <li key={idx} className="flex items-start">
-                              <span className="text-green-400 mr-1">•</span>
-                              {strength}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {/* 단점 */}
-                    {ott.weaknesses && ott.weaknesses.length > 0 && (
-                      <div>
-                        <h6 className="text-gray-300 text-sm font-medium mb-1 flex items-center">
-                          <AlertCircle className="w-3 h-3 mr-1 text-yellow-400" />
-                          단점
-                        </h6>
-                        <ul className="text-gray-400 text-xs space-y-1">
-                          {ott.weaknesses.map((weakness, idx) => (
-                            <li key={idx} className="flex items-start">
-                              <span className="text-yellow-400 mr-1">•</span>
-                              {weakness}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {/* 웹사이트 링크 */}
-                    {ott.website && (
-                      <div className="pt-2">
-                        <a
-                          href={ott.website}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center space-x-1 text-[#FFD700] hover:text-[#FFA500] text-xs transition-colors"
+                {/* 특징 */}
+                {ott.features && ott.features.length > 0 && (
+                  <div>
+                    <h6 className="text-gray-300 text-sm font-medium mb-1">특징</h6>
+                    <div className="flex flex-wrap gap-1">
+                      {ott.features.map((feature, idx) => (
+                        <span
+                          key={idx}
+                          className="px-2 py-1 bg-[#FFD700]/20 text-[#FFD700] text-xs rounded"
                         >
-                          <span>공식 사이트</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
-                      </div>
-                    )}
-                  </motion.div>
+                          {feature}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 장점 */}
+                {ott.strengths && ott.strengths.length > 0 && (
+                  <div>
+                    <h6 className="text-gray-300 text-sm font-medium mb-1 flex items-center">
+                      <Star className="w-3 h-3 mr-1 text-green-400" />
+                      장점
+                    </h6>
+                    <ul className="text-gray-400 text-xs space-y-1">
+                      {ott.strengths.map((strength, idx) => (
+                        <li key={idx} className="flex items-start">
+                          <span className="text-green-400 mr-1">•</span>
+                          {strength}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* 단점 */}
+                {ott.weaknesses && ott.weaknesses.length > 0 && (
+                  <div>
+                    <h6 className="text-gray-300 text-sm font-medium mb-1 flex items-center">
+                      <AlertCircle className="w-3 h-3 mr-1 text-yellow-400" />
+                      단점
+                    </h6>
+                    <ul className="text-gray-400 text-xs space-y-1">
+                      {ott.weaknesses.map((weakness, idx) => (
+                        <li key={idx} className="flex items-start">
+                          <span className="text-yellow-400 mr-1">•</span>
+                          {weakness}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
               </motion.div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* 무료 스트리밍 */}
-      {groupedOTTs.free.length > 0 && (
-        <div className="mb-6">
-          <h4 className="text-lg font-medium text-white mb-3">무료 스트리밍</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {groupedOTTs.free.map((ott, index) => (
-              <motion.div
-                key={ott.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="bg-black/20 border border-gray-600/20 rounded-lg p-4"
-              >
-                <div className="flex items-center space-x-3">
-                  <img
-                    src={ott.logo_path}
-                    alt={ott.name}
-                    className="w-10 h-10 rounded object-cover"
-                  />
-                  <div>
-                    <h5 className="text-white font-medium">{ott.name}</h5>
-                    <p className="text-green-400 text-sm">무료</p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      )}
+            )}
+          </motion.div>
+        ))}
+      </div>
 
       {/* 통계 정보 */}
       <div className="mt-6 p-4 bg-black/20 border border-gray-600/20 rounded-lg">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
           <div>
             <p className="text-[#FFD700] font-semibold">{ottProviders.length}</p>
             <p className="text-gray-400 text-sm">총 플랫폼</p>
           </div>
           <div>
-            <p className="text-[#FFD700] font-semibold">{groupedOTTs.subscription.length}</p>
-            <p className="text-gray-400 text-sm">구독형</p>
-          </div>
-          <div>
-            <p className="text-[#FFD700] font-semibold">{groupedOTTs.free.length}</p>
-            <p className="text-gray-400 text-sm">무료</p>
+            <p className="text-[#FFD700] font-semibold">
+              {ottProviders.filter(ott => ott.price && (ott.price.monthly || ott.price.basic)).length}
+            </p>
+            <p className="text-gray-400 text-sm">유료 서비스</p>
           </div>
           <div>
             <p className="text-[#FFD700] font-semibold">
-              {ottProviders.filter(ott => ott.source === 'korean').length}
+              {ottProviders.filter(ott => !ott.price || (!ott.price.monthly && !ott.price.basic)).length}
             </p>
-            <p className="text-gray-400 text-sm">국내 OTT</p>
+            <p className="text-gray-400 text-sm">무료 서비스</p>
           </div>
         </div>
       </div>
