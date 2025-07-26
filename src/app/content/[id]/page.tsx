@@ -7,6 +7,8 @@ import { ArrowLeft, Star, Play, Calendar, Clock, Globe, Info } from 'lucide-reac
 import Image from 'next/image';
 import Footer from '@/components/Footer';
 import OTTInfo from '@/components/OTTInfo';
+import { OTTProvider } from '@/lib/ottUtils';
+import { KoreanOTTProvider } from '@/lib/koreanOTTs';
 
 interface ContentDetails {
   id: number;
@@ -23,8 +25,8 @@ interface ContentDetails {
   episode_run_time?: number[];
   genres?: Array<{ id: number; name: string }>;
   media_type?: string;
-  ott_providers?: any;
-  korean_ott_providers?: any;
+  ott_providers?: OTTProvider[];
+  korean_ott_providers?: KoreanOTTProvider[];
 }
 
 export default function ContentDetail() {
