@@ -50,8 +50,16 @@ function SearchResultsContent() {
         const hasTMDB = item.ott_providers && Array.isArray(item.ott_providers.flatrate) && item.ott_providers.flatrate.length > 0;
         // Korean ott_providers: MovieWithKoreanOTT 타입으로 안전하게 체크
         const hasKorean = (item as MovieWithKoreanOTT).korean_ott_providers && Array.isArray((item as MovieWithKoreanOTT).korean_ott_providers) && (item as MovieWithKoreanOTT).korean_ott_providers!.length > 0;
+        
+        // 디버깅용 로그
+        if (!hasTMDB && !hasKorean) {
+          console.log('OTT 정보 없는 콘텐츠 제외:', item.title || item.name);
+        }
+        
         return hasTMDB || hasKorean;
       });
+      
+      console.log('필터링 후 결과 수:', filteredResults.length);
       
       // 타입 필터링
       if (filterType !== 'all') {
@@ -307,15 +315,24 @@ function SearchResultsContent() {
                   </motion.div>
                   {/* 광고 샘플: 8번째 카드 아래에 표시 */}
                   {index === 7 && (
-                    <div className="w-full flex justify-center my-8">
+                    <div className="w-full flex justify-center my-8 col-span-full">
                       {/* 실제 광고 삽입 시 Script 및 ins 태그 사용 */}
-                      <div style={{ width: '100%', maxWidth: 728, height: 90, background: '#f5f5f5', color: '#888', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8, border: '1px dashed #ccc' }}>
-                        광고 영역 (샘플)
+                      <div style={{ width: '100%', maxWidth: 728, height: 90, background: 'linear-gradient(45deg, #FFD700, #FFA500)', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8, border: '2px dashed #FF6B35', fontWeight: 'bold', fontSize: '16px' }}>
+                        🎬 광고 영역 (샘플) - 실제 광고가 여기에 표시됩니다
                       </div>
                     </div>
                   )}
                   </>
                 ))}
+                
+                {/* 추가 광고 배너: 검색 결과 끝에 표시 */}
+                {results.length > 0 && (
+                  <div className="w-full flex justify-center my-8 col-span-full">
+                    <div style={{ width: '100%', maxWidth: 728, height: 90, background: 'linear-gradient(45deg, #4CAF50, #45a049)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8, border: '2px dashed #2E7D32', fontWeight: 'bold', fontSize: '16px' }}>
+                      📺 추가 광고 영역 (샘플) - 검색 결과 하단
+                    </div>
+                  </div>
+                )}
               </motion.div>
             ) : (
               <motion.div 
