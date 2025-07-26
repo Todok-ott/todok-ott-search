@@ -40,65 +40,62 @@ export async function GET(
     console.log('정리된 검색어:', searchQuery);
     
     try {
-      // 멀티 검색으로 영화와 TV 쇼 모두 검색
-      console.log('TMDB API 호출 시작...');
-      const searchResults = await tmdbClient.searchMulti(searchQuery);
-      console.log('검색 결과 개수:', Array.isArray(searchResults.results) ? searchResults.results.length : 0);
-      console.log('전체 검색 결과:', searchResults.results?.slice(0, 5).map(r => ({
-        title: r.title || r.name,
-        id: r.id,
-        media_type: r.media_type
-      })));
+      // 여러 검색 시도
+      let searchResults = null;
+      let selectedResult = null;
+      
+      // 1. 원본 검색어로 먼저 시도
+      console.log('1차 검색 시도:', searchQuery);
+      searchResults = await tmdbClient.searchMulti(searchQuery);
       
       if (searchResults && searchResults.results && searchResults.results.length > 0) {
-        // 정확한 제목 매칭 시도
-        const bestMatch = searchResults.results[0];
-        let exactMatch = null;
-        let partialMatch = null;
-        let closeMatch = null;
+        console.log('1차 검색 결과 개수:', searchResults.results.length);
+        console.log('1차 검색 결과:', searchResults.results.slice(0, 5).map(r => ({
+          title: r.title || r.name,
+          id: r.id,
+          media_type: r.media_type
+        })));
         
-        // 정확한 제목 매칭 찾기
-        for (const result of searchResults.results) {
-          const resultTitle = result.title || result.name || '';
-          const currentTitle = resultTitle.toLowerCase();
-          const searchQueryLower = searchQuery.toLowerCase();
-          
-          console.log('검색 결과 비교:', {
-            resultTitle,
-            searchQuery,
-            currentTitle,
-            searchQueryLower,
-            isExact: currentTitle === searchQueryLower,
-            isPartial: currentTitle.includes(searchQueryLower) || searchQueryLower.includes(currentTitle)
-          });
-          
-          // 대소문자 구분 없이 정확한 매칭
-          if (currentTitle === searchQueryLower) {
-            exactMatch = result;
-            console.log('정확한 매칭 발견:', resultTitle);
-            break;
-          }
-          
-          // 부분 매칭 (포함 관계) - 더 엄격한 조건
-          if (currentTitle.includes(searchQueryLower) || searchQueryLower.includes(currentTitle)) {
-            // 검색어가 제목의 70% 이상 포함되거나, 제목이 검색어의 70% 이상 포함될 때만 매칭
-            const similarity = Math.min(currentTitle.length, searchQueryLower.length) / Math.max(currentTitle.length, searchQueryLower.length);
-            if (similarity > 0.7) {
-              closeMatch = result;
-              console.log('유사 매칭 발견:', resultTitle, '유사도:', similarity);
-            } else {
-              partialMatch = result;
-              console.log('부분 매칭 발견:', resultTitle);
+        // 정확한 매칭 찾기
+        selectedResult = findBestMatch(searchResults.results, searchQuery);
+      }
+      
+      // 2. 첫 번째 결과가 만족스럽지 않으면 더 넓은 검색
+      if (!selectedResult || !isGoodMatch(selectedResult, searchQuery)) {
+        console.log('2차 검색 시도 - 더 넓은 검색');
+        
+        // 한국어 제목에서 주요 키워드 추출
+        const keywords = extractKeywords(searchQuery);
+        console.log('추출된 키워드:', keywords);
+        
+        for (const keyword of keywords) {
+          if (keyword.length > 1) { // 1글자 키워드는 제외
+            console.log('키워드로 검색:', keyword);
+            const keywordResults = await tmdbClient.searchMulti(keyword);
+            
+            if (keywordResults && keywordResults.results && keywordResults.results.length > 0) {
+              const keywordMatch = findBestMatch(keywordResults.results, searchQuery);
+              if (keywordMatch && isGoodMatch(keywordMatch, searchQuery)) {
+                selectedResult = keywordMatch;
+                console.log('키워드 검색으로 매칭 발견:', keywordMatch.title || keywordMatch.name);
+                break;
+              }
             }
           }
         }
-        
-        const selectedResult = exactMatch || closeMatch || partialMatch || bestMatch;
+      }
+      
+      // 3. 여전히 결과가 없으면 첫 번째 결과 사용
+      if (!selectedResult && searchResults && searchResults.results && searchResults.results.length > 0) {
+        selectedResult = searchResults.results[0];
+        console.log('첫 번째 결과 사용:', selectedResult.title || selectedResult.name);
+      }
+      
+      if (selectedResult) {
         console.log('최종 선택된 결과:', {
           title: selectedResult.title || selectedResult.name,
           id: selectedResult.id,
-          media_type: selectedResult.media_type,
-          matchType: exactMatch ? 'exact' : closeMatch ? 'close' : partialMatch ? 'partial' : 'first'
+          media_type: selectedResult.media_type
         });
         
         // 선택된 결과의 ID로 상세 정보 가져오기
@@ -264,4 +261,66 @@ export async function GET(
       { status: statusCode }
     );
   }
+}
+
+// 최적의 매칭을 찾는 함수
+function findBestMatch(results: any[], searchQuery: string) {
+  const searchQueryLower = searchQuery.toLowerCase();
+  
+  // 1. 정확한 매칭
+  for (const result of results) {
+    const resultTitle = (result.title || result.name || '').toLowerCase();
+    if (resultTitle === searchQueryLower) {
+      console.log('정확한 매칭 발견:', result.title || result.name);
+      return result;
+    }
+  }
+  
+  // 2. 포함 관계 매칭 (더 엄격한 조건)
+  for (const result of results) {
+    const resultTitle = (result.title || result.name || '').toLowerCase();
+    if (resultTitle.includes(searchQueryLower) || searchQueryLower.includes(resultTitle)) {
+      const similarity = Math.min(resultTitle.length, searchQueryLower.length) / Math.max(resultTitle.length, searchQueryLower.length);
+      if (similarity > 0.6) { // 60% 이상 유사도
+        console.log('유사 매칭 발견:', result.title || result.name, '유사도:', similarity);
+        return result;
+      }
+    }
+  }
+  
+  // 3. 첫 번째 결과 반환
+  console.log('첫 번째 결과 사용:', results[0].title || results[0].name);
+  return results[0];
+}
+
+// 좋은 매칭인지 확인하는 함수
+function isGoodMatch(result: any, searchQuery: string): boolean {
+  const resultTitle = (result.title || result.name || '').toLowerCase();
+  const searchQueryLower = searchQuery.toLowerCase();
+  
+  // 정확한 매칭
+  if (resultTitle === searchQueryLower) return true;
+  
+  // 높은 유사도 매칭
+  if (resultTitle.includes(searchQueryLower) || searchQueryLower.includes(resultTitle)) {
+    const similarity = Math.min(resultTitle.length, searchQueryLower.length) / Math.max(resultTitle.length, searchQueryLower.length);
+    return similarity > 0.6;
+  }
+  
+  return false;
+}
+
+// 한국어 제목에서 키워드 추출
+function extractKeywords(title: string): string[] {
+  // 특수문자 제거
+  const cleanTitle = title.replace(/[^\w\s가-힣]/g, ' ').trim();
+  
+  // 공백으로 분리
+  const words = cleanTitle.split(/\s+/);
+  
+  // 2글자 이상의 단어만 필터링
+  const keywords = words.filter(word => word.length >= 2);
+  
+  // 중복 제거
+  return [...new Set(keywords)];
 } 
