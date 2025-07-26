@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { tmdbClient } from '@/lib/tmdb';
+import { tmdbClient, Movie } from '@/lib/tmdb';
 
 export async function GET(request: NextRequest) {
   try {
@@ -33,8 +33,8 @@ export async function GET(request: NextRequest) {
         
         // 결과를 합치고 정확도 순으로 정렬
         const combinedResults = [
-          ...(movieResults.results || []).map((item: any) => ({ ...item, media_type: 'movie' })),
-          ...(tvResults.results || []).map((item: any) => ({ ...item, media_type: 'tv' }))
+          ...(movieResults.results || []).map((item: Movie) => ({ ...item, media_type: 'movie' })),
+          ...(tvResults.results || []).map((item: Movie) => ({ ...item, media_type: 'tv' }))
         ];
         
         // 제목 유사도에 따라 정렬 (한국어 검색어와 가장 유사한 것 우선)
