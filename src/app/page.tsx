@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Star, TrendingUp, Film, Tv, Flame, Clock } from 'lucide-react';
+import { Star, TrendingUp, Film, Tv, Flame, Clock, Info } from 'lucide-react';
 import Link from 'next/link';
 import SearchBar from '@/components/SearchBar';
 import Footer from '@/components/Footer';
@@ -269,6 +269,10 @@ export default function Home() {
                 <Clock className="w-5 h-5" />
                 <span>최신</span>
               </Link>
+              <Link href="/ott-comparison" className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors">
+                <Info className="w-5 h-5" />
+                <span>OTT 비교</span>
+              </Link>
             </div>
 
             {/* 모바일 메뉴 버튼 */}
@@ -330,30 +334,47 @@ export default function Home() {
                />
              </motion.div>
 
-             {/* 스크롤 인디케이터 */}
+             {/* 인기 콘텐츠 스크롤 버튼 */}
              <motion.div
                initial={{ opacity: 0 }}
                animate={{ opacity: 1 }}
                transition={{ duration: 1, delay: 1 }}
                className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
              >
-               <motion.div
-                 animate={{ y: [0, 10, 0] }}
-                 transition={{ duration: 2, repeat: Infinity }}
-                 className="w-6 h-10 border-2 border-white rounded-full flex justify-center"
+               <motion.button
+                 onClick={() => {
+                   const popularSection = document.getElementById('popular-content');
+                   if (popularSection) {
+                     popularSection.scrollIntoView({ behavior: 'smooth' });
+                   }
+                 }}
+                 whileHover={{ scale: 1.05 }}
+                 whileTap={{ scale: 0.95 }}
+                 className="flex items-center space-x-2 text-white hover:text-yellow-500 transition-colors cursor-pointer"
                >
                  <motion.div
-                   animate={{ y: [0, 12, 0] }}
+                   animate={{ y: [0, 5, 0] }}
                    transition={{ duration: 2, repeat: Infinity }}
-                   className="w-1 h-3 bg-white rounded-full mt-2"
-                 />
-               </motion.div>
+                   className="text-sm font-medium"
+                 >
+                   인기 콘텐츠
+                 </motion.div>
+                 <motion.div
+                   animate={{ y: [0, 3, 0] }}
+                   transition={{ duration: 2, repeat: Infinity }}
+                   className="w-4 h-4"
+                 >
+                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                   </svg>
+                 </motion.div>
+               </motion.button>
              </motion.div>
            </div>
          </section>
 
          {/* 인기 콘텐츠 섹션 */}
-         <section className="py-16 px-6">
+         <section id="popular-content" className="py-16 px-6">
            <div className="max-w-7xl mx-auto">
              <motion.div
                initial={{ opacity: 0, y: 30 }}

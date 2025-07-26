@@ -89,6 +89,11 @@ export default function TVDetail({ params }: { params: Promise<{ id: string }> }
                 console.warn('외부 스크립트 차단:', element);
                 element.remove();
               }
+              // iframe 태그도 차단 (광고 등)
+              if (element.tagName === 'IFRAME') {
+                console.warn('외부 iframe 차단:', element);
+                element.remove();
+              }
             }
           });
         }
@@ -99,6 +104,24 @@ export default function TVDetail({ params }: { params: Promise<{ id: string }> }
       childList: true,
       subtree: true
     });
+
+    // 전역 에러 핸들러 강화
+    const handleGlobalError = (event: ErrorEvent) => {
+      if (event.error && event.error.message) {
+        const message = event.error.message;
+        if (message.includes('appendChild') || 
+            message.includes('insertBefore') || 
+            message.includes('removeChild') ||
+            message.includes('Cannot read properties of null') ||
+            message.includes('Cannot read properties of undefined')) {
+          console.warn('DOM 에러 무시:', message);
+          event.preventDefault();
+          return false;
+        }
+      }
+    };
+
+    window.addEventListener('error', handleGlobalError, true);
 
     window.addEventListener('error', handleError);
     window.addEventListener('unhandledrejection', handleUnhandledRejection);

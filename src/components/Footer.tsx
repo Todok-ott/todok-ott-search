@@ -70,7 +70,7 @@ export default function Footer() {
                 추천 콘텐츠
               </motion.a>
               <motion.a 
-                href="/search" 
+                href="/ott-comparison" 
                 className="block text-gray-400 hover:text-[#FFD700] transition-colors duration-200 text-sm"
                 whileHover={{ x: 3 }}
                 transition={{ duration: 0.2 }}
@@ -132,7 +132,7 @@ export default function Footer() {
           viewport={{ once: true, margin: "-50px" }}
         >
           <div className="flex flex-col md:flex-row items-center justify-between text-gray-400 text-sm">
-            <p>© 2024 Cinema Search. All rights reserved.</p>
+            <p>© 2025 토독 (Todok). All rights reserved.</p>
             <div className="flex items-center space-x-4 mt-2 md:mt-0">
               <motion.a 
                 href="/privacy" 
