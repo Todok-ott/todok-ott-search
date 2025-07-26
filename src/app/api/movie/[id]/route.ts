@@ -26,11 +26,42 @@ export async function GET(
     try {
       movieDetails = await tmdbClient.getMovieDetails(movieId);
       console.log('영화 상세 정보 성공:', movieDetails);
+      
+      // 데이터 유효성 검사 추가
+      const movieDetailsTyped = movieDetails as { title?: string };
+      if (!movieDetails || !movieDetailsTyped.title) {
+        console.error('영화 상세 정보가 유효하지 않음:', movieDetails);
+        return NextResponse.json(
+          { error: '영화 정보를 찾을 수 없습니다.' },
+          { status: 404 }
+        );
+      }
     } catch (error) {
       console.error('영화 상세 정보 가져오기 실패:', error);
+      
+      // TMDB API 에러 타입별 처리
+      if (error instanceof Error) {
+        if (error.message.includes('404')) {
+          return NextResponse.json(
+            { error: '영화를 찾을 수 없습니다.' },
+            { status: 404 }
+          );
+        } else if (error.message.includes('401')) {
+          return NextResponse.json(
+            { error: 'API 키가 유효하지 않습니다.' },
+            { status: 401 }
+          );
+        } else if (error.message.includes('429')) {
+          return NextResponse.json(
+            { error: 'API 요청 한도를 초과했습니다.' },
+            { status: 429 }
+          );
+        }
+      }
+      
       return NextResponse.json(
-        { error: '영화 정보를 찾을 수 없습니다.' },
-        { status: 404 }
+        { error: '영화 정보를 불러오는 중 오류가 발생했습니다.' },
+        { status: 500 }
       );
     }
 

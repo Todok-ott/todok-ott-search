@@ -26,11 +26,42 @@ export async function GET(
     try {
       tvDetails = await tmdbClient.getTVDetails(tvId);
       console.log('TV 상세 정보 성공:', tvDetails);
+      
+      // 데이터 유효성 검사 추가
+      const tvDetailsTyped = tvDetails as { name?: string };
+      if (!tvDetails || !tvDetailsTyped.name) {
+        console.error('TV 상세 정보가 유효하지 않음:', tvDetails);
+        return NextResponse.json(
+          { error: 'TV 쇼 정보를 찾을 수 없습니다.' },
+          { status: 404 }
+        );
+      }
     } catch (error) {
       console.error('TV 상세 정보 가져오기 실패:', error);
+      
+      // TMDB API 에러 타입별 처리
+      if (error instanceof Error) {
+        if (error.message.includes('404')) {
+          return NextResponse.json(
+            { error: 'TV 쇼를 찾을 수 없습니다.' },
+            { status: 404 }
+          );
+        } else if (error.message.includes('401')) {
+          return NextResponse.json(
+            { error: 'API 키가 유효하지 않습니다.' },
+            { status: 401 }
+          );
+        } else if (error.message.includes('429')) {
+          return NextResponse.json(
+            { error: 'API 요청 한도를 초과했습니다.' },
+            { status: 429 }
+          );
+        }
+      }
+      
       return NextResponse.json(
-        { error: 'TV 쇼 정보를 찾을 수 없습니다.' },
-        { status: 404 }
+        { error: 'TV 쇼 정보를 불러오는 중 오류가 발생했습니다.' },
+        { status: 500 }
       );
     }
 

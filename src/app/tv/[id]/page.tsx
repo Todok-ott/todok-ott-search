@@ -35,6 +35,20 @@ export default function TVDetail({ params }: { params: Promise<{ id: string }> }
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // 전역 에러 핸들러 추가
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      if (event.error && event.error.message && event.error.message.includes('appendChild')) {
+        console.warn('appendChild 에러 무시:', event.error);
+        event.preventDefault();
+        return false;
+      }
+    };
+
+    window.addEventListener('error', handleError);
+    return () => window.removeEventListener('error', handleError);
+  }, []);
+
   useEffect(() => {
     const fetchTVDetails = async () => {
       try {
