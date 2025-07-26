@@ -305,7 +305,7 @@ export default function Home() {
       </nav>
 
       {/* 히어로 섹션 */}
-      <section className="relative min-h-[70vh] flex items-center justify-center px-6">
+      <section className="relative min-h-[50vh] flex items-center justify-center px-6">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/50 to-black"></div>
         <div className="relative z-10 text-center max-w-4xl mx-auto">
           <motion.h1
@@ -353,7 +353,7 @@ export default function Home() {
       </section>
 
       {/* 인기 콘텐츠 섹션 */}
-      <section id="popular-content" className="py-8 px-6">
+      <section id="popular-content" className="py-4 px-6">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}

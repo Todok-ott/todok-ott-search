@@ -169,6 +169,34 @@ class TMDBClient {
     }
   }
 
+  // 영화 검색
+  async searchMovies(query: string, page: number = 1): Promise<SearchResult> {
+    try {
+      return await this.fetchAPI('/search/movie', { 
+        query, 
+        page: page.toString(),
+        include_adult: 'false'
+      });
+    } catch (error) {
+      console.error('영화 검색 실패:', error);
+      throw error;
+    }
+  }
+
+  // TV 쇼 검색
+  async searchTV(query: string, page: number = 1): Promise<SearchResult> {
+    try {
+      return await this.fetchAPI('/search/tv', { 
+        query, 
+        page: page.toString(),
+        include_adult: 'false'
+      });
+    } catch (error) {
+      console.error('TV 쇼 검색 실패:', error);
+      throw error;
+    }
+  }
+
   // 영화 상세 정보
   async getMovieDetails(id: number): Promise<unknown> {
     try {

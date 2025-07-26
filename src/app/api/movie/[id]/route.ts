@@ -37,14 +37,15 @@ export async function GET(
         );
       }
       
-      // 추가 디버깅 정보
-      console.log('영화 데이터 구조:', {
-        hasTitle: !!movieDetailsTyped.title,
-        hasName: !!movieDetailsTyped.name,
-        title: movieDetailsTyped.title,
-        name: movieDetailsTyped.name,
-        keys: Object.keys(movieDetails || {})
-      });
+          // 추가 디버깅 정보
+    console.log('영화 데이터 구조:', {
+      hasTitle: !!movieDetailsTyped.title,
+      hasName: !!movieDetailsTyped.name,
+      title: movieDetailsTyped.title,
+      name: movieDetailsTyped.name,
+      keys: Object.keys(movieDetails || {}),
+      fullData: movieDetails
+    });
       
     } catch (error) {
       console.error('영화 상세 정보 가져오기 실패:', error);

@@ -20,7 +20,47 @@ export async function GET(request: NextRequest) {
     // TMDB API로 검색 (재시도 로직 포함)
     let searchResult;
     try {
-      searchResult = await tmdbClient.searchMulti(query.trim(), parseInt(page));
+      // 한국어 검색어에 대한 특별 처리
+      const searchQuery = query.trim();
+      const isKorean = /[가-힣]/.test(searchQuery);
+      
+      // 한국어인 경우 영화와 TV를 각각 검색하여 더 정확한 결과 제공
+      if (isKorean) {
+        const [movieResults, tvResults] = await Promise.all([
+          tmdbClient.searchMovies(searchQuery, parseInt(page)),
+          tmdbClient.searchTV(searchQuery, parseInt(page))
+        ]);
+        
+        // 결과를 합치고 정확도 순으로 정렬
+        const combinedResults = [
+          ...(movieResults.results || []).map((item: any) => ({ ...item, media_type: 'movie' })),
+          ...(tvResults.results || []).map((item: any) => ({ ...item, media_type: 'tv' }))
+        ];
+        
+        // 제목 유사도에 따라 정렬 (한국어 검색어와 가장 유사한 것 우선)
+        combinedResults.sort((a, b) => {
+          const aTitle = (a.title || a.name || '').toLowerCase();
+          const bTitle = (b.title || b.name || '').toLowerCase();
+          const queryLower = searchQuery.toLowerCase();
+          
+          const aExact = aTitle.includes(queryLower);
+          const bExact = bTitle.includes(queryLower);
+          
+          if (aExact && !bExact) return -1;
+          if (!aExact && bExact) return 1;
+          
+          return 0;
+        });
+        
+        searchResult = {
+          results: combinedResults.slice(0, 20), // 상위 20개만 반환
+          total_pages: Math.max(movieResults.total_pages || 0, tvResults.total_pages || 0),
+          total_results: combinedResults.length
+        };
+      } else {
+        // 영어 검색은 기존 방식 사용
+        searchResult = await tmdbClient.searchMulti(searchQuery, parseInt(page));
+      }
     } catch (error) {
       console.error('TMDB 검색 실패:', error);
       return NextResponse.json(
