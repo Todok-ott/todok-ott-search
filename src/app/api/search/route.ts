@@ -26,10 +26,12 @@ export async function GET(request: NextRequest) {
           let ottInfo = null;
           if (item.media_type === 'movie') {
             const providers = await tmdbClient.getMovieWatchProviders(item.id);
-            ottInfo = providers.results?.KR || null;
+            const providerData = providers as { results?: { KR?: unknown } };
+            ottInfo = providerData.results?.KR || null;
           } else if (item.media_type === 'tv') {
             const providers = await tmdbClient.getTVWatchProviders(item.id);
-            ottInfo = providers.results?.KR || null;
+            const providerData = providers as { results?: { KR?: unknown } };
+            ottInfo = providerData.results?.KR || null;
           }
           
           return {
