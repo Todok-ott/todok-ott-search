@@ -10,6 +10,8 @@ export async function GET(
     const { id } = await params;
     const movieId = parseInt(id);
     
+    console.log('Movie API 호출:', { id, movieId });
+    
     if (isNaN(movieId)) {
       return NextResponse.json(
         { error: '잘못된 영화 ID입니다.' },
@@ -17,16 +19,42 @@ export async function GET(
       );
     }
 
-    // 영화 상세 정보와 OTT 제공업체 정보를 병렬로 가져오기
-    const [movieDetails, ottProviders] = await Promise.all([
-      tmdbClient.getMovieDetails(movieId),
-      tmdbClient.getMovieWatchProviders(movieId)
-    ]);
+    // 영화 상세 정보만 먼저 가져오기 (OTT 정보는 선택적)
+    let movieDetails;
+    let ottProviders = null;
     
-    // OTT 정보 결합
-    const ottData = ottProviders as { results?: { KR?: unknown; US?: unknown } };
-    const movieTitle = (movieDetails as { title?: string }).title || '';
-    const combinedOTTInfo = combineOTTData(ottData.results?.KR || ottData.results?.US || {}, movieTitle);
+    try {
+      movieDetails = await tmdbClient.getMovieDetails(movieId);
+      console.log('영화 상세 정보 성공:', movieDetails);
+    } catch (error) {
+      console.error('영화 상세 정보 가져오기 실패:', error);
+      return NextResponse.json(
+        { error: '영화 정보를 찾을 수 없습니다.' },
+        { status: 404 }
+      );
+    }
+
+    // OTT 정보는 선택적으로 가져오기
+    try {
+      ottProviders = await tmdbClient.getMovieWatchProviders(movieId);
+      console.log('OTT 정보 성공:', ottProviders);
+    } catch (error) {
+      console.error('OTT 정보 가져오기 실패:', error);
+      // OTT 정보 실패는 치명적이지 않음
+    }
+    
+    // OTT 정보 결합 (실패해도 기본 정보는 반환)
+    let combinedOTTInfo: any[] = [];
+    if (ottProviders) {
+      try {
+        const ottData = ottProviders as { results?: { KR?: unknown; US?: unknown } };
+        const movieTitle = (movieDetails as { title?: string }).title || '';
+        combinedOTTInfo = combineOTTData(ottData.results?.KR || ottData.results?.US || {}, movieTitle);
+      } catch (error) {
+        console.error('OTT 정보 결합 실패:', error);
+        // OTT 정보 결합 실패는 무시
+      }
+    }
     
     // 결합된 OTT 정보를 영화 상세 정보에 추가
     const movieWithOTT = {
@@ -34,12 +62,39 @@ export async function GET(
       ott_providers: combinedOTTInfo
     };
     
+    console.log('Movie API 응답 완료');
     return NextResponse.json(movieWithOTT);
   } catch (error) {
     console.error('Movie details API error:', error);
+    
+    // 더 구체적인 에러 메시지
+    let errorMessage = '영화 정보를 불러오는 중 오류가 발생했습니다.';
+    let statusCode = 500;
+    
+    if (error instanceof Error) {
+      if (error.message.includes('TMDB API 키가 설정되지 않았습니다')) {
+        errorMessage = 'API 키 설정 오류입니다.';
+        statusCode = 500;
+      } else if (error.message.includes('TMDB API Error: 401')) {
+        errorMessage = 'API 키가 유효하지 않습니다.';
+        statusCode = 401;
+      } else if (error.message.includes('TMDB API Error: 404')) {
+        errorMessage = '영화를 찾을 수 없습니다.';
+        statusCode = 404;
+      } else if (error.message.includes('TMDB API Error: 429')) {
+        errorMessage = 'API 요청 한도를 초과했습니다. 잠시 후 다시 시도해주세요.';
+        statusCode = 429;
+      } else {
+        errorMessage = `API 오류: ${error.message}`;
+      }
+    }
+    
     return NextResponse.json(
-      { error: '영화 정보를 불러오는 중 오류가 발생했습니다.' },
-      { status: 500 }
+      { 
+        error: errorMessage,
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: statusCode }
     );
   }
 } 

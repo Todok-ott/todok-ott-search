@@ -68,18 +68,36 @@ class TMDBClient {
 
     console.log('TMDB API 요청:', url.toString());
 
-    const response = await fetch(url.toString());
-    if (!response.ok) {
-      console.error('TMDB API 응답 오류:', response.status, response.statusText);
-      throw new Error(`TMDB API Error: ${response.status} - ${response.statusText}`);
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10초 타임아웃
+
+      const response = await fetch(url.toString(), {
+        signal: controller.signal,
+        headers: {
+          'Accept': 'application/json',
+        }
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        console.error('TMDB API 응답 오류:', response.status, response.statusText);
+        throw new Error(`TMDB API Error: ${response.status} - ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      // 캐시에 저장
+      this.cache.set(cacheKey, { data, timestamp: now });
+      
+      return data;
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('TMDB API 요청 시간 초과');
+      }
+      throw error;
     }
-    
-    const data = await response.json();
-    
-    // 캐시에 저장
-    this.cache.set(cacheKey, { data, timestamp: now });
-    
-    return data;
   }
 
   private delay(ms: number): Promise<void> {
