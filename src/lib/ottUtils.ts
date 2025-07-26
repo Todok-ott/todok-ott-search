@@ -22,12 +22,13 @@ export interface CombinedOTTInfo {
 }
 
 // TMDB OTT 정보를 국내 OTT 정보와 결합
-export const combineOTTInfo = (tmdbProviders: any): CombinedOTTInfo[] => {
+export const combineOTTInfo = (tmdbProviders: unknown): CombinedOTTInfo[] => {
   const combinedOTTs: CombinedOTTInfo[] = [];
   
   // TMDB에서 제공하는 OTT 정보 처리
-  if (tmdbProviders?.flatrate) {
-    tmdbProviders.flatrate.forEach((provider: any) => {
+  if (tmdbProviders && typeof tmdbProviders === 'object' && 'flatrate' in tmdbProviders) {
+    const providers = tmdbProviders as { flatrate: Array<{ provider_id: number; provider_name: string; logo_path: string }> };
+    providers.flatrate.forEach((provider) => {
       const koreanOTT = getOTTInfo(provider.provider_name.toLowerCase().replace(/\s+/g, '-'));
       
       if (koreanOTT) {

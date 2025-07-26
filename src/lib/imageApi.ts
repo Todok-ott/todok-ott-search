@@ -33,7 +33,7 @@ export class UnsplashClient {
       }
 
       const data = await response.json();
-      return data.results.map((item: any) => ({
+      return data.results.map((item: { id: string; description?: string; alt_description?: string; urls: { regular: string; thumb: string } }) => ({
         id: item.id,
         title: item.description || item.alt_description || query,
         imageUrl: item.urls.regular,

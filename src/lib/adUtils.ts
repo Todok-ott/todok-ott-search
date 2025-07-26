@@ -122,8 +122,8 @@ export const detectAdBlocker = (): Promise<boolean> => {
 // 광고 수익 추적
 export const trackAdRevenue = (adId: string, revenue: number) => {
   // Google Analytics 이벤트 추적
-  if (typeof window !== 'undefined' && (window as any).gtag) {
-    (window as any).gtag('event', 'ad_revenue', {
+  if (typeof window !== 'undefined' && (window as unknown as { gtag?: (event: string, data: unknown) => void }).gtag) {
+    (window as unknown as { gtag: (event: string, data: unknown) => void }).gtag('event', 'ad_revenue', {
       ad_id: adId,
       revenue: revenue,
       currency: 'KRW'

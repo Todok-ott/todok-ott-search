@@ -30,7 +30,7 @@ export interface Genre {
 }
 
 class TMDBClient {
-  private cache = new Map<string, { data: any; timestamp: number }>();
+  private cache = new Map<string, { data: unknown; timestamp: number }>();
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5분 캐시
 
   private async fetchAPI(endpoint: string, params: Record<string, string> = {}) {
@@ -96,26 +96,26 @@ class TMDBClient {
   }
 
   // 영화 상세 정보
-  async getMovieDetails(id: number): Promise<any> {
+  async getMovieDetails(id: number): Promise<unknown> {
     return this.fetchAPI(`/movie/${id}`, {
       append_to_response: 'credits,videos,similar'
     });
   }
 
   // TV 쇼 상세 정보
-  async getTVDetails(id: number): Promise<any> {
+  async getTVDetails(id: number): Promise<unknown> {
     return this.fetchAPI(`/tv/${id}`, {
       append_to_response: 'credits,videos,similar'
     });
   }
 
   // 영화 Watch Provider 정보 (OTT 플랫폼)
-  async getMovieWatchProviders(id: number): Promise<any> {
+  async getMovieWatchProviders(id: number): Promise<unknown> {
     return this.fetchAPI(`/movie/${id}/watch/providers`);
   }
 
   // TV 쇼 Watch Provider 정보 (OTT 플랫폼)
-  async getTVWatchProviders(id: number): Promise<any> {
+  async getTVWatchProviders(id: number): Promise<unknown> {
     return this.fetchAPI(`/tv/${id}/watch/providers`);
   }
 
