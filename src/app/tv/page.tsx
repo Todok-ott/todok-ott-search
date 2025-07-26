@@ -8,6 +8,7 @@ import SearchBar from '@/components/SearchBar';
 import Footer from '@/components/Footer';
 import { Movie } from '@/lib/tmdb';
 import { getContentTag } from '@/lib/genreUtils';
+import Image from 'next/image';
 
 export default function TVPage() {
   const [tvShows, setTvShows] = useState<Movie[]>([]);
@@ -163,10 +164,15 @@ export default function TVPage() {
                 onClick={() => handleTVShowClick(tvShow)}
               >
                 <div className="relative overflow-hidden rounded-xl shadow-2xl poster-card">
-                  <img
+                  <Image
                     src={tvShow.poster_path ? `https://image.tmdb.org/t/p/w500${tvShow.poster_path}` : '/placeholder-poster.jpg'}
                     alt={tvShow.title || tvShow.name || ''}
-                    className="w-full h-auto object-cover transition-all duration-500 group-hover:scale-110"
+                    width={500}
+                    height={750}
+                    className="w-full h-48 object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = '/placeholder-poster.jpg';
+                    }}
                   />
                   
                   {/* 호버 오버레이 */}

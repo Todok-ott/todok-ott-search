@@ -8,6 +8,7 @@ import SearchBar from '@/components/SearchBar';
 import Footer from '@/components/Footer';
 import { Movie } from '@/lib/tmdb';
 import { getContentTag } from '@/lib/genreUtils';
+import Image from 'next/image';
 
 export default function PopularPage() {
   const [popularContent, setPopularContent] = useState<Movie[]>([]);
@@ -174,9 +175,11 @@ export default function PopularPage() {
                 onClick={() => handleContentClick(content)}
               >
                 <div className="relative overflow-hidden rounded-xl shadow-2xl poster-card">
-                  <img
+                  <Image
                     src={content.poster_path ? `https://image.tmdb.org/t/p/w500${content.poster_path}` : '/placeholder-poster.jpg'}
                     alt={content.title || content.name || ''}
+                    width={500}
+                    height={750}
                     className="w-full h-auto object-cover transition-all duration-500 group-hover:scale-110"
                   />
                   

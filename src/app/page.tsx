@@ -6,6 +6,7 @@ import { Star, TrendingUp, Film, Tv, Flame, Clock, Info } from 'lucide-react';
 import Link from 'next/link';
 import SearchBar from '@/components/SearchBar';
 import Footer from '@/components/Footer';
+import Image from 'next/image';
 
 interface PopularContent {
   id: number;
@@ -444,9 +445,11 @@ export default function Home() {
                         className="bg-black/20 border border-gray-600/20 rounded-lg overflow-hidden hover:border-yellow-500/30 transition-colors cursor-pointer"
                         onClick={() => handleContentClick(movie)}
                       >
-                        <img
+                        <Image
                           src={movie.poster_path.startsWith('http') ? movie.poster_path : `https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                           alt={movie.title}
+                          width={500}
+                          height={720}
                           className="w-full h-48 object-cover"
                           onError={(e) => {
                             e.currentTarget.src = '/placeholder-poster.jpg';
@@ -492,9 +495,11 @@ export default function Home() {
                         className="bg-black/20 border border-gray-600/20 rounded-lg overflow-hidden hover:border-yellow-500/30 transition-colors cursor-pointer"
                         onClick={() => handleContentClick(show)}
                       >
-                        <img
+                        <Image
                           src={show.poster_path.startsWith('http') ? show.poster_path : `https://image.tmdb.org/t/p/w500${show.poster_path}`}
                           alt={show.name || show.title}
+                          width={500}
+                          height={720}
                           className="w-full h-48 object-cover"
                           onError={(e) => {
                             e.currentTarget.src = '/placeholder-poster.jpg';

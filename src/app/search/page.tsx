@@ -8,6 +8,7 @@ import SearchBar from '@/components/SearchBar';
 import AdBanner from '@/components/AdBanner';
 import Footer from '@/components/Footer';
 import { Movie } from '@/lib/tmdb';
+import Image from 'next/image';
 
 // Movie 타입을 확장하여 korean_ott_providers 속성 추가
 interface MovieWithKoreanOTT extends Movie {
@@ -278,9 +279,11 @@ function SearchResultsContent() {
                     className="group cursor-pointer"
                   >
                     <div className="relative overflow-hidden rounded-xl shadow-2xl poster-card">
-                      <img
+                      <Image
                         src={item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : '/placeholder-poster.jpg'}
                         alt={item.title || item.name || ''}
+                        width={500}
+                        height={750}
                         className="w-full h-auto object-cover transition-all duration-500 group-hover:scale-110"
                       />
                       
@@ -325,10 +328,12 @@ function SearchResultsContent() {
                       {item.ott_providers?.flatrate && (
                         <div className="absolute bottom-3 left-3 flex space-x-1">
                           {item.ott_providers.flatrate.slice(0, 3).map((provider: { provider_id: number; provider_name: string; logo_path: string }) => (
-                            <img
+                            <Image
                               key={provider.provider_id}
                               src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
                               alt={provider.provider_name}
+                              width={24}
+                              height={24}
                               className="w-6 h-6 rounded opacity-80 hover:opacity-100 transition-opacity duration-200"
                               title={provider.provider_name}
                             />

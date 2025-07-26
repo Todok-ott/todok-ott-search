@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Star, Play, Calendar, Clock } from 'lucide-react';
+import { Star, Calendar, Clock, ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import Footer from '@/components/Footer';
+import Image from 'next/image';
 import OTTInfo from '@/components/OTTInfo';
+import AdBanner from '@/components/AdBanner';
+import Footer from '@/components/Footer';
 import { OTTProvider } from '@/lib/ottUtils';
 
 interface TVDetails {
@@ -199,9 +201,11 @@ export default function TVDetail({ params }: { params: Promise<{ id: string }> }
             transition={{ duration: 0.6 }}
             className="lg:col-span-1"
           >
-            <img
+            <Image
               src={`https://image.tmdb.org/t/p/w500${tv.poster_path}`}
               alt={tv.name}
+              width={500}
+              height={750}
               className="w-full rounded-lg shadow-2xl"
               onError={(e) => {
                 e.currentTarget.src = '/placeholder-poster.jpg';

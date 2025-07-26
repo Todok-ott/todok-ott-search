@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { ExternalLink, ShoppingCart } from 'lucide-react';
+import Image from 'next/image';
 
 interface AmazonAssociatesProps {
   productTitle: string;
@@ -30,9 +31,11 @@ export default function AmazonAssociates({
     >
       <div className="flex items-center space-x-4">
         <div className="flex-shrink-0">
-          <img
+          <Image
             src={productImage}
             alt={productTitle}
+            width={64}
+            height={64}
             className="w-16 h-16 rounded object-cover"
           />
         </div>
