@@ -34,7 +34,10 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: 'your-google-verification-code',
+    google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION || 'your-google-verification-code',
+  },
+  other: {
+    'google-adsense-account': 'ca-pub-8367801233123288',
   },
 };
 
@@ -47,12 +50,15 @@ export default function RootLayout({
     <html lang="ko">
       <body className={inter.className}>
         {children}
-        {/* Google AdSense - 항상 로드 (개발/프로덕션 모두) */}
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
-          crossOrigin="anonymous"
-        />
+        {/* Google AdSense - 프로덕션에서만 로드 */}
+        {process.env.NODE_ENV === 'production' && (
+          <Script
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || 'ca-pub-XXXXXXXXXXXXXXXX'}`}
+            crossOrigin="anonymous"
+            strategy="afterInteractive"
+          />
+        )}
         {/* GoogleAnalytics는 조건부로 로드 */}
         {process.env.NODE_ENV === 'production' && <GoogleAnalytics />}
       </body>
