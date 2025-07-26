@@ -58,11 +58,11 @@ export async function GET(
         const searchResults = await tmdbClient.searchMulti(searchQuery);
         console.log('검색 결과 개수:', Array.isArray(searchResults.results) ? searchResults.results.length : 0);
         
-        if (searchResults && searchResults.results && searchResults.results.length > 0) {
-          // 정확한 제목 매칭 시도
-          let bestMatch = searchResults.results[0];
-          let exactMatch = null;
-          let partialMatch = null;
+                 if (searchResults && searchResults.results && searchResults.results.length > 0) {
+           // 정확한 제목 매칭 시도
+           const bestMatch = searchResults.results[0];
+           let exactMatch = null;
+           let partialMatch = null;
           
           // 정확한 제목 매칭 찾기
           for (const result of searchResults.results) {
