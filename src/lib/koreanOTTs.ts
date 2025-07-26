@@ -78,6 +78,7 @@ export const KOREAN_CONTENT_DATABASE: Record<string, KoreanOTTProvider[]> = {
   // 드라마
   '기생충': [KOREAN_OTT_PLATFORMS[0]], // 넷플릭스
   '오징어게임': [KOREAN_OTT_PLATFORMS[0]], // 넷플릭스
+  '오징어 게임': [KOREAN_OTT_PLATFORMS[0]], // 넷플릭스 (공백 포함)
   '킹덤': [KOREAN_OTT_PLATFORMS[0]], // 넷플릭스
   '스위트홈': [KOREAN_OTT_PLATFORMS[0]], // 넷플릭스
   '지옥': [KOREAN_OTT_PLATFORMS[0]], // 넷플릭스
@@ -141,8 +142,8 @@ export function findKoreanOTTProviders(title: string): KoreanOTTProvider[] {
   
   // 한국어 콘텐츠 감지 (한글 포함) - 하지만 극장 전용 영화는 제외
   if (/[가-힣]/.test(title)) {
-    // 한국어 콘텐츠는 주로 티빙, 웨이브, 왓챠에서 찾을 수 있음
-    return [KOREAN_OTT_PLATFORMS[2], KOREAN_OTT_PLATFORMS[3], KOREAN_OTT_PLATFORMS[4]]; // 웨이브, 티빙, 왓챠
+    // 정확한 매칭이 없는 경우 OTT 정보를 추가하지 않음
+    return [];
   }
   
   return [];
