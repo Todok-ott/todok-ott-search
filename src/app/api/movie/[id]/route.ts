@@ -23,116 +23,96 @@ export async function GET(
     let ottProviders = null;
     let actualMovieId: number | null = null;
     
-    // ID가 숫자인지 확인
-    const movieId = parseInt(id);
-    const isNumericId = !isNaN(movieId);
+    // 항상 검색 기반으로 처리 (숫자 ID 직접 조회 제거)
+    console.log('검색 기반 처리 시작');
     
-    if (isNumericId) {
-      // 숫자 ID인 경우 - 직접 영화 정보 가져오기
-      console.log('숫자 ID로 영화 정보 가져오기:', movieId);
-      
-      try {
-        movieDetails = await tmdbClient.getMovieDetails(movieId);
-        actualMovieId = movieId;
-        console.log('숫자 ID로 영화 정보 성공:', movieDetails);
-      } catch (error) {
-        console.error('숫자 ID로 영화 정보 가져오기 실패:', error);
-        movieDetails = null;
-      }
+    let searchQuery = id; // 기본적으로 ID를 검색어로 사용
+    
+    // 제목 파라미터가 있으면 제목으로 검색
+    if (titleParam) {
+      searchQuery = titleParam;
+      console.log('제목 파라미터로 검색:', searchQuery);
     }
     
-    // 숫자 ID로 실패했거나 숫자가 아닌 ID인 경우 - 제목으로 검색
-    if (!movieDetails) {
-      console.log('제목으로 검색 시작');
+    try {
+      // 멀티 검색으로 영화와 TV 쇼 모두 검색
+      const searchResults = await tmdbClient.searchMulti(searchQuery);
+      console.log('검색 결과 개수:', Array.isArray(searchResults.results) ? searchResults.results.length : 0);
+      console.log('전체 검색 결과:', searchResults.results?.slice(0, 5).map(r => ({
+        title: r.title || r.name,
+        id: r.id,
+        media_type: r.media_type
+      })));
       
-      let searchQuery = id; // 기본적으로 ID를 검색어로 사용
-      
-      // 제목 파라미터가 있으면 제목으로 검색
-      if (titleParam) {
-        searchQuery = titleParam;
-        console.log('제목 파라미터로 검색:', searchQuery);
-      }
-      
-      try {
-        // 멀티 검색으로 영화와 TV 쇼 모두 검색
-        const searchResults = await tmdbClient.searchMulti(searchQuery);
-        console.log('검색 결과 개수:', Array.isArray(searchResults.results) ? searchResults.results.length : 0);
-        console.log('전체 검색 결과:', searchResults.results?.slice(0, 5).map(r => ({
-          title: r.title || r.name,
-          id: r.id,
-          media_type: r.media_type
-        })));
+      if (searchResults && searchResults.results && searchResults.results.length > 0) {
+        // 정확한 제목 매칭 시도
+        const bestMatch = searchResults.results[0];
+        let exactMatch = null;
+        let partialMatch = null;
+        let closeMatch = null;
         
-        if (searchResults && searchResults.results && searchResults.results.length > 0) {
-          // 정확한 제목 매칭 시도
-          const bestMatch = searchResults.results[0];
-          let exactMatch = null;
-          let partialMatch = null;
-          let closeMatch = null;
+        // 정확한 제목 매칭 찾기
+        for (const result of searchResults.results) {
+          const resultTitle = result.title || result.name || '';
+          const currentTitle = resultTitle.toLowerCase();
+          const searchQueryLower = searchQuery.toLowerCase();
           
-          // 정확한 제목 매칭 찾기
-          for (const result of searchResults.results) {
-            const resultTitle = result.title || result.name || '';
-            const currentTitle = resultTitle.toLowerCase();
-            const searchQueryLower = searchQuery.toLowerCase();
-            
-            console.log('검색 결과 비교:', {
-              resultTitle,
-              searchQuery,
-              currentTitle,
-              searchQueryLower,
-              isExact: currentTitle === searchQueryLower,
-              isPartial: currentTitle.includes(searchQueryLower) || searchQueryLower.includes(currentTitle)
-            });
-            
-            // 대소문자 구분 없이 정확한 매칭
-            if (currentTitle === searchQueryLower) {
-              exactMatch = result;
-              console.log('정확한 매칭 발견:', resultTitle);
-              break;
-            }
-            
-            // 부분 매칭 (포함 관계) - 더 엄격한 조건
-            if (currentTitle.includes(searchQueryLower) || searchQueryLower.includes(currentTitle)) {
-              // 검색어가 제목의 70% 이상 포함되거나, 제목이 검색어의 70% 이상 포함될 때만 매칭
-              const similarity = Math.min(currentTitle.length, searchQueryLower.length) / Math.max(currentTitle.length, searchQueryLower.length);
-              if (similarity > 0.7) {
-                closeMatch = result;
-                console.log('유사 매칭 발견:', resultTitle, '유사도:', similarity);
-              } else {
-                partialMatch = result;
-                console.log('부분 매칭 발견:', resultTitle);
-              }
-            }
-          }
-          
-          const selectedResult = exactMatch || closeMatch || partialMatch || bestMatch;
-          console.log('최종 선택된 결과:', {
-            title: selectedResult.title || selectedResult.name,
-            id: selectedResult.id,
-            media_type: selectedResult.media_type,
-            matchType: exactMatch ? 'exact' : closeMatch ? 'close' : partialMatch ? 'partial' : 'first'
+          console.log('검색 결과 비교:', {
+            resultTitle,
+            searchQuery,
+            currentTitle,
+            searchQueryLower,
+            isExact: currentTitle === searchQueryLower,
+            isPartial: currentTitle.includes(searchQueryLower) || searchQueryLower.includes(currentTitle)
           });
           
-          // 선택된 결과의 ID로 상세 정보 가져오기
-          let detailedResult;
-          if (selectedResult.media_type === 'tv') {
-            detailedResult = await tmdbClient.getTVDetails(selectedResult.id);
-          } else {
-            detailedResult = await tmdbClient.getMovieDetails(selectedResult.id);
+          // 대소문자 구분 없이 정확한 매칭
+          if (currentTitle === searchQueryLower) {
+            exactMatch = result;
+            console.log('정확한 매칭 발견:', resultTitle);
+            break;
           }
           
-          if (detailedResult) {
-            movieDetails = detailedResult;
-            actualMovieId = selectedResult.id;
-            console.log('검색을 통한 상세 정보 성공:', movieDetails);
+          // 부분 매칭 (포함 관계) - 더 엄격한 조건
+          if (currentTitle.includes(searchQueryLower) || searchQueryLower.includes(currentTitle)) {
+            // 검색어가 제목의 70% 이상 포함되거나, 제목이 검색어의 70% 이상 포함될 때만 매칭
+            const similarity = Math.min(currentTitle.length, searchQueryLower.length) / Math.max(currentTitle.length, searchQueryLower.length);
+            if (similarity > 0.7) {
+              closeMatch = result;
+              console.log('유사 매칭 발견:', resultTitle, '유사도:', similarity);
+            } else {
+              partialMatch = result;
+              console.log('부분 매칭 발견:', resultTitle);
+            }
           }
-        } else {
-          console.log('검색 결과가 없음');
         }
-      } catch (searchError) {
-        console.error('검색 실패:', searchError);
+        
+        const selectedResult = exactMatch || closeMatch || partialMatch || bestMatch;
+        console.log('최종 선택된 결과:', {
+          title: selectedResult.title || selectedResult.name,
+          id: selectedResult.id,
+          media_type: selectedResult.media_type,
+          matchType: exactMatch ? 'exact' : closeMatch ? 'close' : partialMatch ? 'partial' : 'first'
+        });
+        
+        // 선택된 결과의 ID로 상세 정보 가져오기
+        let detailedResult;
+        if (selectedResult.media_type === 'tv') {
+          detailedResult = await tmdbClient.getTVDetails(selectedResult.id);
+        } else {
+          detailedResult = await tmdbClient.getMovieDetails(selectedResult.id);
+        }
+        
+        if (detailedResult) {
+          movieDetails = detailedResult;
+          actualMovieId = selectedResult.id;
+          console.log('검색을 통한 상세 정보 성공:', movieDetails);
+        }
+      } else {
+        console.log('검색 결과가 없음');
       }
+    } catch (searchError) {
+      console.error('검색 실패:', searchError);
     }
     
     // 최종적으로 영화 정보를 찾지 못한 경우
