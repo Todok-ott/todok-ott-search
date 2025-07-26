@@ -90,9 +90,16 @@ export default function MovieDetail({ params }: { params: Promise<{ id: string }
       try {
         const { id } = await params;
         
+        console.log('=== Movie Detail Page 시작 ===');
+        console.log('받은 ID:', id);
+        console.log('URL 파라미터:', await params);
+        
         // ID 유효성 검사
         const movieId = parseInt(id);
+        console.log('파싱된 movieId:', movieId);
+        
         if (isNaN(movieId)) {
+          console.error('잘못된 영화 ID:', id);
           setError('잘못된 영화 ID입니다.');
           setLoading(false);
           return;
@@ -100,15 +107,19 @@ export default function MovieDetail({ params }: { params: Promise<{ id: string }
         
         // ID 범위 검사 (TMDB 영화 ID는 보통 1-999999 범위)
         if (movieId < 1 || movieId > 999999) {
+          console.error('ID 범위 초과:', movieId);
           setError('존재하지 않는 영화입니다.');
           setLoading(false);
           return;
         }
         
+        console.log('API 호출 시작:', `/api/movie/${id}`);
         const response = await fetch(`/api/movie/${id}`);
+        console.log('API 응답 상태:', response.status, response.statusText);
         
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
+          console.error('API 오류 응답:', errorData);
           const errorMessage = errorData.error || `API Error: ${response.status}`;
           setError(errorMessage);
           setLoading(false);
@@ -116,14 +127,17 @@ export default function MovieDetail({ params }: { params: Promise<{ id: string }
         }
         
         const data = await response.json();
+        console.log('API 응답 데이터:', data);
         
         // 데이터 유효성 검사
         if (!data || !data.title) {
+          console.error('유효하지 않은 영화 데이터:', data);
           setError('유효하지 않은 영화 데이터입니다.');
           setLoading(false);
           return;
         }
         
+        console.log('영화 데이터 설정 완료:', data.title);
         setMovie(data);
         setLoading(false);
       } catch (error) {
