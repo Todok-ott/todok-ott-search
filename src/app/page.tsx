@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Play, Star, ArrowRight, TrendingUp, Calendar } from 'lucide-react';
+import { Play, Star, ArrowRight, TrendingUp, Calendar, Film, Tv, Flame, Clock } from 'lucide-react';
+import Link from 'next/link';
 import SearchBar from '@/components/SearchBar';
 import Footer from '@/components/Footer';
 import GoogleAdSense from '@/components/GoogleAdSense';
@@ -101,101 +102,120 @@ export default function Home() {
       try {
         setLoading(true);
         setError(null);
-        
         console.log('Fetching popular content...');
-        
         const [moviesResponse, tvResponse] = await Promise.all([
           fetch('/api/popular/movies'),
           fetch('/api/popular/tv')
         ]);
-
         console.log('Movies response status:', moviesResponse.status);
         console.log('TV response status:', tvResponse.status);
-
         if (!moviesResponse.ok) {
           throw new Error(`Movies API error: ${moviesResponse.status}`);
         }
-        
         if (!tvResponse.ok) {
           throw new Error(`TV API error: ${tvResponse.status}`);
         }
-
         const moviesData = await moviesResponse.json();
         const tvData = await tvResponse.json();
-
         console.log('Movies data:', moviesData);
         console.log('TV data:', tvData);
-
         setPopularMovies(moviesData.results?.slice(0, 6) || fallbackMovies);
         setPopularTVShows(tvData.results?.slice(0, 6) || fallbackTVShows);
       } catch (error) {
         console.error('Error fetching popular content:', error);
         setError('콘텐츠를 불러오는 중 오류가 발생했습니다.');
-        // 에러 발생 시 임시 데이터 사용
         setPopularMovies(fallbackMovies);
         setPopularTVShows(fallbackTVShows);
       } finally {
         setLoading(false);
       }
     };
-
     fetchPopularContent();
   }, []);
 
   const handleContentClick = (item: PopularContent) => {
-    window.location.href = `/${item.media_type}/${item.id}`;
+    const path = item.media_type === 'movie' ? `/movie/${item.id}` : `/tv/${item.id}`;
+    window.location.href = path;
   };
 
   return (
-    <div className="min-h-screen bg-black flex flex-col">
-      {/* 배경 이미지 */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30"
-        style={{
-          backgroundImage: 'url(https://image.tmdb.org/t/p/original/9yBVqNruk6YfxthWQNstnKOfTqA.jpg)'
-        }}
-      />
-
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
       {/* 헤더 광고 */}
       {headerAds.length > 0 && (
-        <div className="relative z-10 p-4">
+        <div className="w-full bg-gray-100">
           {headerAds.map((ad) => (
             ad.type === 'adsense' ? (
               <GoogleAdSense
                 key={ad.id}
-                adSlot={ad.adSlot || ''}
-                adFormat={ad.adFormat as 'auto' | 'rectangle' | 'banner' | 'leaderboard'}
-                className="mb-4"
-              />
-            ) : ad.type === 'amazon' && ad.productData ? (
-              <AmazonAssociates
-                key={ad.id}
-                productTitle={ad.productData.title}
-                productImage={ad.productData.image}
-                productPrice={ad.productData.price}
-                amazonUrl={ad.productData.url}
-                className="mb-4"
+                adSlot={ad.adSlot || '1234567890'}
+                adFormat={ad.adFormat || 'banner'}
+                className="w-full"
               />
             ) : null
           ))}
         </div>
       )}
 
-      {/* 메인 콘텐츠 */}
-      <div className="relative z-10 flex-1">
+      {/* 카테고리 네비게이션 */}
+      <nav className="bg-black/50 backdrop-blur-sm border-b border-gray-700/50 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            {/* 로고 */}
+            <Link href="/" className="flex items-center space-x-2">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                className="text-2xl font-bold text-white"
+              >
+                토독 <span className="text-yellow-500">(Todok)</span>
+              </motion.div>
+            </Link>
+
+            {/* 카테고리 메뉴 */}
+            <div className="hidden md:flex items-center space-x-8">
+              <Link href="/movies" className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors">
+                <Film className="w-5 h-5" />
+                <span>영화</span>
+              </Link>
+              <Link href="/tv" className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors">
+                <Tv className="w-5 h-5" />
+                <span>드라마</span>
+              </Link>
+              <Link href="/popular" className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors">
+                <Flame className="w-5 h-5" />
+                <span>인기</span>
+              </Link>
+              <Link href="/latest" className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors">
+                <Clock className="w-5 h-5" />
+                <span>최신</span>
+              </Link>
+            </div>
+
+            {/* 모바일 메뉴 버튼 */}
+            <div className="md:hidden">
+              <button className="text-gray-300 hover:text-white">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <div className="relative">
         {/* 히어로 섹션 */}
         <section className="relative min-h-screen flex items-center justify-center px-6">
-          <div className="text-center max-w-4xl mx-auto">
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/50 to-black"></div>
+          <div className="relative z-10 text-center max-w-4xl mx-auto">
             <motion.h1
-              initial={{ opacity: 0, y: 50 }}
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
               className="text-5xl md:text-7xl font-bold text-white mb-6"
             >
-              토독
-              <span className="text-yellow-500 text-3xl md:text-5xl ml-4">(Todok)</span>
+              토독 <span className="text-yellow-500">(Todok)</span>
             </motion.h1>
-            
+
             <motion.p
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}

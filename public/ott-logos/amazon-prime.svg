@@ -1,0 +1,5 @@
+<svg width="120" height="60" viewBox="0 0 120 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="120" height="60" rx="8" fill="#00A8E1"/>
+  <path d="M30 20C30 18.3431 31.3431 17 33 17H87C88.6569 17 90 18.3431 90 20V40C90 41.6569 88.6569 43 87 43H33C31.3431 43 30 41.6569 30 40V20Z" fill="white"/>
+  <text x="60" y="32" text-anchor="middle" font-family="Arial" font-size="10" font-weight="bold" fill="#00A8E1">PRIME</text>
+</svg> 

@@ -2,166 +2,181 @@
 export interface KoreanOTT {
   id: string;
   name: string;
-  name_en: string;
-  logo_path: string;
-  type: 'subscription' | 'free' | 'hybrid';
+  logo: string;
+  description: string;
   price: {
     monthly?: string;
     yearly?: string;
     basic?: string;
-    standard?: string;
     premium?: string;
+    standard?: string;
   };
   features: string[];
   strengths: string[];
   weaknesses: string[];
-  website: string;
-  available_in_korea: boolean;
+  availableContent: string[];
 }
 
 export const koreanOTTs: KoreanOTT[] = [
   {
+    id: 'netflix',
+    name: 'Netflix',
+    logo: '/ott-logos/netflix.svg',
+    description: '글로벌 스트리밍 서비스의 대표주자',
+    price: {
+      basic: '₩17,000',
+      standard: '₩18,000',
+      premium: '₩22,000'
+    },
+    features: ['4K 화질', '다중 프로필', '오프라인 시청', '다국어 자막'],
+    strengths: ['다양한 오리지널 콘텐츠', '글로벌 콘텐츠', '고품질 화질'],
+    weaknesses: ['한국 콘텐츠 상대적으로 적음', '가격이 비쌈'],
+    availableContent: ['인터스텔라', '듄', '오펜하이머', '브레이킹 배드', '스트레인저 씽즈']
+  },
+  {
+    id: 'disney-plus',
+    name: 'Disney+',
+    logo: '/ott-logos/disney-plus.svg',
+    description: '디즈니, 마블, 스타워즈 콘텐츠 전문',
+    price: {
+      monthly: '₩9,900',
+      yearly: '₩99,000'
+    },
+    features: ['4K HDR', '다중 프로필', '오프라인 시청', 'IMAX Enhanced'],
+    strengths: ['디즈니/마블/스타워즈 콘텐츠', '가족 친화적', '고품질 오리지널'],
+    weaknesses: ['한국 콘텐츠 부족', '성인 콘텐츠 제한적'],
+    availableContent: ['듄', '인터스텔라', '게임 오브 스론즈']
+  },
+  {
     id: 'wavve',
-    name: '웨이브',
-    name_en: 'Wavve',
-    logo_path: '/ott-logos/wavve.png',
-    type: 'subscription',
+    name: 'Wavve',
+    logo: '/ott-logos/wavve.svg',
+    description: 'KBS, MBC, SBS 방송 콘텐츠 전문',
     price: {
       monthly: '₩13,900',
       yearly: '₩139,000'
     },
-    features: ['4K 지원', '다운로드', '동시 시청 4명'],
-    strengths: ['한국 콘텐츠', 'KBS/MBC/SBS', '실시간 방송'],
-    weaknesses: ['해외 콘텐츠 제한적', '일부 영화 부족'],
-    website: 'https://www.wavve.com',
-    available_in_korea: true
+    features: ['실시간 방송', 'VOD 서비스', '다중 프로필', '오프라인 시청'],
+    strengths: ['한국 방송 콘텐츠', '실시간 방송', '합리적인 가격'],
+    weaknesses: ['해외 콘텐츠 부족', '영화 라이브러리 제한적'],
+    availableContent: ['브레이킹 배드', '스트레인저 씽즈']
   },
   {
     id: 'tving',
-    name: '티빙',
-    name_en: 'Tving',
-    logo_path: '/ott-logos/tving.png',
-    type: 'subscription',
+    name: 'Tving',
+    logo: '/ott-logos/tving.svg',
+    description: 'tvN, JTBC 등 케이블 방송 콘텐츠',
     price: {
       monthly: '₩13,900',
       yearly: '₩139,000'
     },
-    features: ['4K 지원', '다운로드', '동시 시청 4명'],
-    strengths: ['CJ ENM 콘텐츠', 'tvN/JTBC', '독점 콘텐츠'],
-    weaknesses: ['해외 콘텐츠 제한적'],
-    website: 'https://www.tving.com',
-    available_in_korea: true
+    features: ['실시간 방송', 'VOD 서비스', '다중 프로필', '오프라인 시청'],
+    strengths: ['한국 드라마 전문', '실시간 방송', '다양한 예능'],
+    weaknesses: ['영화 콘텐츠 부족', '해외 콘텐츠 제한적'],
+    availableContent: ['브레이킹 배드', '게임 오브 스론즈']
   },
   {
     id: 'watcha',
-    name: '왓챠',
-    name_en: 'Watcha',
-    logo_path: '/ott-logos/watcha.png',
-    type: 'subscription',
+    name: 'Watcha',
+    logo: '/ott-logos/watcha.svg',
+    description: '독립 영화와 예술 영화 전문',
     price: {
       monthly: '₩12,900',
       yearly: '₩129,000'
     },
-    features: ['4K 지원', '다운로드', '동시 시청 4명'],
-    strengths: ['독립 영화', '다양한 장르', '추천 알고리즘'],
-    weaknesses: ['메이저 콘텐츠 부족'],
-    website: 'https://www.watcha.com',
-    available_in_korea: true
+    features: ['다양한 장르', '독립 영화', '다중 프로필', '오프라인 시청'],
+    strengths: ['독립 영화', '다양한 장르', '합리적인 가격'],
+    weaknesses: ['메이저 영화 부족', '해외 콘텐츠 제한적'],
+    availableContent: ['인터스텔라', '오펜하이머']
   },
   {
     id: 'laftel',
-    name: '라프텔',
-    name_en: 'Laftel',
-    logo_path: '/ott-logos/laftel.png',
-    type: 'subscription',
+    name: 'Laftel',
+    logo: '/ott-logos/laftel.svg',
+    description: '애니메이션 전문 스트리밍 서비스',
     price: {
       monthly: '₩9,900',
       yearly: '₩99,000'
     },
-    features: ['4K 지원', '다운로드', '동시 시청 2명'],
-    strengths: ['애니메이션 전문', '일본 애니', '독점 콘텐츠'],
-    weaknesses: ['애니메이션만', '일반 영화 없음'],
-    website: 'https://www.laftel.net',
-    available_in_korea: true
+    features: ['애니메이션 전문', '다중 프로필', '오프라인 시청', '자막 옵션'],
+    strengths: ['애니메이션 전문', '다양한 장르', '합리적인 가격'],
+    weaknesses: ['실사 영화/드라마 부족', '일본 애니 중심'],
+    availableContent: ['스트레인저 씽즈']
   },
   {
-    id: 'netflix',
-    name: '넷플릭스',
-    name_en: 'Netflix',
-    logo_path: 'https://image.tmdb.org/t/p/original/9A1JSVmSxsyaBK4SUfYqNLzAHvA.jpg',
-    type: 'subscription',
-    price: {
-      basic: '₩17,000',
-      standard: '₩18,500',
-      premium: '₩22,000'
-    },
-    features: ['4K 지원', '다운로드', '동시 시청 4명'],
-    strengths: ['다양한 장르', '오리지널 콘텐츠', '글로벌 콘텐츠'],
-    weaknesses: ['일부 영화 부족', '가격 상승'],
-    website: 'https://www.netflix.com',
-    available_in_korea: true
-  },
-  {
-    id: 'disneyplus',
-    name: '디즈니플러스',
-    name_en: 'Disney Plus',
-    logo_path: 'https://image.tmdb.org/t/p/original/7rwgEs15tFwyR9NFQ5vZYt0Wy0e.jpg',
-    type: 'subscription',
-    price: {
-      monthly: '₩9,900',
-      yearly: '₩99,000'
-    },
-    features: ['4K 지원', '다운로드', '동시 시청 4명'],
-    strengths: ['디즈니', '마블', '스타워즈', '내셔널지오그래픽'],
-    weaknesses: ['장르 제한적', '성인 콘텐츠 부족'],
-    website: 'https://www.disneyplus.com',
-    available_in_korea: true
-  },
-  {
-    id: 'apple-tv-plus',
-    name: '애플TV플러스',
-    name_en: 'Apple TV Plus',
-    logo_path: 'https://image.tmdb.org/t/p/original/4EYPN5mVIhKLfxGruy7Dy41dTVn.jpg',
-    type: 'subscription',
+    id: 'apple-tv',
+    name: 'Apple TV+',
+    logo: '/ott-logos/apple-tv.svg',
+    description: '애플 오리지널 콘텐츠 전문',
     price: {
       monthly: '₩6,500',
       yearly: '₩65,000'
     },
-    features: ['4K 지원', '다운로드', '동시 시청 6명'],
-    strengths: ['애플 오리지널', '고품질 콘텐츠', '합리적 가격'],
-    weaknesses: ['콘텐츠 부족', '라이브러리 제한적'],
-    website: 'https://tv.apple.com',
-    available_in_korea: true
+    features: ['4K HDR', '다중 프로필', '오프라인 시청', 'Spatial Audio'],
+    strengths: ['고품질 오리지널', '합리적인 가격', '애플 생태계 연동'],
+    weaknesses: ['콘텐츠 수량 적음', '한국 콘텐츠 부족'],
+    availableContent: ['인터스텔라', '듄']
   },
   {
     id: 'amazon-prime',
-    name: '아마존프라임',
-    name_en: 'Amazon Prime Video',
-    logo_path: 'https://image.tmdb.org/t/p/original/68MNrwlkpF7WnmVPXL6GqLCKE00.jpg',
-    type: 'subscription',
+    name: 'Amazon Prime',
+    logo: '/ott-logos/amazon-prime.svg',
+    description: '아마존 오리지널과 다양한 콘텐츠',
     price: {
       monthly: '₩4,900',
       yearly: '₩49,000'
     },
-    features: ['4K 지원', '다운로드', '동시 시청 3명'],
-    strengths: ['다양한 콘텐츠', '합리적 가격', '아마존 혜택'],
-    weaknesses: ['인터페이스 복잡', '한국 콘텐츠 부족'],
-    website: 'https://www.primevideo.com',
-    available_in_korea: true
+    features: ['4K HDR', '다중 프로필', '오프라인 시청', 'Prime 배송 혜택'],
+    strengths: ['다양한 콘텐츠', '합리적인 가격', '배송 혜택'],
+    weaknesses: ['한국 콘텐츠 부족', '인터페이스 복잡'],
+    availableContent: ['인터스텔라', '듄', '브레이킹 배드', '게임 오브 스론즈']
   }
 ];
 
-// OTT ID로 정보 찾기
-export const getOTTInfo = (ottId: string): KoreanOTT | undefined => {
-  return koreanOTTs.find(ott => ott.id === ottId);
-};
+// 최신 개봉 영화 목록 (스트리밍 불가능)
+export const recentTheaterMovies = [
+  '슈퍼맨',
+  'Superman',
+  'Man of Steel',
+  'Batman v Superman',
+  'Justice League',
+  'The Flash',
+  'Aquaman',
+  'Wonder Woman',
+  'Black Adam',
+  'Shazam',
+  'Blue Beetle',
+  'The Marvels',
+  'Ant-Man',
+  'Black Panther',
+  'Thor',
+  'Spider-Man',
+  'Doctor Strange',
+  'Captain Marvel',
+  'Avengers',
+  'Iron Man'
+];
 
-// 모든 한국 OTT 정보 가져오기
-export const getAllKoreanOTTs = (): KoreanOTT[] => {
-  return koreanOTTs.filter(ott => ott.available_in_korea);
-};
-
-// OTT 타입별 분류
-export const getOTTsByType = (type: 'subscription' | 'free' | 'hybrid'): KoreanOTT[] => {
-  return koreanOTTs.filter(ott => ott.type === type);
-}; 
+// 스트리밍 가능한 영화 목록
+export const streamingAvailableMovies = [
+  '인터스텔라',
+  'Interstellar',
+  '듄',
+  'Dune',
+  '오펜하이머',
+  'Oppenheimer',
+  '브레이킹 배드',
+  'Breaking Bad',
+  '스트레인저 씽즈',
+  'Stranger Things',
+  '게임 오브 스론즈',
+  'Game of Thrones',
+  '인셉션',
+  'Inception',
+  '다크 나이트',
+  'The Dark Knight',
+  '포레스트 검프',
+  'Forrest Gump',
+  '쇼생크 탈출',
+  'The Shawshank Redemption'
+]; 

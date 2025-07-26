@@ -1,126 +1,128 @@
-import { KoreanOTT, getOTTInfo } from './koreanOTTs';
+import { koreanOTTs, recentTheaterMovies, streamingAvailableMovies } from './koreanOTTs';
 
-// TMDB API의 OTT 정보와 국내 OTT 정보를 결합
-export interface CombinedOTTInfo {
+export interface OTTProvider {
   id: string;
   name: string;
-  name_en: string;
-  logo_path: string;
-  type: 'subscription' | 'free' | 'hybrid';
-  price?: {
+  logo: string;
+  description: string;
+  price: {
     monthly?: string;
     yearly?: string;
     basic?: string;
     premium?: string;
+    standard?: string;
   };
-  features?: string[];
-  strengths?: string[];
-  weaknesses?: string[];
-  website?: string;
-  source: 'tmdb' | 'korean';
-  available_in_korea: boolean;
+  features: string[];
+  strengths: string[];
+  weaknesses: string[];
+  availableContent: string[];
 }
 
-// TMDB OTT 정보를 국내 OTT 정보와 결합
-export const combineOTTInfo = (tmdbProviders: unknown): CombinedOTTInfo[] => {
-  const combinedOTTs: CombinedOTTInfo[] = [];
+export const combineOTTData = (tmdbProviders: unknown, movieTitle: string): OTTProvider[] => {
+  const combinedProviders: OTTProvider[] = [];
   
-  // TMDB에서 제공하는 OTT 정보 처리
-  if (tmdbProviders && typeof tmdbProviders === 'object' && 'flatrate' in tmdbProviders) {
-    const providers = tmdbProviders as { flatrate: Array<{ provider_id: number; provider_name: string; logo_path: string }> };
-    providers.flatrate.forEach((provider) => {
-      const koreanOTT = getOTTInfo(provider.provider_name.toLowerCase().replace(/\s+/g, '-'));
-      
-      if (koreanOTT) {
-        // 국내 OTT 정보가 있으면 결합
-        combinedOTTs.push({
-          id: koreanOTT.id,
-          name: koreanOTT.name,
-          name_en: koreanOTT.name_en,
-          logo_path: koreanOTT.logo_path,
-          type: koreanOTT.type,
-          price: koreanOTT.price,
-          features: koreanOTT.features,
-          strengths: koreanOTT.strengths,
-          weaknesses: koreanOTT.weaknesses,
-          website: koreanOTT.website,
-          source: 'korean',
-          available_in_korea: true
-        });
-      } else {
-        // 국내 정보가 없으면 TMDB 정보 사용
-        combinedOTTs.push({
-          id: provider.provider_id.toString(),
-          name: provider.provider_name,
-          name_en: provider.provider_name,
-          logo_path: `https://image.tmdb.org/t/p/original${provider.logo_path}`,
-          type: 'subscription',
-          source: 'tmdb',
-          available_in_korea: true
-        });
-      }
-    });
+  // 최신 개봉 영화인지 확인
+  const isRecentTheaterMovie = recentTheaterMovies.some(title => 
+    movieTitle.toLowerCase().includes(title.toLowerCase())
+  );
+  
+  // 스트리밍 가능한 영화인지 확인
+  const isStreamingAvailable = streamingAvailableMovies.some(title => 
+    movieTitle.toLowerCase().includes(title.toLowerCase())
+  );
+  
+  // 최신 개봉 영화라면 스트리밍 불가능 메시지만 표시
+  if (isRecentTheaterMovie) {
+    return [{
+      id: 'theater-only',
+      name: '극장 상영',
+      logo: '/ott-logos/theater.svg',
+      description: '현재 극장에서만 상영 중입니다',
+      price: {},
+      features: ['극장에서만 관람 가능'],
+      strengths: ['최신 영화', '최고 화질'],
+      weaknesses: ['스트리밍 불가', '가격이 비쌈'],
+      availableContent: []
+    }];
   }
   
-  // 국내 OTT 중 TMDB에 없는 것들 추가 (예시로 일부만)
-  const additionalKoreanOTTs = ['wavve', 'tving', 'watcha', 'laftel'];
+  // 스트리밍 가능한 영화가 아니라면 제한적 정보 표시
+  if (!isStreamingAvailable) {
+    return [{
+      id: 'limited-info',
+      name: '정보 제한',
+      logo: '/ott-logos/info.svg',
+      description: '스트리밍 정보가 제한적입니다',
+      price: {},
+      features: ['정보 확인 필요'],
+      strengths: ['정확한 정보'],
+      weaknesses: ['제한적 정보'],
+      availableContent: []
+    }];
+  }
   
-  additionalKoreanOTTs.forEach(ottId => {
-    const koreanOTT = getOTTInfo(ottId);
-    if (koreanOTT && !combinedOTTs.find(ott => ott.id === ottId)) {
-      combinedOTTs.push({
-        id: koreanOTT.id,
-        name: koreanOTT.name,
-        name_en: koreanOTT.name_en,
-        logo_path: koreanOTT.logo_path,
-        type: koreanOTT.type,
-        price: koreanOTT.price,
-        features: koreanOTT.features,
-        strengths: koreanOTT.strengths,
-        weaknesses: koreanOTT.weaknesses,
-        website: koreanOTT.website,
-        source: 'korean',
-        available_in_korea: true
+  // TMDB 데이터 처리
+  if (tmdbProviders && typeof tmdbProviders === 'object' && 'results' in tmdbProviders) {
+    const providers = tmdbProviders as { results?: { KR?: unknown } };
+    if (providers.results?.KR && Array.isArray(providers.results.KR)) {
+      providers.results.KR.forEach((provider: unknown) => {
+        if (provider && typeof provider === 'object' && 'provider_name' in provider) {
+          const providerData = provider as { provider_name: string; provider_id: number };
+          const koreanOTT = koreanOTTs.find(ott => 
+            ott.name.toLowerCase().includes(providerData.provider_name.toLowerCase()) ||
+            providerData.provider_name.toLowerCase().includes(ott.name.toLowerCase())
+          );
+          
+          if (koreanOTT) {
+            combinedProviders.push({
+              ...koreanOTT,
+              id: koreanOTT.id,
+              name: koreanOTT.name,
+              logo: koreanOTT.logo,
+              description: koreanOTT.description,
+              price: koreanOTT.price,
+              features: koreanOTT.features,
+              strengths: koreanOTT.strengths,
+              weaknesses: koreanOTT.weaknesses,
+              availableContent: koreanOTT.availableContent
+            });
+          }
+        }
       });
     }
-  });
+  }
   
-  return combinedOTTs;
-};
-
-// OTT 정보를 가격순으로 정렬
-export const sortOTTsByPrice = (otts: CombinedOTTInfo[]): CombinedOTTInfo[] => {
-  return otts.sort((a, b) => {
-    const priceA = a.price?.monthly || a.price?.basic || '₩0';
-    const priceB = b.price?.monthly || b.price?.basic || '₩0';
-    
-    const numA = parseInt(priceA.replace(/[^\d]/g, ''));
-    const numB = parseInt(priceB.replace(/[^\d]/g, ''));
-    
-    return numA - numB;
-  });
-};
-
-// OTT 정보를 타입별로 분류
-export const groupOTTsByType = (otts: CombinedOTTInfo[]) => {
-  const grouped = {
-    subscription: otts.filter(ott => ott.type === 'subscription'),
-    free: otts.filter(ott => ott.type === 'free'),
-    hybrid: otts.filter(ott => ott.type === 'hybrid')
-  };
-  
-  return grouped;
-};
-
-// OTT 정보를 한국어/영어로 필터링
-export const filterOTTsByLanguage = (otts: CombinedOTTInfo[], language: 'korean' | 'english' | 'all') => {
-  if (language === 'all') return otts;
-  
-  return otts.filter(ott => {
-    if (language === 'korean') {
-      return ott.source === 'korean' || ott.name.includes('웨이브') || ott.name.includes('티빙');
-    } else {
-      return ott.source === 'tmdb' || ott.name_en.includes('Netflix') || ott.name_en.includes('Disney');
+  // 한국 OTT 중에서 해당 영화를 제공하는 서비스 추가
+  koreanOTTs.forEach(ott => {
+    if (ott.availableContent.some(content => 
+      movieTitle.toLowerCase().includes(content.toLowerCase()) ||
+      content.toLowerCase().includes(movieTitle.toLowerCase())
+    )) {
+      const alreadyExists = combinedProviders.some(p => p.id === ott.id);
+      if (!alreadyExists) {
+        combinedProviders.push({
+          ...ott,
+          id: ott.id,
+          name: ott.name,
+          logo: ott.logo,
+          description: ott.description,
+          price: ott.price,
+          features: ott.features,
+          strengths: ott.strengths,
+          weaknesses: ott.weaknesses,
+          availableContent: ott.availableContent
+        });
+      }
     }
   });
+  
+  return combinedProviders;
+};
+
+export const getOTTInfo = (ottId: string): OTTProvider | undefined => {
+  return koreanOTTs.find(ott => ott.id === ottId);
+};
+
+export const getAllOTTs = (): OTTProvider[] => {
+  return koreanOTTs;
 }; 
