@@ -1,3 +1,5 @@
+import { Movie } from './tmdb';
+
 // 국내 OTT 정보 제공자
 export interface KoreanOTTProvider {
   name: string;
@@ -125,14 +127,14 @@ export function findKoreanOTTProviders(title: string): KoreanOTTProvider[] {
 }
 
 // OTT 정보를 TMDB 결과와 결합하는 함수
-export function enhanceWithKoreanOTTInfo(tmdbResults: any[], query: string): any[] {
+export function enhanceWithKoreanOTTInfo(tmdbResults: any[]): any[] {
   return tmdbResults.map(result => {
     const title = result.title || result.name || '';
     const koreanProviders = findKoreanOTTProviders(title);
     
     // 기존 TMDB OTT 정보가 있으면 유지, 없으면 한국 OTT 정보 추가
     if (!result.ott_providers && koreanProviders.length > 0) {
-      result.ott_providers = {
+      (result as any).ott_providers = {
         KR: {
           flatrate: koreanProviders.map(provider => ({
             provider_id: Math.random(), // 임시 ID

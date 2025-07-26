@@ -104,7 +104,7 @@ export async function GET(request: NextRequest) {
     // 한국어 검색인 경우 한국 OTT 정보 추가
     const isKorean = /[가-힣]/.test(query.trim());
     if (isKorean) {
-      resultsWithOTT = enhanceWithKoreanOTTInfo(resultsWithOTT, query.trim());
+      resultsWithOTT = enhanceWithKoreanOTTInfo(resultsWithOTT);
     }
     
     return NextResponse.json({
