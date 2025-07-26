@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+:root {
+  --background: #121212;
+  --foreground: #ffffff;
+  --cinematic-gold: #FFD700;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* 깜박거림 방지 */
+  overflow-x: hidden;
+  will-change: auto;
+}
+
+/* 깜박거림 방지를 위한 최적화 */
+* {
+  box-sizing: border-box;
+}
+
+/* 이미지 최적화 */
+img {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* 애니메이션 최적화 */
+.motion-safe\:animate-none {
+  animation: none !important;
+}
+
+/* 로딩 스피너 */
+.cinematic-spinner {
+  border: 2px solid #1a1a1a;
+  border-top: 2px solid #FFD700;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 부드러운 스크롤 */
+html {
+  scroll-behavior: smooth;
+}
+
+/* 포커스 표시 최적화 */
+*:focus {
+  outline: 2px solid #FFD700;
+  outline-offset: 2px;
+}
+
+/* 선택 텍스트 스타일 */
+::selection {
+  background-color: #FFD700;
+  color: #000000;
+}
+
+::-moz-selection {
+  background-color: #FFD700;
+  color: #000000;
+} 
