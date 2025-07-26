@@ -58,14 +58,37 @@ export async function GET(
         console.log('검색 결과 개수:', Array.isArray(searchResults) ? searchResults.length : 0);
         
         if (searchResults && Array.isArray(searchResults) && searchResults.length > 0) {
-          const firstResult = searchResults[0] as Record<string, unknown>;
-          console.log('검색으로 찾은 영화:', firstResult);
+          // 정확한 제목 매칭 시도
+          let bestMatch = searchResults[0] as Record<string, unknown>;
+          let exactMatch = null;
+          
+          // 정확한 제목 매칭 찾기
+          for (const result of searchResults) {
+            const resultTitle = (result as Record<string, unknown>).title as string;
+            const resultName = (result as Record<string, unknown>).name as string;
+            const currentTitle = resultTitle || resultName || '';
+            
+            // 대소문자 구분 없이 정확한 매칭
+            if (currentTitle.toLowerCase() === searchQuery.toLowerCase()) {
+              exactMatch = result;
+              break;
+            }
+            
+            // 부분 매칭 (포함 관계)
+            if (currentTitle.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                searchQuery.toLowerCase().includes(currentTitle.toLowerCase())) {
+              bestMatch = result;
+            }
+          }
+          
+          const selectedResult = exactMatch || bestMatch;
+          console.log('검색으로 찾은 영화:', selectedResult);
           
           // 검색 결과의 ID로 상세 정보 가져오기
-          const detailedResult = await tmdbClient.getMovieDetails(firstResult.id as number);
+          const detailedResult = await tmdbClient.getMovieDetails(selectedResult.id as number);
           if (detailedResult) {
             movieDetails = detailedResult;
-            actualMovieId = firstResult.id as number;
+            actualMovieId = selectedResult.id as number;
             console.log('검색을 통한 상세 정보 성공:', movieDetails);
           }
         } else {
