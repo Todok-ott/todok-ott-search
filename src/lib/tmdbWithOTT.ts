@@ -98,7 +98,7 @@ class TMDBWithOTTClient {
       const data: SearchResponse = await response.json();
       
       // 한국 OTT 정보 추가 (시뮬레이션)
-      const moviesWithOTT = data.results.map((movie: Movie) => ({
+      const moviesWithOTT = (data.results as Movie[]).map((movie: Movie) => ({
         ...movie,
         ott_services: this.getRandomOTTServices()
       }));
@@ -128,7 +128,7 @@ class TMDBWithOTTClient {
       const data: SearchResponse = await response.json();
       
       // 한국 OTT 정보 추가 (시뮬레이션)
-      const showsWithOTT = data.results.map((show: TVShow) => ({
+      const showsWithOTT = (data.results as TVShow[]).map((show: TVShow) => ({
         ...show,
         ott_services: this.getRandomOTTServices()
       }));
@@ -158,7 +158,7 @@ class TMDBWithOTTClient {
       const data: SearchResponse = await response.json();
       
       // 한국 OTT 정보 추가 (시뮬레이션)
-      const moviesWithOTT = data.results.map((movie: Movie) => ({
+      const moviesWithOTT = (data.results as Movie[]).map((movie: Movie) => ({
         ...movie,
         ott_services: this.getRandomOTTServices()
       }));
@@ -188,7 +188,7 @@ class TMDBWithOTTClient {
       const data: SearchResponse = await response.json();
       
       // 한국 OTT 정보 추가 (시뮬레이션)
-      const showsWithOTT = data.results.map((show: TVShow) => ({
+      const showsWithOTT = (data.results as TVShow[]).map((show: TVShow) => ({
         ...show,
         ott_services: this.getRandomOTTServices()
       }));
