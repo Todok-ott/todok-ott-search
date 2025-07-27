@@ -1,89 +1,41 @@
 import { NextResponse } from 'next/server';
-import { dataLoader } from '@/lib/dataLoader';
 import { streamingAvailabilityClient } from '@/lib/streamingAvailability';
-import { filterByOTT } from '@/lib/ottUtils';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     console.log('인기 TV API 호출 시작');
     
-    // 로컬 데이터에서 드라마 가져오기
-    const localDramas = dataLoader.getAllDramas();
-    console.log('로컬 드라마 데이터 로드:', localDramas.length);
+    // Streaming Availability API로 한국 OTT 드라마 조회
+    const ottResults = await streamingAvailabilityClient.fetchOTTMovies({
+      country: 'kr',
+      service: 'netflix,watcha,wavve,tving,disney,laftel',
+      type: 'series',
+      page: 1,
+      language: 'ko'
+    });
     
-    // Streaming Availability API로 OTT 정보 추가
-    const dramasWithOTT = [];
+    console.log('OTT 드라마 조회 결과:', ottResults.results.length);
     
-    for (const drama of localDramas.slice(0, 20)) { // 성능을 위해 20개만 처리
-      try {
-        const streamingData = await streamingAvailabilityClient.searchByTitle(drama.title);
-        
-        if (streamingData && streamingData.result) {
-          const ottProviders = streamingAvailabilityClient.convertToOTTProviders(streamingData);
-          
-          const dramaWithOTT = {
-            id: drama.id,
-            title: drama.title,
-            media_type: 'tv',
-            overview: drama.overview || `${drama.title} (${drama.year})`,
-            first_air_date: `${drama.year}-01-01`,
-            vote_average: drama.rating || 0,
-            popularity: drama.rating || 0,
-            poster_path: drama.posterUrl,
-            ott_providers: ottProviders,
-            local_data: true
-          };
-          
-          dramasWithOTT.push(dramaWithOTT);
-        } else {
-          // OTT 정보가 없어도 기본 정보는 포함
-          const dramaWithOTT = {
-            id: drama.id,
-            title: drama.title,
-            media_type: 'tv',
-            overview: drama.overview || `${drama.title} (${drama.year})`,
-            first_air_date: `${drama.year}-01-01`,
-            vote_average: drama.rating || 0,
-            popularity: drama.rating || 0,
-            poster_path: drama.posterUrl,
-            ott_providers: { KR: { flatrate: [], buy: [], rent: [] } },
-            local_data: true
-          };
-          
-          dramasWithOTT.push(dramaWithOTT);
-        }
-      } catch (error) {
-        console.error(`드라마 "${drama.title}" OTT 정보 가져오기 실패:`, error);
-        
-        // 에러가 있어도 기본 정보는 포함
-        const dramaWithOTT = {
-          id: drama.id,
-          title: drama.title,
-          media_type: 'tv',
-          overview: drama.overview || `${drama.title} (${drama.year})`,
-          first_air_date: `${drama.year}-01-01`,
-          vote_average: drama.rating || 0,
-          popularity: drama.rating || 0,
-          poster_path: drama.posterUrl,
-          ott_providers: { KR: { flatrate: [], buy: [], rent: [] } },
-          local_data: true
-        };
-        
-        dramasWithOTT.push(dramaWithOTT);
-      }
-    }
+    // 결과를 표준 형식으로 변환
+    const dramas = ottResults.results.map((item, index) => ({
+      id: item.id || `ott-drama-${index}`,
+      title: item.title || item.name || '제목 없음',
+      media_type: 'tv',
+      overview: item.overview || `${item.title} (${item.year})`,
+      first_air_date: `${item.year}-01-01`,
+      vote_average: 8.0, // 기본 평점
+      popularity: 8.0,
+      poster_path: item.posterPath || item.posterURLs?.original || '/placeholder-poster.jpg',
+      ott_providers: streamingAvailabilityClient.convertResultsToOTTProviders([item]),
+      streaming_data: item
+    }));
     
-    console.log('OTT 정보 추가 완료:', dramasWithOTT.length);
-    
-    // OTT 정보가 있는 콘텐츠만 필터링 (일시적으로 비활성화)
-    // const filteredDramas = filterByOTT(dramasWithOTT);
-    const filteredDramas = dramasWithOTT; // 필터링 비활성화
-    console.log('OTT 필터링 후 드라마 수:', filteredDramas.length);
+    console.log('변환된 드라마 수:', dramas.length);
     
     const response = {
-      results: filteredDramas.slice(0, 50), // 50개로 조정
-      total_pages: 1,
-      total_results: filteredDramas.length,
+      results: dramas.slice(0, 50), // 50개로 제한
+      total_pages: ottResults.totalPages,
+      total_results: dramas.length,
       page: 1,
       api_credits: {
         streaming_availability: 'Powered by Streaming Availability API via RapidAPI'
@@ -120,7 +72,8 @@ export async function GET() {
     return NextResponse.json(
       { 
         error: errorMessage,
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
+        api_key_configured: !!process.env.STREAMING_AVAILABILITY_API_KEY
       },
       { status: statusCode }
     );

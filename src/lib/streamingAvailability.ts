@@ -1,21 +1,61 @@
-// Streaming Availability API 클라이언트
+// Streaming Availability API 클라이언트 - 한국 OTT 전용
 export interface StreamingAvailabilityResult {
-  result: {
-    type: 'movie' | 'show';
+  results: Array<{
+    id: string;
     title: string;
+    name?: string;
+    type: 'movie' | 'series';
     year: number;
-    streamingInfo: {
-      [service: string]: {
-        kr: {
+    posterPath?: string;
+    posterURLs?: {
+      original?: string;
+      [key: string]: string | undefined;
+    };
+    overview?: string;
+    streamingInfo?: {
+      kr: {
+        [service: string]: Array<{
           type: 'subscription' | 'rent' | 'buy';
           quality: string;
           audios: string[];
           subtitles: string[];
-          leaving: number;
-        };
+          leaving?: number;
+          link?: string;
+        }>;
       };
     };
+  }>;
+  total_pages: number;
+  page: number;
+}
+
+export interface ShowDetail {
+  id: string;
+  title: string;
+  name?: string;
+  type: 'movie' | 'series';
+  year: number;
+  posterPath?: string;
+  posterURLs?: {
+    original?: string;
+    [key: string]: string | undefined;
   };
+  overview?: string;
+  streamingInfo?: {
+    kr: {
+      [service: string]: Array<{
+        type: 'subscription' | 'rent' | 'buy';
+        quality: string;
+        audios: string[];
+        subtitles: string[];
+        leaving?: number;
+        link?: string;
+      }>;
+    };
+  };
+  genres?: string[];
+  cast?: string[];
+  directors?: string[];
 }
 
 export class StreamingAvailabilityClient {
@@ -29,6 +69,105 @@ export class StreamingAvailabilityClient {
     }
   }
 
+  // 1. OTT별 작품 리스트 조회 (페이징 포함)
+  async fetchOTTMovies({ 
+    country = 'kr', 
+    service = 'netflix,watcha,wavve,tving,disney', 
+    type = 'movie', 
+    page = 1, 
+    language = 'ko' 
+  }: {
+    country?: string;
+    service?: string;
+    type?: 'movie' | 'series';
+    page?: number;
+    language?: string;
+  }): Promise<{
+    results: StreamingAvailabilityResult['results'];
+    totalPages: number;
+    nextPage: number | null;
+  }> {
+    if (!this.apiKey) {
+      console.log('API 키 없음 - 빈 결과 반환');
+      return { results: [], totalPages: 1, nextPage: null };
+    }
+
+    try {
+      const url = new URL(`${this.baseUrl}/search/advanced`);
+      url.searchParams.set('country', country);
+      url.searchParams.set('service', service);
+      url.searchParams.set('type', type);
+      url.searchParams.set('output_language', language);
+      url.searchParams.set('order_by', 'original_title');
+      url.searchParams.set('page', page.toString());
+
+      console.log('Streaming Availability API 호출:', url.toString());
+
+      const response = await fetch(url.toString(), {
+        method: 'GET',
+        headers: {
+          'X-RapidAPI-Key': this.apiKey,
+          'X-RapidAPI-Host': 'streaming-availability.p.rapidapi.com'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`API 요청 실패: ${response.status} ${response.statusText}`);
+      }
+
+      const data: StreamingAvailabilityResult = await response.json();
+      
+      console.log(`OTT 영화 조회 결과: ${data.results?.length || 0}개, 페이지 ${data.page}/${data.total_pages}`);
+
+      return {
+        results: data.results || [],
+        totalPages: data.total_pages || 1,
+        nextPage: data.page < data.total_pages ? data.page + 1 : null
+      };
+    } catch (error) {
+      console.error('OTT 영화 조회 실패:', error);
+      return { results: [], totalPages: 1, nextPage: null };
+    }
+  }
+
+  // 2. 단일 작품 상세정보 및 포스터, OTT 링크 가져오기
+  async fetchShowDetail(showId: string, country = 'kr', language = 'ko'): Promise<ShowDetail | null> {
+    if (!this.apiKey) {
+      console.log('API 키 없음 - 상세정보 조회 불가');
+      return null;
+    }
+
+    try {
+      const url = new URL(`${this.baseUrl}/get/show`);
+      url.searchParams.set('country', country);
+      url.searchParams.set('show_id', encodeURIComponent(showId));
+      url.searchParams.set('output_language', language);
+
+      console.log('상세정보 API 호출:', url.toString());
+
+      const response = await fetch(url.toString(), {
+        method: 'GET',
+        headers: {
+          'X-RapidAPI-Key': this.apiKey,
+          'X-RapidAPI-Host': 'streaming-availability.p.rapidapi.com'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`상세정보 API 요청 실패: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('상세정보 조회 결과:', data.show?.title);
+      
+      return data.show || null;
+    } catch (error) {
+      console.error('상세정보 조회 실패:', error);
+      return null;
+    }
+  }
+
+  // 3. 제목으로 검색 (기존 메서드 개선)
   async searchByTitle(title: string): Promise<StreamingAvailabilityResult | null> {
     if (!this.apiKey) {
       console.log('API 키 없음 - 로컬 데이터 사용');
@@ -40,6 +179,9 @@ export class StreamingAvailabilityClient {
       url.searchParams.set('title', title);
       url.searchParams.set('country', 'kr');
       url.searchParams.set('show_type', 'all');
+      url.searchParams.set('output_language', 'ko');
+
+      console.log('제목 검색 API 호출:', url.toString());
 
       const response = await fetch(url.toString(), {
         method: 'GET',
@@ -50,48 +192,51 @@ export class StreamingAvailabilityClient {
       });
 
       if (!response.ok) {
-        throw new Error(`API 요청 실패: ${response.status}`);
+        throw new Error(`API 요청 실패: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
-      console.log('Streaming Availability API 결과:', data);
+      console.log('제목 검색 결과:', data.result?.title);
       return data;
     } catch (error) {
-      console.error('Streaming Availability API 오류:', error);
+      console.error('제목 검색 실패:', error);
       return null;
     }
   }
 
-  async getMovieDetails(imdbId: string) {
-    if (!this.apiKey) return null;
-
-    try {
-      const url = new URL(`${this.baseUrl}/get/details`);
-      url.searchParams.set('imdb_id', imdbId);
-      url.searchParams.set('country', 'kr');
-
-      const response = await fetch(url.toString(), {
-        method: 'GET',
-        headers: {
-          'X-RapidAPI-Key': this.apiKey,
-          'X-RapidAPI-Host': 'streaming-availability.p.rapidapi.com'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`API 요청 실패: ${response.status}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('영화 상세 정보 가져오기 실패:', error);
-      return null;
-    }
+  // 4. 모든 한국 OTT에서 스트리밍되는 콘텐츠 조회
+  async fetchAllKoreanOTTContent(page = 1): Promise<{
+    results: StreamingAvailabilityResult['results'];
+    totalPages: number;
+    nextPage: number | null;
+  }> {
+    return this.fetchOTTMovies({
+      country: 'kr',
+      service: 'netflix,watcha,wavve,tving,disney,laftel,apple,amazon',
+      type: 'movie',
+      page,
+      language: 'ko'
+    });
   }
 
-  // Streaming Availability 결과를 OTT 제공업체 형식으로 변환
+  // 5. 특정 OTT 서비스의 콘텐츠만 조회
+  async fetchSpecificOTTContent(service: string, type: 'movie' | 'series' = 'movie', page = 1): Promise<{
+    results: StreamingAvailabilityResult['results'];
+    totalPages: number;
+    nextPage: number | null;
+  }> {
+    return this.fetchOTTMovies({
+      country: 'kr',
+      service,
+      type,
+      page,
+      language: 'ko'
+    });
+  }
+
+  // 6. Streaming Availability 결과를 OTT 제공업체 형식으로 변환 (개선)
   convertToOTTProviders(streamingData: StreamingAvailabilityResult | null) {
-    if (!streamingData || !streamingData.result) {
+    if (!streamingData || !streamingData.results || streamingData.results.length === 0) {
       return null;
     }
 
@@ -109,27 +254,73 @@ export class StreamingAvailabilityClient {
       }
     };
 
-    // 스트리밍 서비스 정보 추출
-    if (streamingData.result.streamingInfo) {
-      for (const [service, info] of Object.entries(streamingData.result.streamingInfo)) {
-        if (info.kr) {
-          const serviceInfo = {
+    // 첫 번째 결과의 스트리밍 서비스 정보 추출
+    const firstResult = streamingData.results[0];
+    if (firstResult.streamingInfo?.kr) {
+      for (const [service, serviceInfo] of Object.entries(firstResult.streamingInfo.kr)) {
+        if (Array.isArray(serviceInfo) && serviceInfo.length > 0) {
+          const providerInfo = {
             provider_id: this.getProviderId(service),
             provider_name: this.getProviderName(service),
             logo_path: this.getProviderLogo(service)
           };
 
-          // 스트리밍 타입에 따라 분류
-          if (info.kr.type === 'subscription') {
-            ottProviders.KR.flatrate.push(serviceInfo);
-          } else if (info.kr.type === 'rent') {
-            ottProviders.KR.rent.push(serviceInfo);
-          } else if (info.kr.type === 'buy') {
-            ottProviders.KR.buy.push(serviceInfo);
-          }
+          // 각 서비스의 타입에 따라 분류
+          serviceInfo.forEach(info => {
+            if (info.type === 'subscription') {
+              ottProviders.KR.flatrate.push(providerInfo);
+            } else if (info.type === 'rent') {
+              ottProviders.KR.rent.push(providerInfo);
+            } else if (info.type === 'buy') {
+              ottProviders.KR.buy.push(providerInfo);
+            }
+          });
         }
       }
     }
+
+    return ottProviders;
+  }
+
+  // 7. 결과 배열을 OTT 제공업체 형식으로 변환 (새로운 메서드)
+  convertResultsToOTTProviders(results: StreamingAvailabilityResult['results']) {
+    const ottProviders: {
+      KR: {
+        flatrate: Array<{ provider_id: number; provider_name: string; logo_path: string }>;
+        buy: Array<{ provider_id: number; provider_name: string; logo_path: string }>;
+        rent: Array<{ provider_id: number; provider_name: string; logo_path: string }>;
+      };
+    } = {
+      KR: {
+        flatrate: [],
+        buy: [],
+        rent: []
+      }
+    };
+
+    results.forEach(result => {
+      if (result.streamingInfo?.kr) {
+        for (const [service, serviceInfo] of Object.entries(result.streamingInfo.kr)) {
+          if (Array.isArray(serviceInfo) && serviceInfo.length > 0) {
+            const providerInfo = {
+              provider_id: this.getProviderId(service),
+              provider_name: this.getProviderName(service),
+              logo_path: this.getProviderLogo(service)
+            };
+
+            serviceInfo.forEach(info => {
+              if (info.type === 'subscription') {
+                ottProviders.KR.flatrate.push(providerInfo);
+              } else if (info.type === 'rent') {
+                ottProviders.KR.rent.push(providerInfo);
+              } else if (info.type === 'buy') {
+                ottProviders.KR.buy.push(providerInfo);
+              }
+            });
+          }
+        }
+      }
+    });
 
     return ottProviders;
   }

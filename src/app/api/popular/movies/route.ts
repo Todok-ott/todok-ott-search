@@ -1,89 +1,41 @@
 import { NextResponse } from 'next/server';
-import { dataLoader } from '@/lib/dataLoader';
 import { streamingAvailabilityClient } from '@/lib/streamingAvailability';
-import { filterByOTT } from '@/lib/ottUtils';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     console.log('인기 영화 API 호출 시작');
     
-    // 로컬 데이터에서 영화 가져오기
-    const localMovies = dataLoader.getAllMovies();
-    console.log('로컬 영화 데이터 로드:', localMovies.length);
+    // Streaming Availability API로 한국 OTT 영화 조회
+    const ottResults = await streamingAvailabilityClient.fetchOTTMovies({
+      country: 'kr',
+      service: 'netflix,watcha,wavve,tving,disney,laftel',
+      type: 'movie',
+      page: 1,
+      language: 'ko'
+    });
     
-    // Streaming Availability API로 OTT 정보 추가
-    const moviesWithOTT = [];
+    console.log('OTT 영화 조회 결과:', ottResults.results.length);
     
-    for (const movie of localMovies.slice(0, 20)) { // 성능을 위해 20개만 처리
-      try {
-        const streamingData = await streamingAvailabilityClient.searchByTitle(movie.title);
-        
-        if (streamingData && streamingData.result) {
-          const ottProviders = streamingAvailabilityClient.convertToOTTProviders(streamingData);
-          
-          const movieWithOTT = {
-            id: movie.id,
-            title: movie.title,
-            media_type: 'movie',
-            overview: movie.overview || `${movie.title} (${movie.year})`,
-            release_date: `${movie.year}-01-01`,
-            vote_average: movie.rating || 0,
-            popularity: movie.rating || 0,
-            poster_path: movie.posterUrl,
-            ott_providers: ottProviders,
-            local_data: true
-          };
-          
-          moviesWithOTT.push(movieWithOTT);
-        } else {
-          // OTT 정보가 없어도 기본 정보는 포함
-          const movieWithOTT = {
-            id: movie.id,
-            title: movie.title,
-            media_type: 'movie',
-            overview: movie.overview || `${movie.title} (${movie.year})`,
-            release_date: `${movie.year}-01-01`,
-            vote_average: movie.rating || 0,
-            popularity: movie.rating || 0,
-            poster_path: movie.posterUrl,
-            ott_providers: { KR: { flatrate: [], buy: [], rent: [] } },
-            local_data: true
-          };
-          
-          moviesWithOTT.push(movieWithOTT);
-        }
-      } catch (error) {
-        console.error(`영화 "${movie.title}" OTT 정보 가져오기 실패:`, error);
-        
-        // 에러가 있어도 기본 정보는 포함
-        const movieWithOTT = {
-          id: movie.id,
-          title: movie.title,
-          media_type: 'movie',
-          overview: movie.overview || `${movie.title} (${movie.year})`,
-          release_date: `${movie.year}-01-01`,
-          vote_average: movie.rating || 0,
-          popularity: movie.rating || 0,
-          poster_path: movie.posterUrl,
-          ott_providers: { KR: { flatrate: [], buy: [], rent: [] } },
-          local_data: true
-        };
-        
-        moviesWithOTT.push(movieWithOTT);
-      }
-    }
+    // 결과를 표준 형식으로 변환
+    const movies = ottResults.results.map((item, index) => ({
+      id: item.id || `ott-${index}`,
+      title: item.title || item.name || '제목 없음',
+      media_type: 'movie',
+      overview: item.overview || `${item.title} (${item.year})`,
+      release_date: `${item.year}-01-01`,
+      vote_average: 8.0, // 기본 평점
+      popularity: 8.0,
+      poster_path: item.posterPath || item.posterURLs?.original || '/placeholder-poster.jpg',
+      ott_providers: streamingAvailabilityClient.convertResultsToOTTProviders([item]),
+      streaming_data: item
+    }));
     
-    console.log('OTT 정보 추가 완료:', moviesWithOTT.length);
-    
-    // OTT 정보가 있는 콘텐츠만 필터링 (일시적으로 비활성화)
-    // const filteredMovies = filterByOTT(moviesWithOTT);
-    const filteredMovies = moviesWithOTT; // 필터링 비활성화
-    console.log('OTT 필터링 후 영화 수:', filteredMovies.length);
+    console.log('변환된 영화 수:', movies.length);
     
     const response = {
-      results: filteredMovies.slice(0, 50), // 50개로 조정
-      total_pages: 1,
-      total_results: filteredMovies.length,
+      results: movies.slice(0, 50), // 50개로 제한
+      total_pages: ottResults.totalPages,
+      total_results: movies.length,
       page: 1,
       api_credits: {
         streaming_availability: 'Powered by Streaming Availability API via RapidAPI'
@@ -120,7 +72,8 @@ export async function GET() {
     return NextResponse.json(
       { 
         error: errorMessage,
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
+        api_key_configured: !!process.env.STREAMING_AVAILABILITY_API_KEY
       },
       { status: statusCode }
     );
