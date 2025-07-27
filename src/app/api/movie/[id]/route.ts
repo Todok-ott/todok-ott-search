@@ -26,8 +26,8 @@ export async function GET(
       console.log('제목 파라미터로 검색:', searchQuery);
     }
     
-    // 검색어 정리 (특수문자 제거, 공백 정리)
-    searchQuery = searchQuery.replace(/[^\w\s가-힣]/g, ' ').replace(/\s+/g, ' ').trim();
+    // 검색어 정리 (콜론은 유지, 다른 특수문자만 제거, 공백 정리)
+    searchQuery = searchQuery.replace(/[^\w\s가-힣:]/g, ' ').replace(/\s+/g, ' ').trim();
     console.log('정리된 검색어:', searchQuery);
     
     let movieDetails = null;
