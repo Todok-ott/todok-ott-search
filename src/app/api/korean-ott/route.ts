@@ -33,8 +33,9 @@ export async function GET(request: NextRequest) {
     try {
       const streamingData = await streamingAvailabilityClient.searchByTitle(title);
       
-      if (streamingData && streamingData.result) {
-        const ottProviders = streamingAvailabilityClient.convertToOTTProviders(streamingData);
+      if (streamingData && streamingData.results && streamingData.results.length > 0) {
+        const firstResult = streamingData.results[0];
+        const ottProviders = streamingAvailabilityClient.convertResultsToOTTProviders([firstResult]);
         
         if (ottProviders && ottProviders.KR) {
           // flatrate, buy, rent를 하나의 배열로 합치기
