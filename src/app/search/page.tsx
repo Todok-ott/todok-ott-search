@@ -7,7 +7,36 @@ import { Search, Star, Play, Info, TrendingUp } from 'lucide-react';
 import SearchBar from '@/components/SearchBar';
 import AdBanner from '@/components/AdBanner';
 import Footer from '@/components/Footer';
-import { Movie } from '@/lib/tmdb';
+// Movie 인터페이스 정의
+interface Movie {
+  id: string | number;
+  title: string;
+  name?: string;
+  media_type: 'movie' | 'tv';
+  original_title?: string;
+  display_title?: string;
+  overview?: string;
+  poster_path?: string;
+  vote_average?: number;
+  release_date?: string;
+  first_air_date?: string;
+  genre_ids?: number[];
+  popularity?: number;
+  vote_count?: number;
+  origin_country?: string[];
+  original_language?: string;
+  backdrop_path?: string;
+  ott_providers?: {
+    KR?: {
+      flatrate?: Array<{ provider_id: number; provider_name: string; logo_path: string }>;
+      buy?: Array<{ provider_id: number; provider_name: string; logo_path: string }>;
+      rent?: Array<{ provider_id: number; provider_name: string; logo_path: string }>;
+    };
+  } | null;
+  local_data?: boolean;
+  year?: number;
+  [key: string]: unknown;
+}
 import Image from 'next/image';
 
 // Movie 타입을 확장하여 korean_ott_providers 속성 추가
