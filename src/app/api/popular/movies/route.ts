@@ -36,68 +36,17 @@ export async function GET() {
       ...(page3.results || [])
     ];
     
+    console.log('전체 영화 수:', allMovies.length);
+    
     // 확실히 문제가 있는 ID들 차단
     const blockedIds = [244808, 112470, 65270, 22980, 65701, 59941, 1399];
     
-    // OTT 정보를 개별적으로 가져와서 필터링
-    const moviesWithOTT = await Promise.all(
-      allMovies.map(async (movie: MovieWithKoreanOTT) => {
-        try {
-          // 문제가 있는 ID는 제외
-          if (blockedIds.includes(movie.id)) {
-            console.log('차단된 ID 제외:', movie.id);
-            return null;
-          }
-          
-          // OTT 정보 가져오기
-          const ottData = await tmdbClient.getMovieWatchProviders(movie.id) as WatchProviderData;
-          
-          // 디버깅: OTT 데이터 구조 확인
-          console.log(`영화 ${movie.id} (${movie.title}) OTT 데이터:`, {
-            hasKR: !!ottData?.KR,
-            hasFlatrate: !!ottData?.KR?.flatrate,
-            flatrateCount: ottData?.KR?.flatrate?.length || 0,
-            hasRent: !!ottData?.KR?.rent,
-            rentCount: ottData?.KR?.rent?.length || 0,
-            hasBuy: !!ottData?.KR?.buy,
-            buyCount: ottData?.KR?.buy?.length || 0
-          });
-          
-          // OTT 정보가 있는지 확인 (flatrate, rent, buy 모두 체크)
-          const hasFlatrate = !!(ottData?.KR?.flatrate && ottData.KR.flatrate.length > 0);
-          const hasRent = !!(ottData?.KR?.rent && ottData.KR.rent.length > 0);
-          const hasBuy = !!(ottData?.KR?.buy && ottData.KR.buy.length > 0);
-          const hasKorean = false; // 한국 OTT 정보는 일단 제외
-          
-          const hasOTT = hasFlatrate || hasRent || hasBuy || hasKorean;
-          
-          if (!hasOTT) {
-            console.log('OTT 정보 없는 콘텐츠 제외:', movie.id, movie.title);
-            return null;
-          }
-          
-          console.log('OTT 정보 있는 콘텐츠 포함:', movie.id, movie.title, {
-            flatrate: hasFlatrate,
-            rent: hasRent,
-            buy: hasBuy
-          });
-          
-          // OTT 정보 추가
-          return {
-            ...movie,
-            ott_providers: ottData?.KR || null,
-            korean_ott_providers: null
-          };
-        } catch (error) {
-          console.log('OTT 정보 가져오기 실패:', movie.id, error);
-          return null;
-        }
-      })
-    );
+    // 임시: OTT 필터링 제거하고 모든 영화 반환
+    const filteredMovies = allMovies.filter(movie => !blockedIds.includes(movie.id));
     
-    // null 값 제거하고 필터링된 결과만 반환
-    const filteredMovies = moviesWithOTT.filter(movie => movie !== null);
+    console.log('차단된 ID 제거 후 영화 수:', filteredMovies.length);
     
+    // 임시: OTT 정보 없이 모든 영화 반환
     const response = {
       results: filteredMovies.slice(0, 50), // 50개로 조정
       total_pages: 3,

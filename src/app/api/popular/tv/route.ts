@@ -36,68 +36,17 @@ export async function GET() {
       ...(page3.results || [])
     ];
     
+    console.log('전체 TV 쇼 수:', allTVShows.length);
+    
     // 확실히 문제가 있는 ID들 차단
     const blockedIds = [244808, 112470, 65270, 22980, 65701, 59941, 1399];
     
-    // OTT 정보를 개별적으로 가져와서 필터링
-    const tvShowsWithOTT = await Promise.all(
-      allTVShows.map(async (tv: MovieWithKoreanOTT) => {
-        try {
-          // 문제가 있는 ID는 제외
-          if (blockedIds.includes(tv.id)) {
-            console.log('차단된 ID 제외:', tv.id);
-            return null;
-          }
-          
-          // OTT 정보 가져오기
-          const ottData = await tmdbClient.getTVWatchProviders(tv.id) as WatchProviderData;
-          
-          // 디버깅: OTT 데이터 구조 확인
-          console.log(`TV ${tv.id} (${tv.name}) OTT 데이터:`, {
-            hasKR: !!ottData?.KR,
-            hasFlatrate: !!ottData?.KR?.flatrate,
-            flatrateCount: ottData?.KR?.flatrate?.length || 0,
-            hasRent: !!ottData?.KR?.rent,
-            rentCount: ottData?.KR?.rent?.length || 0,
-            hasBuy: !!ottData?.KR?.buy,
-            buyCount: ottData?.KR?.buy?.length || 0
-          });
-          
-          // OTT 정보가 있는지 확인 (flatrate, rent, buy 모두 체크)
-          const hasFlatrate = !!(ottData?.KR?.flatrate && ottData.KR.flatrate.length > 0);
-          const hasRent = !!(ottData?.KR?.rent && ottData.KR.rent.length > 0);
-          const hasBuy = !!(ottData?.KR?.buy && ottData.KR.buy.length > 0);
-          const hasKorean = false; // 한국 OTT 정보는 일단 제외
-          
-          const hasOTT = hasFlatrate || hasRent || hasBuy || hasKorean;
-          
-          if (!hasOTT) {
-            console.log('OTT 정보 없는 콘텐츠 제외:', tv.id, tv.name);
-            return null;
-          }
-          
-          console.log('OTT 정보 있는 콘텐츠 포함:', tv.id, tv.name, {
-            flatrate: hasFlatrate,
-            rent: hasRent,
-            buy: hasBuy
-          });
-          
-          // OTT 정보 추가
-          return {
-            ...tv,
-            ott_providers: ottData?.KR || null,
-            korean_ott_providers: null
-          };
-        } catch (error) {
-          console.log('OTT 정보 가져오기 실패:', tv.id, error);
-          return null;
-        }
-      })
-    );
+    // 임시: OTT 필터링 제거하고 모든 TV 쇼 반환
+    const filteredTVShows = allTVShows.filter(tv => !blockedIds.includes(tv.id));
     
-    // null 값 제거하고 필터링된 결과만 반환
-    const filteredTVShows = tvShowsWithOTT.filter(tv => tv !== null);
+    console.log('차단된 ID 제거 후 TV 쇼 수:', filteredTVShows.length);
     
+    // 임시: OTT 정보 없이 모든 TV 쇼 반환
     const response = {
       results: filteredTVShows.slice(0, 50), // 50개로 조정
       total_pages: 3,
