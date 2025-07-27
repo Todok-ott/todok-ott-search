@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { tmdbClient, Movie } from '@/lib/tmdb';
+import { tmdbClient } from '@/lib/tmdb';
 import { enhanceWithKoreanOTTInfo } from '@/lib/koreanOTTs';
 import moviesData from '@/data/movies.json';
 
@@ -67,12 +67,7 @@ export async function GET(request: NextRequest) {
             const result = await tmdbClient.searchMulti(englishTitle, parseInt(page));
             console.log(`"${englishTitle}" 검색 결과:`, result.results?.length || 0);
             if (result.results && result.results.length > 0) {
-              // media_type 명시적 설정
-              const resultsWithType = result.results.map((item: Movie) => ({
-                ...item,
-                media_type: item.media_type || (item.first_air_date ? 'tv' : 'movie')
-              }));
-              tmdbResults.push(...resultsWithType);
+              tmdbResults.push(...result.results);
             }
           } catch (error) {
             console.error(`영어 제목 "${englishTitle}" 검색 실패:`, error);
@@ -86,11 +81,7 @@ export async function GET(request: NextRequest) {
         // 영어 검색은 기존 방식 사용
         console.log(`영어 검색: "${searchQuery}"`);
         const searchResult = await tmdbClient.searchMulti(searchQuery, parseInt(page));
-        // media_type 명시적 설정
-        tmdbResults = (searchResult.results || []).map((item: Movie) => ({
-          ...item,
-          media_type: item.media_type || (item.first_air_date ? 'tv' : 'movie')
-        }));
+        tmdbResults = searchResult.results || [];
         console.log('영어 검색 결과:', tmdbResults.length);
       }
     } catch (error) {

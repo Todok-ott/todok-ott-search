@@ -117,14 +117,6 @@ export default function MovieDetail({ params }: { params: Promise<{ id: string }
         
         console.log('API 호출 시작:', `/api/movie/${id}`);
         
-        // 캐시 클리어 (문제 해결을 위해)
-        try {
-          await fetch('/api/debug-search?action=clear-cache');
-          console.log('캐시 클리어 완료');
-        } catch (error) {
-          console.log('캐시 클리어 실패:', error);
-        }
-        
         // URL에서 제목 정보 추출 (예: /movie/244808?title=누키타시%20THE%20ANOMATION)
         const urlParams = new URLSearchParams(window.location.search);
         const titleParam = urlParams.get('title');
@@ -139,18 +131,6 @@ export default function MovieDetail({ params }: { params: Promise<{ id: string }
         console.log('API 응답 상태:', response.status, response.statusText);
         
         if (!response.ok) {
-          // 404 오류인 경우 TV API도 시도
-          if (response.status === 404) {
-            console.log('영화 API 404, TV API 시도 중...');
-            const tvResponse = await fetch(`/api/tv/${id}`);
-            if (tvResponse.ok) {
-              console.log('TV API 성공, TV 페이지로 리다이렉트');
-              const tvUrl = `/tv/${id}${titleParam ? `?title=${encodeURIComponent(titleParam)}` : ''}`;
-              router.replace(tvUrl);
-              return;
-            }
-          }
-          
           const errorData = await response.json().catch(() => ({}));
           console.error('API 오류 응답:', errorData);
           const errorMessage = errorData.error || `API Error: ${response.status}`;
@@ -162,63 +142,12 @@ export default function MovieDetail({ params }: { params: Promise<{ id: string }
         const data = await response.json();
         console.log('API 응답 데이터:', data);
         
-        // 응답 데이터의 ID가 요청한 ID와 일치하는지 확인
-        if (data.id !== parseInt(id, 10)) {
-          console.error(`ID 불일치: 요청 ${id}, 응답 ${data.id}`);
-          console.error('잘못된 영화 정보가 반환되었습니다.');
-          setError('요청한 영화와 다른 영화 정보가 반환되었습니다.');
-          setLoading(false);
-          return;
-        }
-        
-        // TV 쇼 데이터인지 확인
-        // 1. first_air_date가 있고 release_date가 없으면 TV 쇼
-        // 2. name 필드가 있고 title 필드가 없으면 TV 쇼
-        // 3. episode_run_time이 있으면 TV 쇼
-        const hasFirstAirDate = !!data.first_air_date;
-        const hasReleaseDate = !!data.release_date;
-        const hasName = !!data.name;
-        const hasTitle = !!data.title;
-        const hasEpisodeRunTime = !!data.episode_run_time;
-        
-        // 더 정확한 TV 쇼 판단: first_air_date가 있고 release_date가 없을 때만 TV 쇼로 판단
-        const isTVShow = hasFirstAirDate && !hasReleaseDate;
-        
-        console.log('TV 쇼 판단:', {
-          hasFirstAirDate,
-          hasReleaseDate,
-          hasName,
-          hasTitle,
-          hasEpisodeRunTime,
-          isTVShow
-        });
-        
-        if (isTVShow) {
+        // TV 쇼 데이터인지 확인 (first_air_date가 있으면 TV 쇼)
+        if (data.first_air_date && !data.release_date) {
           console.log('TV 쇼 감지, TV 페이지로 리다이렉트:', data.name || data.title);
           // TV 페이지로 리다이렉트
           const tvUrl = `/tv/${id}${titleParam ? `?title=${encodeURIComponent(titleParam)}` : ''}`;
           router.replace(tvUrl);
-          return;
-        }
-        
-        // OTT 정보 체크 - OTT 정보가 없으면 404 페이지로 처리
-        const hasTMDB = !!(
-          data.ott_providers &&
-          Array.isArray(data.ott_providers.flatrate) &&
-          data.ott_providers.flatrate.length > 0
-        );
-        const hasKorean = !!(
-          data.korean_ott_providers &&
-          Array.isArray(data.korean_ott_providers) &&
-          data.korean_ott_providers.length > 0
-        );
-        
-        const hasOTT = hasTMDB || hasKorean;
-        
-        if (!hasOTT) {
-          console.log('OTT 정보 없는 콘텐츠 차단:', data.id, data.title);
-          setError('이 콘텐츠는 현재 스트리밍 서비스에서 제공되지 않습니다.');
-          setLoading(false);
           return;
         }
         

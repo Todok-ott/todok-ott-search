@@ -1,17 +1,5 @@
 import { NextResponse } from 'next/server';
-import { tmdbClient, Movie } from '@/lib/tmdb';
-
-interface MovieWithKoreanOTT extends Movie {
-  korean_ott_providers?: unknown[];
-}
-
-interface WatchProviderData {
-  KR?: {
-    flatrate?: Array<{ provider_id: number; provider_name: string }>;
-    rent?: Array<{ provider_id: number; provider_name: string }>;
-    buy?: Array<{ provider_id: number; provider_name: string }>;
-  };
-}
+import { tmdbClient } from '@/lib/tmdb';
 
 export async function GET() {
   try {
@@ -36,21 +24,10 @@ export async function GET() {
       ...(page3.results || [])
     ];
     
-    console.log('전체 영화 수:', allMovies.length);
-    
-    // 확실히 문제가 있는 ID들 차단
-    const blockedIds = [244808, 112470, 65270, 22980, 65701, 59941, 1399];
-    
-    // 임시: OTT 필터링 제거하고 모든 영화 반환
-    const filteredMovies = allMovies.filter(movie => !blockedIds.includes(movie.id));
-    
-    console.log('차단된 ID 제거 후 영화 수:', filteredMovies.length);
-    
-    // 임시: OTT 정보 없이 모든 영화 반환
     const response = {
-      results: filteredMovies.slice(0, 50), // 50개로 조정
+      results: allMovies.slice(0, 50), // 50개로 조정
       total_pages: 3,
-      total_results: filteredMovies.length,
+      total_results: allMovies.length,
       page: 1
     };
     

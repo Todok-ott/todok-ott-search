@@ -58,13 +58,6 @@ function ContentDetailContent() {
         setIsLoading(true);
         setError(null);
         
-        // ID 유효성 검사
-        if (!id || isNaN(parseInt(id, 10))) {
-          throw new Error('유효하지 않은 콘텐츠 ID입니다.');
-        }
-        
-        console.log(`콘텐츠 상세 정보 요청: ${mediaType} ${id}`);
-        
         const response = await fetch(`/api/content/${id}?type=${mediaType}`);
         const data = await response.json();
         
@@ -72,12 +65,6 @@ function ContentDetailContent() {
           throw new Error(data.error || '콘텐츠를 찾을 수 없습니다.');
         }
         
-        // 응답 데이터 검증
-        if (!data || !data.id) {
-          throw new Error('유효하지 않은 콘텐츠 정보입니다.');
-        }
-        
-        console.log(`콘텐츠 상세 정보 완료: ${mediaType} ${id}`, data);
         setContent(data);
       } catch (err) {
         console.error('Content fetch error:', err);

@@ -1,96 +1,57 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { tmdbClient } from '@/lib/tmdb';
 
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const action = searchParams.get('action');
+    const url = new URL(request.url);
+    const query = url.searchParams.get('q');
     
-    if (action === 'clear-cache') {
-      // 캐시 클리어
-      tmdbClient.clearCache();
-      return NextResponse.json({ 
-        success: true, 
-        message: 'TMDB 캐시가 클리어되었습니다.' 
-      });
+    if (!query) {
+      return NextResponse.json({ error: '검색어가 필요합니다' }, { status: 400 });
     }
     
-    if (action === 'test-api') {
-      // API 테스트
-      const query = searchParams.get('query') || 'test';
-      const results = await tmdbClient.searchMulti(query, 1);
-      return NextResponse.json({ 
-        success: true, 
-        results: results.results.slice(0, 5) // 처음 5개만 반환
-      });
-    }
+    console.log('=== 디버그 검색 시작 ===');
+    console.log('검색어:', query);
     
-    if (action === 'validate-id') {
-      // ID 검증 테스트
-      const id = searchParams.get('id');
-      const type = searchParams.get('type') || 'movie';
+    // 여러 검색어로 테스트
+    const searchQueries = [
+      query,
+      query.replace('THE ANOMATION', 'THE ANIMATION'), // 오타 수정
+      'Nukitashi',
+      'Nukitashi THE ANIMATION',
+      '누키타시',
+      '누키타시 THE ANIMATION'
+    ];
+    
+    const allResults = [];
+    
+    for (const searchQuery of searchQueries) {
+      console.log(`검색 시도: "${searchQuery}"`);
+      const searchResults = await tmdbClient.searchMulti(searchQuery);
       
-      if (!id) {
-        return NextResponse.json({ 
-          error: 'ID가 필요합니다.',
-          usage: '?action=validate-id&id=123&type=movie'
-        }, { status: 400 });
-      }
-      
-      try {
-        const numId = parseInt(id, 10);
-        if (isNaN(numId) || numId <= 0) {
-          return NextResponse.json({ 
-            error: '유효하지 않은 ID입니다.',
-            id: id
-          }, { status: 400 });
-        }
-        
-        let result;
-        if (type === 'movie') {
-          result = await tmdbClient.getMovieDetails(numId);
-        } else {
-          result = await tmdbClient.getTVDetails(numId);
-        }
-        
-        const responseId = (result as Record<string, unknown>)?.id;
-        const title = (result as Record<string, unknown>)?.title || (result as Record<string, unknown>)?.name;
-        
-        return NextResponse.json({
-          success: true,
-          requested_id: numId,
-          response_id: responseId,
-          title: title,
-          id_match: responseId === numId,
-          type: type
+      if (searchResults?.results?.length > 0) {
+        allResults.push({
+          searchQuery,
+          results: searchResults.results.slice(0, 5),
+          total: searchResults.total_results
         });
-      } catch (error) {
-        return NextResponse.json({
-          success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
-          requested_id: id,
-          type: type
-        });
+        console.log(`"${searchQuery}" 검색 성공: ${searchResults.total_results}개 결과`);
+      } else {
+        console.log(`"${searchQuery}" 검색 실패: 결과 없음`);
       }
     }
     
-    return NextResponse.json({ 
-      error: '유효하지 않은 액션입니다.',
-      available_actions: ['clear-cache', 'test-api', 'validate-id'],
-      usage: {
-        'clear-cache': '?action=clear-cache',
-        'test-api': '?action=test-api&query=test',
-        'validate-id': '?action=validate-id&id=123&type=movie'
-      }
-    }, { status: 400 });
+    return NextResponse.json({
+      originalQuery: query,
+      searchQueries,
+      successfulResults: allResults,
+      totalSuccessful: allResults.length
+    });
     
   } catch (error) {
-    console.error('디버그 API 오류:', error);
+    console.error('디버그 검색 에러:', error);
     return NextResponse.json(
-      { 
-        error: '디버그 작업 중 오류가 발생했습니다.',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
+      { error: '검색 중 오류가 발생했습니다', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

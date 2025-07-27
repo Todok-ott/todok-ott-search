@@ -122,27 +122,6 @@ export default function TVDetail({ params }: { params: Promise<{ id: string }> }
         
         const data = await response.json();
         
-        // OTT 정보 체크 - OTT 정보가 없으면 404 페이지로 처리
-        const hasTMDB = !!(
-          data.ott_providers &&
-          Array.isArray(data.ott_providers.flatrate) &&
-          data.ott_providers.flatrate.length > 0
-        );
-        const hasKorean = !!(
-          data.korean_ott_providers &&
-          Array.isArray(data.korean_ott_providers) &&
-          data.korean_ott_providers.length > 0
-        );
-        
-        const hasOTT = hasTMDB || hasKorean;
-        
-        if (!hasOTT) {
-          console.log('OTT 정보 없는 콘텐츠 차단:', data.id, data.name);
-          setError('이 콘텐츠는 현재 스트리밍 서비스에서 제공되지 않습니다.');
-          setLoading(false);
-          return;
-        }
-        
         // 데이터 유효성 검사
         if (!data || !data.name) {
           setError('유효하지 않은 TV 쇼 데이터입니다.');

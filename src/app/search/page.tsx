@@ -49,17 +49,8 @@ function SearchResultsContent() {
       
       let filteredResults = data.results || [];
       
-      // 확실히 문제가 있는 ID들만 차단 (TMDB API에서 잘못된 응답을 반환하는 ID들)
-      const blockedIds = [244808, 112470, 65270, 22980, 65701, 59941, 1399];
-      
-      // OTT 정보가 없는 콘텐츠는 제외 + 문제가 있는 ID 차단
+      // OTT 정보가 없는 콘텐츠는 제외
       filteredResults = filteredResults.filter((item: MovieWithKoreanOTT) => {
-        // 확실히 문제가 있는 ID 차단
-        if (blockedIds.includes(item.id)) {
-          console.log('차단된 ID 제외:', item.id);
-          return false;
-        }
-        
         // TMDB ott_providers: flatrate만 체크 (undefined, null, 빈 배열, 빈 객체 모두 제외)
         const hasTMDB = !!(
           item.ott_providers &&
@@ -72,16 +63,7 @@ function SearchResultsContent() {
           Array.isArray(item.korean_ott_providers) &&
           item.korean_ott_providers.length > 0
         );
-        
-        const hasOTT = hasTMDB || hasKorean;
-        
-        // OTT 정보가 없으면 제외
-        if (!hasOTT) {
-          console.log('OTT 정보 없는 콘텐츠 제외:', item.id, item.title || item.name);
-          return false;
-        }
-        
-        return true; // OTT 정보가 있는 콘텐츠만 포함
+        return hasTMDB || hasKorean;
       });
       
       console.log('필터링 후 결과 수:', filteredResults.length);
@@ -132,23 +114,11 @@ function SearchResultsContent() {
     // TV 쇼인지 확인
     const isTV = movie.media_type === 'tv' || movie.first_air_date;
     
-    // 디버깅 로그 추가
-    console.log('=== 검색 결과 선택 ===');
-    console.log('영화 ID:', movieId);
-    console.log('영화 제목:', movieTitle);
-    console.log('표시 제목:', displayTitle);
-    console.log('media_type:', movie.media_type);
-    console.log('first_air_date:', movie.first_air_date);
-    console.log('isTV 판단:', isTV);
-    console.log('로컬 데이터:', movie.local_data);
-    
     if (isTV) {
       // TV 쇼인 경우 TV 페이지로 이동
-      console.log('TV 쇼로 판단, TV 페이지로 이동:', `/tv/${movieId}`);
       window.location.href = `/tv/${movieId}?title=${encodeURIComponent(displayTitle)}`;
     } else {
       // 영화인 경우 영화 페이지로 이동
-      console.log('영화로 판단, 영화 페이지로 이동:', `/movie/${movieId}`);
       window.location.href = `/movie/${movieId}?title=${encodeURIComponent(displayTitle)}`;
     }
   };

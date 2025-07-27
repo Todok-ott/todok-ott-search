@@ -41,31 +41,6 @@ class TMDBClient {
   private cache = new Map<string, { data: unknown; timestamp: number }>();
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5분 캐시
 
-  // ID 유효성 검사 함수
-  private validateId(id: string | number): number {
-    const numId = typeof id === 'string' ? parseInt(id, 10) : id;
-    if (isNaN(numId) || numId <= 0) {
-      throw new Error('유효하지 않은 콘텐츠 ID입니다.');
-    }
-    return numId;
-  }
-
-  // 응답 데이터 ID 검증 함수
-  private validateResponseId(response: unknown, expectedId: number): boolean {
-    if (!response || typeof response !== 'object') {
-      return false;
-    }
-    
-    const responseObj = response as Record<string, unknown>;
-    const responseId = responseObj.id;
-    
-    if (typeof responseId !== 'number') {
-      return false;
-    }
-    
-    return responseId === expectedId;
-  }
-
   private async fetchAPI<T>(endpoint: string, params: Record<string, string> = {}, retryCount = 0): Promise<T> {
     if (!TMDB_API_KEY || TMDB_API_KEY === 'undefined') {
       throw new Error('TMDB API 키가 설정되지 않았습니다.');
@@ -112,11 +87,6 @@ class TMDBClient {
       if (!response.ok) {
         console.error('TMDB API 응답 오류:', response.status, response.statusText);
         
-        // 404 오류 처리 (콘텐츠를 찾을 수 없음)
-        if (response.status === 404) {
-          throw new Error('요청한 콘텐츠를 찾을 수 없습니다.');
-        }
-        
         // 재시도 로직 (최대 3회)
         if (retryCount < 3 && (response.status === 429 || response.status >= 500)) {
           console.log(`재시도 ${retryCount + 1}/3...`);
@@ -128,11 +98,6 @@ class TMDBClient {
       }
       
       const data = await response.json();
-      
-      // 응답 데이터 유효성 검사
-      if (!data || (typeof data === 'object' && Object.keys(data).length === 0)) {
-        throw new Error('TMDB API에서 유효하지 않은 데이터를 받았습니다.');
-      }
       
       // 캐시에 저장
       this.cache.set(cacheKey, { data, timestamp: now });
@@ -158,40 +123,6 @@ class TMDBClient {
 
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
-  // 캐시 클리어 함수
-  clearCache(): void {
-    this.cache.clear();
-    console.log('TMDB 캐시가 클리어되었습니다.');
-  }
-
-  // 특정 ID의 캐시 무효화
-  invalidateCacheForId(id: number, mediaType: 'movie' | 'tv'): void {
-    const patterns = [
-      `/movie/${id}`,
-      `/tv/${id}`,
-      `/movie/${id}/watch/providers`,
-      `/tv/${id}/watch/providers`
-    ];
-    
-    let clearedCount = 0;
-    for (const [key] of this.cache) {
-      if (patterns.some(pattern => key.includes(pattern))) {
-        this.cache.delete(key);
-        clearedCount++;
-        console.log(`캐시 무효화: ${key}`);
-      }
-    }
-    
-    // 캐시가 너무 많으면 전체 클리어
-    if (this.cache.size > 100) {
-      console.log('캐시 크기가 너무 큽니다. 전체 캐시를 클리어합니다.');
-      this.cache.clear();
-      clearedCount = this.cache.size;
-    }
-    
-    console.log(`캐시 무효화 완료: ${clearedCount}개 항목 삭제`);
   }
 
   // 인기 영화 가져오기
@@ -267,26 +198,11 @@ class TMDBClient {
   }
 
   // 영화 상세 정보
-  async getMovieDetails(id: string | number): Promise<unknown> {
+  async getMovieDetails(id: number): Promise<unknown> {
     try {
-      const validatedId = this.validateId(id);
-      console.log(`영화 상세 정보 요청: ID ${validatedId}`);
-      
-      // 캐시 무효화 (잘못된 데이터 방지)
-      this.invalidateCacheForId(validatedId, 'movie');
-      
-      const result = await this.fetchAPI(`/movie/${validatedId}`, {
+      return await this.fetchAPI(`/movie/${id}`, {
         append_to_response: 'credits,videos,similar'
       });
-      
-      // 응답 ID 검증
-      if (!this.validateResponseId(result, validatedId)) {
-        console.error(`ID 불일치: 요청 ${validatedId}, 응답 ${(result as Record<string, unknown>)?.id}`);
-        throw new Error('요청한 ID와 응답 ID가 일치하지 않습니다.');
-      }
-      
-      console.log(`영화 상세 정보 완료: ID ${validatedId} - ${(result as Record<string, unknown>)?.title || (result as Record<string, unknown>)?.name}`);
-      return result;
     } catch (error) {
       console.error('영화 상세 정보 가져오기 실패:', error);
       throw error;
@@ -294,26 +210,11 @@ class TMDBClient {
   }
 
   // TV 쇼 상세 정보
-  async getTVDetails(id: string | number): Promise<unknown> {
+  async getTVDetails(id: number): Promise<unknown> {
     try {
-      const validatedId = this.validateId(id);
-      console.log(`TV 쇼 상세 정보 요청: ID ${validatedId}`);
-      
-      // 캐시 무효화 (잘못된 데이터 방지)
-      this.invalidateCacheForId(validatedId, 'tv');
-      
-      const result = await this.fetchAPI(`/tv/${validatedId}`, {
+      return await this.fetchAPI(`/tv/${id}`, {
         append_to_response: 'credits,videos,similar'
       });
-      
-      // 응답 ID 검증
-      if (!this.validateResponseId(result, validatedId)) {
-        console.error(`ID 불일치: 요청 ${validatedId}, 응답 ${(result as Record<string, unknown>)?.id}`);
-        throw new Error('요청한 ID와 응답 ID가 일치하지 않습니다.');
-      }
-      
-      console.log(`TV 쇼 상세 정보 완료: ID ${validatedId} - ${(result as Record<string, unknown>)?.title || (result as Record<string, unknown>)?.name}`);
-      return result;
     } catch (error) {
       console.error('TV 쇼 상세 정보 가져오기 실패:', error);
       throw error;
@@ -321,10 +222,9 @@ class TMDBClient {
   }
 
   // 영화 Watch Provider 정보 (OTT 플랫폼)
-  async getMovieWatchProviders(id: string | number): Promise<unknown> {
+  async getMovieWatchProviders(id: number): Promise<unknown> {
     try {
-      const validatedId = this.validateId(id);
-      return await this.fetchAPI(`/movie/${validatedId}/watch/providers`);
+      return await this.fetchAPI(`/movie/${id}/watch/providers`);
     } catch (error) {
       console.error('영화 OTT 정보 가져오기 실패:', error);
       throw error;
@@ -332,10 +232,9 @@ class TMDBClient {
   }
 
   // TV 쇼 Watch Provider 정보 (OTT 플랫폼)
-  async getTVWatchProviders(id: string | number): Promise<unknown> {
+  async getTVWatchProviders(id: number): Promise<unknown> {
     try {
-      const validatedId = this.validateId(id);
-      return await this.fetchAPI(`/tv/${validatedId}/watch/providers`);
+      return await this.fetchAPI(`/tv/${id}/watch/providers`);
     } catch (error) {
       console.error('TV 쇼 OTT 정보 가져오기 실패:', error);
       throw error;
