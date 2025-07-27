@@ -8,7 +8,12 @@ import Image from 'next/image';
 import Footer from '@/components/Footer';
 import OTTInfo from '@/components/OTTInfo';
 import { OTTProvider } from '@/lib/ottUtils';
-import { KoreanOTTProvider } from '@/lib/koreanOTTs';
+// KoreanOTTProvider 인터페이스 정의
+interface KoreanOTTProvider {
+  name: string;
+  logo: string;
+  type?: string;
+}
 
 interface ContentDetails {
   id: number;
