@@ -2,6 +2,24 @@ import { NextRequest, NextResponse } from 'next/server';
 import { tmdbClient } from '@/lib/tmdb';
 import { enhanceWithKoreanOTTInfo } from '@/lib/koreanOTTs';
 
+// TMDB 콘텐츠 상세 정보 타입 정의
+interface TMDBContentDetails {
+  id: number;
+  title?: string;
+  name?: string;
+  overview?: string;
+  poster_path?: string;
+  backdrop_path?: string;
+  vote_average?: number;
+  vote_count?: number;
+  release_date?: string;
+  first_air_date?: string;
+  runtime?: number;
+  episode_run_time?: number[];
+  genres?: Array<{ id: number; name: string }>;
+  [key: string]: unknown; // 추가 속성 허용
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -30,17 +48,17 @@ export async function GET(
 
     console.log(`콘텐츠 상세 정보 요청: ${type} ${numId}`);
 
-    let contentDetails;
+    let contentDetails: TMDBContentDetails;
     let ottProviders;
 
     try {
       if (type === 'movie') {
         // 영화 상세 정보
-        contentDetails = await tmdbClient.getMovieDetails(numId);
+        contentDetails = await tmdbClient.getMovieDetails(numId) as TMDBContentDetails;
         ottProviders = await tmdbClient.getMovieWatchProviders(numId);
       } else {
         // TV 쇼 상세 정보
-        contentDetails = await tmdbClient.getTVDetails(numId);
+        contentDetails = await tmdbClient.getTVDetails(numId) as TMDBContentDetails;
         ottProviders = await tmdbClient.getTVWatchProviders(numId);
       }
     } catch (apiError) {
@@ -66,8 +84,7 @@ export async function GET(
     }
 
     // 필수 필드 확인
-    const content = contentDetails as any;
-    if (!content.id || (!content.title && !content.name)) {
+    if (!contentDetails.id || (!contentDetails.title && !contentDetails.name)) {
       return NextResponse.json(
         { error: '유효하지 않은 콘텐츠 정보입니다.' },
         { status: 500 }
