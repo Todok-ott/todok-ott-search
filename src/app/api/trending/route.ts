@@ -8,6 +8,8 @@ interface MovieWithKoreanOTT extends Movie {
 interface WatchProviderData {
   KR?: {
     flatrate?: Array<{ provider_id: number; provider_name: string }>;
+    rent?: Array<{ provider_id: number; provider_name: string }>;
+    buy?: Array<{ provider_id: number; provider_name: string }>;
   };
 }
 
@@ -42,16 +44,35 @@ export async function GET() {
             ottData = await tmdbClient.getTVWatchProviders(item.id) as WatchProviderData;
           }
           
-          // OTT 정보가 있는지 확인
-          const hasTMDB = !!(ottData && typeof ottData === 'object' && 'KR' in ottData && ottData.KR && ottData.KR.flatrate && ottData.KR.flatrate.length > 0);
+          // 디버깅: OTT 데이터 구조 확인
+          console.log(`${isMovie ? '영화' : 'TV'} ${item.id} (${item.title || item.name}) OTT 데이터:`, {
+            hasKR: !!ottData?.KR,
+            hasFlatrate: !!ottData?.KR?.flatrate,
+            flatrateCount: ottData?.KR?.flatrate?.length || 0,
+            hasRent: !!ottData?.KR?.rent,
+            rentCount: ottData?.KR?.rent?.length || 0,
+            hasBuy: !!ottData?.KR?.buy,
+            buyCount: ottData?.KR?.buy?.length || 0
+          });
+          
+          // OTT 정보가 있는지 확인 (flatrate, rent, buy 모두 체크)
+          const hasFlatrate = !!(ottData?.KR?.flatrate && ottData.KR.flatrate.length > 0);
+          const hasRent = !!(ottData?.KR?.rent && ottData.KR.rent.length > 0);
+          const hasBuy = !!(ottData?.KR?.buy && ottData.KR.buy.length > 0);
           const hasKorean = false; // 한국 OTT 정보는 일단 제외
           
-          const hasOTT = hasTMDB || hasKorean;
+          const hasOTT = hasFlatrate || hasRent || hasBuy || hasKorean;
           
           if (!hasOTT) {
             console.log('OTT 정보 없는 콘텐츠 제외:', item.id, item.title || item.name);
             return null;
           }
+          
+          console.log('OTT 정보 있는 콘텐츠 포함:', item.id, item.title || item.name, {
+            flatrate: hasFlatrate,
+            rent: hasRent,
+            buy: hasBuy
+          });
           
           // OTT 정보 추가
           return {
