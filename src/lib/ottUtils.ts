@@ -1,4 +1,33 @@
-import { KOREAN_OTT_PLATFORMS, findKoreanOTTProviders } from './koreanOTTs';
+// 한국 OTT 플랫폼 정보
+const KOREAN_OTT_PLATFORMS = [
+  { name: '넷플릭스', logo: '/ott-logos/netflix.svg' },
+  { name: '디즈니플러스', logo: '/ott-logos/disney-plus.svg' },
+  { name: '웨이브', logo: '/ott-logos/wavve.svg' },
+  { name: '티빙', logo: '/ott-logos/tving.svg' },
+  { name: '왓챠', logo: '/ott-logos/watcha.svg' },
+  { name: '라프텔', logo: '/ott-logos/laftel.svg' },
+  { name: '애플TV', logo: '/ott-logos/apple-tv.svg' },
+  { name: '아마존프라임', logo: '/ott-logos/amazon-prime.svg' }
+];
+
+// 한국 OTT 제공업체 찾기 함수
+function findKoreanOTTProviders(title: string): Array<{ name: string; logo: string }> {
+  const providers: Array<{ name: string; logo: string }> = [];
+  
+  // 간단한 키워드 매칭 (실제로는 더 정교한 로직이 필요)
+  const lowerTitle = title.toLowerCase();
+  
+  if (lowerTitle.includes('기생충') || lowerTitle.includes('parasite')) {
+    providers.push({ name: '넷플릭스', logo: '/ott-logos/netflix.svg' });
+    providers.push({ name: '티빙', logo: '/ott-logos/tving.svg' });
+  }
+  
+  if (lowerTitle.includes('오징어') || lowerTitle.includes('squid')) {
+    providers.push({ name: '넷플릭스', logo: '/ott-logos/netflix.svg' });
+  }
+  
+  return providers;
+}
 
 export interface OTTProvider {
   id: string;

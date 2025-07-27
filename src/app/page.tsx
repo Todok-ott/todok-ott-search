@@ -20,7 +20,7 @@ interface PopularContent {
   media_type: 'movie' | 'tv';
 }
 
-interface TMDBResult {
+interface ContentResult {
   id: number;
   title?: string;
   name?: string;
@@ -194,7 +194,7 @@ export default function Home() {
         };
 
         // 인기 영화/TV 중 최대 6개만 사용 (OTT 정보 체크 제거)
-        const validMovies: PopularContent[] = moviesData.results.slice(0, 6).map((movie: TMDBResult) => ({
+        const validMovies: PopularContent[] = moviesData.results.slice(0, 6).map((movie: ContentResult) => ({
           id: movie.id,
           title: movie.title || '',
           name: movie.name,
@@ -206,7 +206,7 @@ export default function Home() {
           media_type: 'movie'
         }));
         
-        const validTVs: PopularContent[] = tvData.results.slice(0, 6).map((tv: TMDBResult) => ({
+        const validTVs: PopularContent[] = tvData.results.slice(0, 6).map((tv: ContentResult) => ({
           id: tv.id,
           title: tv.title || '',
           name: tv.name,
