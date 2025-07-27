@@ -1,5 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { KOREAN_OTT_PLATFORMS, findKoreanOTTProviders } from '@/lib/koreanOTTs';
+import { streamingAvailabilityClient } from '@/lib/streamingAvailability';
+
+// 한국 OTT 플랫폼 정보
+const KOREAN_OTT_PLATFORMS = [
+  { name: '넷플릭스', logo: '/ott-logos/netflix.svg' },
+  { name: '디즈니플러스', logo: '/ott-logos/disney-plus.svg' },
+  { name: '웨이브', logo: '/ott-logos/wavve.svg' },
+  { name: '티빙', logo: '/ott-logos/tving.svg' },
+  { name: '왓챠', logo: '/ott-logos/watcha.svg' },
+  { name: '라프텔', logo: '/ott-logos/laftel.svg' },
+  { name: '애플TV', logo: '/ott-logos/apple-tv.svg' },
+  { name: '아마존프라임', logo: '/ott-logos/amazon-prime.svg' }
+];
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,13 +28,37 @@ export async function GET(request: NextRequest) {
 
     console.log('한국 OTT API 호출:', { title, type });
 
-    // 제목에 대한 한국 OTT 정보 검색
-    const koreanProviders = findKoreanOTTProviders(title);
+    // Streaming Availability API로 OTT 정보 검색
+    let providers = [];
+    try {
+      const streamingData = await streamingAvailabilityClient.searchByTitle(title);
+      
+      if (streamingData && streamingData.result) {
+        const ottProviders = streamingAvailabilityClient.convertToOTTProviders(streamingData);
+        
+        if (ottProviders && ottProviders.KR) {
+          // flatrate, buy, rent를 하나의 배열로 합치기
+          const allProviders = [
+            ...(ottProviders.KR.flatrate || []),
+            ...(ottProviders.KR.buy || []),
+            ...(ottProviders.KR.rent || [])
+          ];
+          
+          providers = allProviders.map(provider => ({
+            name: provider.provider_name,
+            logo: provider.logo_path,
+            type: 'streaming'
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Streaming Availability API 오류:', error);
+    }
     
     // 타입별 필터링
-    let filteredProviders = koreanProviders;
+    let filteredProviders = providers;
     if (type !== 'all') {
-      filteredProviders = koreanProviders.filter(provider => {
+      filteredProviders = providers.filter(provider => {
         switch (type) {
           case 'movie':
             return ['넷플릭스', '디즈니플러스', '웨이브', '왓챠'].includes(provider.name);
@@ -44,7 +80,10 @@ export async function GET(request: NextRequest) {
       providers: filteredProviders,
       all_platforms: KOREAN_OTT_PLATFORMS,
       total_providers: filteredProviders.length,
-      search_success: filteredProviders.length > 0
+      search_success: filteredProviders.length > 0,
+      api_credits: {
+        streaming_availability: 'Powered by Streaming Availability API via RapidAPI'
+      }
     };
 
     console.log('한국 OTT API 응답:', response);

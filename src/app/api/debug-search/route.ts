@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { tmdbClient } from '@/lib/tmdb';
+import { streamingAvailabilityClient } from '@/lib/streamingAvailability';
 import { debugOTTInfo, filterByOTT } from '@/lib/ottUtils';
 
 export async function GET(request: Request) {
@@ -18,67 +18,51 @@ export async function GET(request: Request) {
     const searchQueries = [
       query,
       query.replace('THE ANOMATION', 'THE ANIMATION'), // 오타 수정
-      'Nukitashi',
-      'Nukitashi THE ANIMATION',
-      '누키타시',
-      '누키타시 THE ANIMATION'
+      'Parasite',
+      '기생충',
+      'Squid Game',
+      '오징어 게임'
     ];
     
     const allResults = [];
     
     for (const searchQuery of searchQueries) {
       console.log(`검색 시도: "${searchQuery}"`);
-      const searchResults = await tmdbClient.searchMulti(searchQuery);
       
-      if (searchResults?.results?.length > 0) {
-        // 각 결과에 OTT 정보 추가 및 디버깅
-        const resultsWithOTT = await Promise.all(
-          searchResults.results.slice(0, 3).map(async (result) => {
-            try {
-              let ottInfo = null;
-              
-              if (result.media_type === 'movie') {
-                console.log(`영화 OTT 정보 가져오기: ${result.title} (ID: ${result.id})`);
-                const providers = await tmdbClient.getMovieWatchProviders(result.id);
-                const providerData = providers as { results?: { KR?: unknown } };
-                ottInfo = providerData.results?.KR || null;
-                console.log(`영화 OTT 결과:`, ottInfo);
-              } else if (result.media_type === 'tv') {
-                console.log(`TV OTT 정보 가져오기: ${result.title} (ID: ${result.id})`);
-                const providers = await tmdbClient.getTVWatchProviders(result.id);
-                const providerData = providers as { results?: { KR?: unknown } };
-                ottInfo = providerData.results?.KR || null;
-                console.log(`TV OTT 결과:`, ottInfo);
-              }
-              
-              const resultWithOTT = {
-                ...result,
-                ott_providers: ottInfo
-              };
-              
-              // 디버깅 정보 출력
-              debugOTTInfo(resultWithOTT);
-              
-              return resultWithOTT;
-            } catch (error) {
-              console.error('OTT 정보 가져오기 실패:', error);
-              return result;
-            }
-          })
-        );
+      try {
+        const streamingData = await streamingAvailabilityClient.searchByTitle(searchQuery);
         
-        // OTT 필터링 적용
-        const filteredResults = filterByOTT(resultsWithOTT);
-        
-        allResults.push({
-          searchQuery,
-          results: filteredResults,
-          total: searchResults.total_results,
-          filtered: filteredResults.length
-        });
-        console.log(`"${searchQuery}" 검색 성공: ${searchResults.total_results}개 결과 (필터링 후: ${filteredResults.length}개)`);
-      } else {
-        console.log(`"${searchQuery}" 검색 실패: 결과 없음`);
+        if (streamingData && streamingData.result) {
+          const ottProviders = streamingAvailabilityClient.convertToOTTProviders(streamingData);
+          
+          const result = {
+            id: `streaming_${Date.now()}`,
+            title: streamingData.result.title,
+            media_type: streamingData.result.type === 'movie' ? 'movie' : 'tv',
+            overview: `${streamingData.result.title} (${streamingData.result.year})`,
+            release_date: `${streamingData.result.year}-01-01`,
+            vote_average: 0,
+            ott_providers: ottProviders
+          };
+          
+          // 디버깅 정보 출력
+          debugOTTInfo(result);
+          
+          // OTT 필터링 적용
+          const filteredResults = filterByOTT([result]);
+          
+          allResults.push({
+            searchQuery,
+            results: filteredResults,
+            total: 1,
+            filtered: filteredResults.length
+          });
+          console.log(`"${searchQuery}" 검색 성공: 1개 결과 (필터링 후: ${filteredResults.length}개)`);
+        } else {
+          console.log(`"${searchQuery}" 검색 실패: 결과 없음`);
+        }
+      } catch (error) {
+        console.error(`"${searchQuery}" 검색 실패:`, error);
       }
     }
     
@@ -87,7 +71,10 @@ export async function GET(request: Request) {
       searchQueries,
       successfulResults: allResults,
       totalSuccessful: allResults.length,
-      filtered: true
+      filtered: true,
+      api_credits: {
+        streaming_availability: 'Powered by Streaming Availability API via RapidAPI'
+      }
     });
     
   } catch (error) {
