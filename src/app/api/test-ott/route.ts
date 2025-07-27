@@ -1,80 +1,56 @@
 import { NextResponse } from 'next/server';
-import { tmdbClient } from '@/lib/tmdb';
+import { streamingAvailabilityClient } from '@/lib/streamingAvailability';
 import { debugOTTInfo, hasOTT, hasAnyOTT } from '@/lib/ottUtils';
 
 export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
-    const movieId = url.searchParams.get('movieId');
-    const tvId = url.searchParams.get('tvId');
+    const title = url.searchParams.get('title');
     
     console.log('=== OTT 테스트 시작 ===');
     
     const results = [];
     
-    // 영화 OTT 정보 테스트
-    if (movieId) {
-      console.log(`영화 OTT 테스트 (ID: ${movieId})`);
+    // Streaming Availability API 테스트
+    if (title) {
+      console.log(`Streaming Availability 테스트 (제목: ${title})`);
       try {
-        const providers = await tmdbClient.getMovieWatchProviders(parseInt(movieId));
-        const providerData = providers as { results?: { KR?: unknown } };
-        const ottInfo = providerData.results?.KR || null;
+        const streamingData = await streamingAvailabilityClient.searchByTitle(title);
         
-        const testResult = {
-          id: movieId,
-          media_type: 'movie',
-          title: `영화 ID: ${movieId}`,
-          ott_providers: ottInfo
-        };
-        
-        debugOTTInfo(testResult);
-        
-        results.push({
-          type: 'movie',
-          id: movieId,
-          ott_providers: ottInfo,
-          hasOTT: hasOTT(testResult),
-          hasAnyOTT: hasAnyOTT(testResult)
-        });
+        if (streamingData && streamingData.result) {
+          const ottProviders = streamingAvailabilityClient.convertToOTTProviders(streamingData);
+          
+          const testResult = {
+            id: `streaming_${Date.now()}`,
+            media_type: streamingData.result.type === 'movie' ? 'movie' : 'tv',
+            title: streamingData.result.title,
+            ott_providers: ottProviders
+          };
+          
+          debugOTTInfo(testResult);
+          
+          results.push({
+            type: 'streaming_availability',
+            title: streamingData.result.title,
+            ott_providers: ottProviders,
+            hasOTT: hasOTT(testResult),
+            hasAnyOTT: hasAnyOTT(testResult),
+            year: streamingData.result.year,
+            content_type: streamingData.result.type
+          });
+        } else {
+          console.log(`"${title}" 검색 결과 없음`);
+          results.push({
+            type: 'streaming_availability',
+            title: title,
+            error: '검색 결과가 없습니다'
+          });
+        }
       } catch (error) {
-        console.error('영화 OTT 정보 가져오기 실패:', error);
+        console.error('Streaming Availability API 오류:', error);
         results.push({
-          type: 'movie',
-          id: movieId,
-          error: error instanceof Error ? error.message : 'Unknown error'
-        });
-      }
-    }
-    
-    // TV OTT 정보 테스트
-    if (tvId) {
-      console.log(`TV OTT 테스트 (ID: ${tvId})`);
-      try {
-        const providers = await tmdbClient.getTVWatchProviders(parseInt(tvId));
-        const providerData = providers as { results?: { KR?: unknown } };
-        const ottInfo = providerData.results?.KR || null;
-        
-        const testResult = {
-          id: tvId,
-          media_type: 'tv',
-          title: `TV ID: ${tvId}`,
-          ott_providers: ottInfo
-        };
-        
-        debugOTTInfo(testResult);
-        
-        results.push({
-          type: 'tv',
-          id: tvId,
-          ott_providers: ottInfo,
-          hasOTT: hasOTT(testResult),
-          hasAnyOTT: hasAnyOTT(testResult)
-        });
-      } catch (error) {
-        console.error('TV OTT 정보 가져오기 실패:', error);
-        results.push({
-          type: 'tv',
-          id: tvId,
+          type: 'streaming_availability',
+          title: title,
           error: error instanceof Error ? error.message : 'Unknown error'
         });
       }
@@ -106,6 +82,9 @@ export async function GET(request: Request) {
         total: results.length,
         withOTT: results.filter(r => r.hasOTT).length,
         withAnyOTT: results.filter(r => r.hasAnyOTT).length
+      },
+      api_credits: {
+        streaming_availability: 'Powered by Streaming Availability API via RapidAPI'
       }
     });
     
