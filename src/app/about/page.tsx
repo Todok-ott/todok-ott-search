@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -67,9 +69,11 @@ export default function AboutPage() {
                 ].map((platform) => (
                   <div key={platform.name} className="bg-gray-800 p-4 rounded-lg text-center">
                     <div className="w-12 h-12 mx-auto mb-2">
-                      <img 
+                      <Image 
                         src={platform.logo} 
                         alt={platform.name}
+                        width={48}
+                        height={48}
                         className="w-full h-full object-contain"
                       />
                     </div>

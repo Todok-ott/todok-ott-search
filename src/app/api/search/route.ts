@@ -131,7 +131,7 @@ export async function GET(request: NextRequest) {
               console.log(`TMDB 영화 OTT 결과:`, ottInfo);
               
               // 2. Streaming Availability API로 보완
-              if (!ottInfo || (ottInfo as any).flatrate?.length === 0) {
+              if (!ottInfo || (ottInfo as { flatrate?: unknown[] }).flatrate?.length === 0) {
                 console.log('Streaming Availability API로 보완 시도:', itemTyped.title);
                 const streamingData = await streamingAvailabilityClient.searchByTitle(itemTyped.title || '');
                 if (streamingData) {
@@ -162,7 +162,7 @@ export async function GET(request: NextRequest) {
               console.log(`TMDB TV OTT 결과:`, ottInfo);
               
               // 2. Streaming Availability API로 보완
-              if (!ottInfo || (ottInfo as any).flatrate?.length === 0) {
+              if (!ottInfo || (ottInfo as { flatrate?: unknown[] }).flatrate?.length === 0) {
                 console.log('Streaming Availability API로 보완 시도:', itemTyped.title);
                 const streamingData = await streamingAvailabilityClient.searchByTitle(itemTyped.title || '');
                 if (streamingData) {
