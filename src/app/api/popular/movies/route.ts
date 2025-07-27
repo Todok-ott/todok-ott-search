@@ -6,15 +6,36 @@ export async function GET(request: Request) {
     console.log('인기 영화 API 호출 시작');
     
     // Streaming Availability API로 한국 OTT 영화 조회
-    const ottResults = await streamingAvailabilityClient.fetchOTTMovies({
-      country: 'kr',
-      service: 'netflix,watcha,wavve,tving,disney,laftel',
-      type: 'movie',
-      page: 1,
-      language: 'ko'
-    });
-    
-    console.log('OTT 영화 조회 결과:', ottResults.results.length);
+    let ottResults;
+    try {
+      ottResults = await streamingAvailabilityClient.fetchOTTMovies({
+        country: 'kr',
+        service: 'netflix,watcha,wavve,tving,disney,laftel',
+        type: 'movie',
+        page: 1,
+        language: 'ko'
+      });
+      
+      console.log('OTT 영화 조회 결과:', ottResults.results.length);
+    } catch (error) {
+      console.log('Streaming Availability API 실패, 로컬 데이터 사용');
+      // API 실패 시 로컬 데이터 사용
+      const { dataLoader } = await import('@/lib/dataLoader');
+      const localMovies = dataLoader.getAllMovies();
+      
+      ottResults = {
+        results: localMovies.map(movie => ({
+          id: movie.id.toString(),
+          title: movie.title,
+          type: 'movie' as const,
+          year: movie.year,
+          posterPath: movie.posterUrl,
+          overview: movie.overview
+        })),
+        totalPages: 1,
+        nextPage: null
+      };
+    }
     
     // 결과를 표준 형식으로 변환 (한글 메타데이터 fallback 처리 포함)
     const processedResults = streamingAvailabilityClient.processKoreanMetadataForResults(ottResults.results);

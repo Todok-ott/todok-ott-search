@@ -63,6 +63,51 @@ export async function GET(
       }
     } catch (searchError) {
       console.error('Streaming Availability 검색 실패:', searchError);
+      
+      // API 실패 시 로컬 데이터에서 검색
+      try {
+        const { dataLoader } = await import('@/lib/dataLoader');
+        const allMovies = dataLoader.getAllMovies();
+        const allDramas = dataLoader.getAllDramas();
+        const allContent = [...allMovies, ...allDramas];
+        
+        const localItem = allContent.find(item => 
+          item.id.toString() === id || 
+          item.title.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+        
+        if (localItem) {
+          movieDetails = {
+            id: parseInt(id),
+            title: localItem.title,
+            overview: localItem.overview,
+            release_date: `${localItem.year}-01-01`,
+            vote_average: localItem.rating || 0,
+            media_type: localItem.type === 'movie' ? 'movie' : 'tv',
+            popularity: localItem.rating || 0,
+            vote_count: 0,
+            original_language: 'ko',
+            origin_country: ['KR']
+          };
+          
+          // 로컬 OTT 정보 생성
+          ottProviders = {
+            KR: {
+              flatrate: localItem.ottPlatforms?.map(platform => ({
+                provider_id: 0,
+                provider_name: platform,
+                logo_path: `/ott-logos/${platform.toLowerCase().replace(/\s+/g, '-')}.svg`
+              })) || [],
+              buy: [],
+              rent: []
+            }
+          };
+          
+          console.log('로컬 데이터 검색 성공:', movieDetails);
+        }
+      } catch (localError) {
+        console.error('로컬 데이터 검색 실패:', localError);
+      }
     }
     
     // 최종적으로 영화 정보를 찾지 못한 경우
