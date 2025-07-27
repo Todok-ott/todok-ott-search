@@ -100,10 +100,7 @@ export class StreamingAvailabilityClient {
 
     try {
       // 올바른 엔드포인트 사용
-      let url: URL;
-      
-      // 1. 기본 검색 엔드포인트 (올바른 경로)
-      url = new URL(`${this.baseUrl}/search/advanced`);
+      const url = new URL(`${this.baseUrl}/search/advanced`);
       url.searchParams.set('country', country);
       url.searchParams.set('service', service);
       url.searchParams.set('type', type);
