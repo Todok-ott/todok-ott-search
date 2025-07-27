@@ -12,37 +12,59 @@ export async function GET() {
     // 확실히 문제가 있는 ID들 차단
     const blockedIds = [244808, 112470, 65270, 22980, 65701, 59941, 1399];
     
-    // OTT 정보가 없는 콘텐츠는 제외 + 문제가 있는 ID 차단
-    const filteredResults = (trendingData.results || []).filter((item: MovieWithKoreanOTT) => {
-      // 확실히 문제가 있는 ID 차단
-      if (blockedIds.includes(item.id)) {
-        console.log('차단된 ID 제외:', item.id);
-        return false;
-      }
-      
-      // TMDB ott_providers: flatrate만 체크 (undefined, null, 빈 배열, 빈 객체 모두 제외)
-      const hasTMDB = !!(
-        item.ott_providers &&
-        Array.isArray(item.ott_providers.flatrate) &&
-        item.ott_providers.flatrate.length > 0
-      );
-      // Korean ott_providers: 안전하게 체크
-      const hasKorean = !!(
-        item.korean_ott_providers &&
-        Array.isArray(item.korean_ott_providers) &&
-        item.korean_ott_providers.length > 0
-      );
-      
-      const hasOTT = hasTMDB || hasKorean;
-      
-      // OTT 정보가 없으면 제외
-      if (!hasOTT) {
-        console.log('OTT 정보 없는 콘텐츠 제외:', item.id, item.title || item.name);
-        return false;
-      }
-      
-      return true; // OTT 정보가 있는 콘텐츠만 포함
-    });
+    // OTT 정보를 개별적으로 가져와서 필터링
+    const contentWithOTT = await Promise.all(
+      (trendingData.results || []).map(async (item: MovieWithKoreanOTT) => {
+        try {
+          // 문제가 있는 ID는 제외
+          if (blockedIds.includes(item.id)) {
+            console.log('차단된 ID 제외:', item.id);
+            return null;
+          }
+          
+          // 영화인지 TV인지 확인
+          const isMovie = item.media_type === 'movie' || item.title;
+          const isTV = item.media_type === 'tv' || item.name;
+          
+          let ottData = null;
+          let koreanOTTData = null;
+          
+          if (isMovie) {
+            // 영화 OTT 정보 가져오기
+            ottData = await tmdbClient.getMovieWatchProviders(item.id);
+            koreanOTTData = await fetch(`/api/korean-ott?movieId=${item.id}`).then(res => res.json()).catch(() => null);
+          } else if (isTV) {
+            // TV OTT 정보 가져오기
+            ottData = await tmdbClient.getTVWatchProviders(item.id);
+            koreanOTTData = await fetch(`/api/korean-ott?movieId=${item.id}`).then(res => res.json()).catch(() => null);
+          }
+          
+          // OTT 정보가 있는지 확인
+          const hasTMDB = !!(ottData && typeof ottData === 'object' && 'KR' in ottData && (ottData as any).KR && (ottData as any).KR.flatrate && (ottData as any).KR.flatrate.length > 0);
+          const hasKorean = !!(koreanOTTData && koreanOTTData.providers && koreanOTTData.providers.length > 0);
+          
+          const hasOTT = hasTMDB || hasKorean;
+          
+          if (!hasOTT) {
+            console.log('OTT 정보 없는 콘텐츠 제외:', item.id, item.title || item.name);
+            return null;
+          }
+          
+          // OTT 정보 추가
+          return {
+            ...item,
+            ott_providers: (ottData as any)?.KR || null,
+            korean_ott_providers: koreanOTTData?.providers || null
+          };
+        } catch (error) {
+          console.log('OTT 정보 가져오기 실패:', item.id, error);
+          return null;
+        }
+      })
+    );
+    
+    // null 값 제거하고 필터링된 결과만 반환
+    const filteredResults = contentWithOTT.filter(item => item !== null);
     
     const response = {
       ...trendingData,
