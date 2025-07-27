@@ -41,6 +41,15 @@ class TMDBClient {
   private cache = new Map<string, { data: unknown; timestamp: number }>();
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5분 캐시
 
+  // ID 유효성 검사 함수
+  private validateId(id: string | number): number {
+    const numId = typeof id === 'string' ? parseInt(id, 10) : id;
+    if (isNaN(numId) || numId <= 0) {
+      throw new Error('유효하지 않은 콘텐츠 ID입니다.');
+    }
+    return numId;
+  }
+
   private async fetchAPI<T>(endpoint: string, params: Record<string, string> = {}, retryCount = 0): Promise<T> {
     if (!TMDB_API_KEY || TMDB_API_KEY === 'undefined') {
       throw new Error('TMDB API 키가 설정되지 않았습니다.');
@@ -87,6 +96,11 @@ class TMDBClient {
       if (!response.ok) {
         console.error('TMDB API 응답 오류:', response.status, response.statusText);
         
+        // 404 오류 처리 (콘텐츠를 찾을 수 없음)
+        if (response.status === 404) {
+          throw new Error('요청한 콘텐츠를 찾을 수 없습니다.');
+        }
+        
         // 재시도 로직 (최대 3회)
         if (retryCount < 3 && (response.status === 429 || response.status >= 500)) {
           console.log(`재시도 ${retryCount + 1}/3...`);
@@ -98,6 +112,11 @@ class TMDBClient {
       }
       
       const data = await response.json();
+      
+      // 응답 데이터 유효성 검사
+      if (!data || (typeof data === 'object' && Object.keys(data).length === 0)) {
+        throw new Error('TMDB API에서 유효하지 않은 데이터를 받았습니다.');
+      }
       
       // 캐시에 저장
       this.cache.set(cacheKey, { data, timestamp: now });
@@ -123,6 +142,12 @@ class TMDBClient {
 
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  // 캐시 클리어 함수
+  clearCache(): void {
+    this.cache.clear();
+    console.log('TMDB 캐시가 클리어되었습니다.');
   }
 
   // 인기 영화 가져오기
@@ -198,11 +223,17 @@ class TMDBClient {
   }
 
   // 영화 상세 정보
-  async getMovieDetails(id: number): Promise<unknown> {
+  async getMovieDetails(id: string | number): Promise<unknown> {
     try {
-      return await this.fetchAPI(`/movie/${id}`, {
+      const validatedId = this.validateId(id);
+      console.log(`영화 상세 정보 요청: ID ${validatedId}`);
+      
+      const result = await this.fetchAPI(`/movie/${validatedId}`, {
         append_to_response: 'credits,videos,similar'
       });
+      
+      console.log(`영화 상세 정보 완료: ID ${validatedId}`);
+      return result;
     } catch (error) {
       console.error('영화 상세 정보 가져오기 실패:', error);
       throw error;
@@ -210,11 +241,17 @@ class TMDBClient {
   }
 
   // TV 쇼 상세 정보
-  async getTVDetails(id: number): Promise<unknown> {
+  async getTVDetails(id: string | number): Promise<unknown> {
     try {
-      return await this.fetchAPI(`/tv/${id}`, {
+      const validatedId = this.validateId(id);
+      console.log(`TV 쇼 상세 정보 요청: ID ${validatedId}`);
+      
+      const result = await this.fetchAPI(`/tv/${validatedId}`, {
         append_to_response: 'credits,videos,similar'
       });
+      
+      console.log(`TV 쇼 상세 정보 완료: ID ${validatedId}`);
+      return result;
     } catch (error) {
       console.error('TV 쇼 상세 정보 가져오기 실패:', error);
       throw error;
@@ -222,9 +259,10 @@ class TMDBClient {
   }
 
   // 영화 Watch Provider 정보 (OTT 플랫폼)
-  async getMovieWatchProviders(id: number): Promise<unknown> {
+  async getMovieWatchProviders(id: string | number): Promise<unknown> {
     try {
-      return await this.fetchAPI(`/movie/${id}/watch/providers`);
+      const validatedId = this.validateId(id);
+      return await this.fetchAPI(`/movie/${validatedId}/watch/providers`);
     } catch (error) {
       console.error('영화 OTT 정보 가져오기 실패:', error);
       throw error;
@@ -232,9 +270,10 @@ class TMDBClient {
   }
 
   // TV 쇼 Watch Provider 정보 (OTT 플랫폼)
-  async getTVWatchProviders(id: number): Promise<unknown> {
+  async getTVWatchProviders(id: string | number): Promise<unknown> {
     try {
-      return await this.fetchAPI(`/tv/${id}/watch/providers`);
+      const validatedId = this.validateId(id);
+      return await this.fetchAPI(`/tv/${validatedId}/watch/providers`);
     } catch (error) {
       console.error('TV 쇼 OTT 정보 가져오기 실패:', error);
       throw error;
