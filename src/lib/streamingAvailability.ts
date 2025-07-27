@@ -99,27 +99,17 @@ export class StreamingAvailabilityClient {
     }
 
     try {
-      // 여러 엔드포인트 시도
+      // 올바른 엔드포인트 사용
       let url: URL;
       
-      // 1. 기본 검색 엔드포인트 시도
-      url = new URL(`${this.baseUrl}/search/basic`);
+      // 1. 기본 검색 엔드포인트 (올바른 경로)
+      url = new URL(`${this.baseUrl}/search/advanced`);
       url.searchParams.set('country', country);
       url.searchParams.set('service', service);
       url.searchParams.set('type', type);
       url.searchParams.set('output_language', language);
+      url.searchParams.set('order_by', 'original_title');
       url.searchParams.set('page', page.toString());
-      
-      // 2. advanced 엔드포인트도 시도
-      if (service.includes(',')) {
-        url = new URL(`${this.baseUrl}/search/advanced`);
-        url.searchParams.set('country', country);
-        url.searchParams.set('service', service);
-        url.searchParams.set('type', type);
-        url.searchParams.set('output_language', language);
-        url.searchParams.set('order_by', 'original_title');
-        url.searchParams.set('page', page.toString());
-      }
 
       console.log('=== API 호출 상세 정보 ===');
       console.log('최종 호출 URL:', url.toString());

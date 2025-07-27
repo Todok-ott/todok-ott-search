@@ -11,12 +11,13 @@ export async function GET() {
       }, { status: 500 });
     }
 
-    // 1. 가장 기본적인 조건으로 테스트
-    const basicUrl = new URL('https://streaming-availability.p.rapidapi.com/search/basic');
+    // 1. 가장 기본적인 조건으로 테스트 (올바른 엔드포인트)
+    const basicUrl = new URL('https://streaming-availability.p.rapidapi.com/search/advanced');
     basicUrl.searchParams.set('country', 'kr');
     basicUrl.searchParams.set('service', 'netflix');
     basicUrl.searchParams.set('type', 'movie');
     basicUrl.searchParams.set('output_language', 'ko');
+    basicUrl.searchParams.set('order_by', 'original_title');
     basicUrl.searchParams.set('page', '1');
 
     console.log('기본 테스트 URL:', basicUrl.toString());
@@ -40,12 +41,13 @@ export async function GET() {
       console.error('기본 테스트 에러:', errorText);
     }
 
-    // 2. 미국 넷플릭스로 테스트
-    const usUrl = new URL('https://streaming-availability.p.rapidapi.com/search/basic');
+    // 2. 미국 넷플릭스로 테스트 (올바른 엔드포인트)
+    const usUrl = new URL('https://streaming-availability.p.rapidapi.com/search/advanced');
     usUrl.searchParams.set('country', 'us');
     usUrl.searchParams.set('service', 'netflix');
     usUrl.searchParams.set('type', 'movie');
     usUrl.searchParams.set('output_language', 'en');
+    usUrl.searchParams.set('order_by', 'original_title');
     usUrl.searchParams.set('page', '1');
 
     console.log('미국 테스트 URL:', usUrl.toString());

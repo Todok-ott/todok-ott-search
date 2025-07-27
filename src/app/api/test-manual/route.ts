@@ -11,12 +11,13 @@ export async function GET() {
       }, { status: 500 });
     }
 
-    // 가장 기본적인 테스트
-    const url = new URL('https://streaming-availability.p.rapidapi.com/search/basic');
+    // 가장 기본적인 테스트 (올바른 엔드포인트)
+    const url = new URL('https://streaming-availability.p.rapidapi.com/search/advanced');
     url.searchParams.set('country', 'us');
     url.searchParams.set('service', 'netflix');
     url.searchParams.set('type', 'movie');
     url.searchParams.set('output_language', 'en');
+    url.searchParams.set('order_by', 'original_title');
     url.searchParams.set('page', '1');
 
     console.log('테스트 URL:', url.toString());
