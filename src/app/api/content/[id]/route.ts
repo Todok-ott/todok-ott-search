@@ -28,17 +28,22 @@ export async function GET(
       // 실제로는 ID와 제목 매핑이 필요하지만, 여기서는 기본 구조만 제공
       const searchResult = await streamingAvailabilityClient.searchByTitle(id);
       
-      if (searchResult && searchResult.result) {
+      if (searchResult && searchResult.results && searchResult.results.length > 0) {
+        const firstResult = searchResult.results[0];
+        
+        // 한글 메타데이터 처리
+        const processedResult = streamingAvailabilityClient.processKoreanMetadata(firstResult);
+        
         contentDetails = {
           id: parseInt(id),
-          title: searchResult.result.title,
-          overview: `${searchResult.result.title} (${searchResult.result.year})`,
-          release_date: `${searchResult.result.year}-01-01`,
+          title: processedResult.title,
+          overview: processedResult.overview || `${processedResult.title} (${processedResult.year})`,
+          release_date: `${processedResult.year}-01-01`,
           vote_average: 0,
           media_type: type
         };
         
-        ottProviders = streamingAvailabilityClient.convertToOTTProviders(searchResult);
+        ottProviders = streamingAvailabilityClient.convertResultsToOTTProviders([processedResult]);
       }
     } catch (error) {
       console.error('Streaming Availability API 오류:', error);

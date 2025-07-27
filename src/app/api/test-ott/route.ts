@@ -17,13 +17,15 @@ export async function GET(request: Request) {
       try {
         const streamingData = await streamingAvailabilityClient.searchByTitle(title);
         
-        if (streamingData && streamingData.result) {
-          const ottProviders = streamingAvailabilityClient.convertToOTTProviders(streamingData);
+        if (streamingData && streamingData.results && streamingData.results.length > 0) {
+          const firstResult = streamingData.results[0];
+          const processedResult = streamingAvailabilityClient.processKoreanMetadata(firstResult);
+          const ottProviders = streamingAvailabilityClient.convertResultsToOTTProviders([processedResult]);
           
           const testResult = {
             id: `streaming_${Date.now()}`,
-            media_type: streamingData.result.type === 'movie' ? 'movie' : 'tv',
-            title: streamingData.result.title,
+            media_type: processedResult.type === 'movie' ? 'movie' : 'tv',
+            title: processedResult.title,
             ott_providers: ottProviders
           };
           
@@ -31,12 +33,12 @@ export async function GET(request: Request) {
           
           results.push({
             type: 'streaming_availability',
-            title: streamingData.result.title,
+            title: processedResult.title,
             ott_providers: ottProviders,
             hasOTT: hasOTT(testResult),
             hasAnyOTT: hasAnyOTT(testResult),
-            year: streamingData.result.year,
-            content_type: streamingData.result.type
+            year: processedResult.year,
+            content_type: processedResult.type
           });
         } else {
           console.log(`"${title}" 검색 결과 없음`);

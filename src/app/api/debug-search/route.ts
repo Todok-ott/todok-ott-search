@@ -32,15 +32,17 @@ export async function GET(request: Request) {
       try {
         const streamingData = await streamingAvailabilityClient.searchByTitle(searchQuery);
         
-        if (streamingData && streamingData.result) {
-          const ottProviders = streamingAvailabilityClient.convertToOTTProviders(streamingData);
+        if (streamingData && streamingData.results && streamingData.results.length > 0) {
+          const firstResult = streamingData.results[0];
+          const processedResult = streamingAvailabilityClient.processKoreanMetadata(firstResult);
+          const ottProviders = streamingAvailabilityClient.convertResultsToOTTProviders([processedResult]);
           
           const result = {
             id: `streaming_${Date.now()}`,
-            title: streamingData.result.title,
-            media_type: streamingData.result.type === 'movie' ? 'movie' : 'tv',
-            overview: `${streamingData.result.title} (${streamingData.result.year})`,
-            release_date: `${streamingData.result.year}-01-01`,
+            title: processedResult.title,
+            media_type: processedResult.type === 'movie' ? 'movie' : 'tv',
+            overview: processedResult.overview || `${processedResult.title} (${processedResult.year})`,
+            release_date: `${processedResult.year}-01-01`,
             vote_average: 0,
             ott_providers: ottProviders
           };

@@ -61,21 +61,23 @@ export async function GET(request: NextRequest) {
       console.log(`Streaming Availability 검색: "${query.trim()}"`);
       const streamingData = await streamingAvailabilityClient.searchByTitle(query.trim());
       
-      if (streamingData && streamingData.result) {
-        const ottProviders = streamingAvailabilityClient.convertToOTTProviders(streamingData);
+      if (streamingData && streamingData.results && streamingData.results.length > 0) {
+        const firstResult = streamingData.results[0];
+        const processedResult = streamingAvailabilityClient.processKoreanMetadata(firstResult);
+        const ottProviders = streamingAvailabilityClient.convertResultsToOTTProviders([processedResult]);
         
         const streamingResult: SearchResult = {
           id: `streaming_${Date.now()}`,
-          title: streamingData.result.title,
-          name: streamingData.result.title,
-          media_type: streamingData.result.type === 'movie' ? 'movie' : 'tv',
-          original_title: streamingData.result.title,
-          display_title: streamingData.result.title,
-          overview: `${streamingData.result.title} (${streamingData.result.year})`,
-          poster_path: '', // Streaming Availability API는 포스터를 제공하지 않음
+          title: processedResult.title,
+          name: processedResult.title,
+          media_type: processedResult.type === 'movie' ? 'movie' : 'tv',
+          original_title: processedResult.originalTitle || processedResult.title,
+          display_title: processedResult.title,
+          overview: processedResult.overview || `${processedResult.title} (${processedResult.year})`,
+          poster_path: processedResult.posterPath || '', // Streaming Availability API는 포스터를 제공하지 않음
           vote_average: 0,
-          release_date: `${streamingData.result.year}-01-01`,
-          first_air_date: streamingData.result.type === 'show' ? `${streamingData.result.year}-01-01` : undefined,
+          release_date: `${processedResult.year}-01-01`,
+          first_air_date: processedResult.type === 'series' ? `${processedResult.year}-01-01` : undefined,
           genre_ids: [],
           popularity: 0,
           vote_count: 0,
@@ -83,7 +85,7 @@ export async function GET(request: NextRequest) {
           original_language: 'ko',
           backdrop_path: '',
           ott_providers: ottProviders || undefined,
-          year: streamingData.result.year,
+          year: processedResult.year,
           local_data: false
         };
         

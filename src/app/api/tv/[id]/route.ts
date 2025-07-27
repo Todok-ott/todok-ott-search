@@ -34,12 +34,15 @@ export async function GET(
       console.log('Streaming Availability 검색 시도:', searchQuery);
       const streamingData = await streamingAvailabilityClient.searchByTitle(searchQuery);
       
-      if (streamingData && streamingData.result) {
+      if (streamingData && streamingData.results && streamingData.results.length > 0) {
+        const firstResult = streamingData.results[0];
+        const processedResult = streamingAvailabilityClient.processKoreanMetadata(firstResult);
+        
         tvDetails = {
           id: parseInt(id),
-          name: streamingData.result.title,
-          overview: `${streamingData.result.title} (${streamingData.result.year})`,
-          first_air_date: `${streamingData.result.year}-01-01`,
+          name: processedResult.title,
+          overview: processedResult.overview || `${processedResult.title} (${processedResult.year})`,
+          first_air_date: `${processedResult.year}-01-01`,
           vote_average: 0,
           media_type: 'tv',
           popularity: 0,
@@ -48,7 +51,7 @@ export async function GET(
           origin_country: ['KR']
         };
         
-        ottProviders = streamingAvailabilityClient.convertToOTTProviders(streamingData);
+        ottProviders = streamingAvailabilityClient.convertResultsToOTTProviders([processedResult]);
         
         console.log('Streaming Availability 검색 성공:', tvDetails);
       } else {

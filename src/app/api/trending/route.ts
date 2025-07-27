@@ -18,19 +18,21 @@ export async function GET() {
       try {
         const streamingData = await streamingAvailabilityClient.searchByTitle(content.title);
         
-        if (streamingData && streamingData.result) {
-          const ottProviders = streamingAvailabilityClient.convertToOTTProviders(streamingData);
+        if (streamingData && streamingData.results && streamingData.results.length > 0) {
+          const firstResult = streamingData.results[0];
+          const processedResult = streamingAvailabilityClient.processKoreanMetadata(firstResult);
+          const ottProviders = streamingAvailabilityClient.convertResultsToOTTProviders([processedResult]);
           
           const contentWithOTTItem = {
             id: content.id,
-            title: content.title,
-            media_type: content.type === 'movie' ? 'movie' : 'tv',
-            overview: content.overview || `${content.title} (${content.year})`,
-            release_date: content.type === 'movie' ? `${content.year}-01-01` : undefined,
-            first_air_date: content.type === 'drama' ? `${content.year}-01-01` : undefined,
+            title: processedResult.title,
+            media_type: processedResult.type === 'movie' ? 'movie' : 'tv',
+            overview: processedResult.overview || `${processedResult.title} (${processedResult.year})`,
+            release_date: processedResult.type === 'movie' ? `${processedResult.year}-01-01` : undefined,
+            first_air_date: processedResult.type === 'series' ? `${processedResult.year}-01-01` : undefined,
             vote_average: content.rating || 0,
             popularity: content.rating || 0,
-            poster_path: content.posterUrl,
+            poster_path: processedResult.posterPath || content.posterUrl,
             ott_providers: ottProviders,
             local_data: true
           };
