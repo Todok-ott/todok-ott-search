@@ -16,10 +16,12 @@ export async function GET(request: Request) {
     
     console.log('OTT 영화 조회 결과:', ottResults.results.length);
     
-    // 결과를 표준 형식으로 변환
-    const movies = ottResults.results.map((item, index) => ({
+    // 결과를 표준 형식으로 변환 (한글 메타데이터 fallback 처리 포함)
+    const processedResults = streamingAvailabilityClient.processKoreanMetadataForResults(ottResults.results);
+    
+    const movies = processedResults.map((item, index) => ({
       id: item.id || `ott-${index}`,
-      title: item.title || item.name || '제목 없음',
+      title: item.title || '제목 없음',
       media_type: 'movie',
       overview: item.overview || `${item.title} (${item.year})`,
       release_date: `${item.year}-01-01`,
@@ -27,7 +29,10 @@ export async function GET(request: Request) {
       popularity: 8.0,
       poster_path: item.posterPath || item.posterURLs?.original || '/placeholder-poster.jpg',
       ott_providers: streamingAvailabilityClient.convertResultsToOTTProviders([item]),
-      streaming_data: item
+      streaming_data: item,
+      // 한글 메타데이터 상태 표시
+      has_korean_metadata: streamingAvailabilityClient.hasKoreanMetadata(item),
+      needs_english_fallback: streamingAvailabilityClient.needsEnglishFallback(item)
     }));
     
     console.log('변환된 영화 수:', movies.length);

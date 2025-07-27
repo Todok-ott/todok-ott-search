@@ -4,6 +4,7 @@ export interface StreamingAvailabilityResult {
     id: string;
     title: string;
     name?: string;
+    originalTitle?: string; // 영어 원제목
     type: 'movie' | 'series';
     year: number;
     posterPath?: string;
@@ -12,6 +13,8 @@ export interface StreamingAvailabilityResult {
       [key: string]: string | undefined;
     };
     overview?: string;
+    overview_ko?: string; // 한국어 줄거리
+    overview_en?: string; // 영어 줄거리
     streamingInfo?: {
       kr: {
         [service: string]: Array<{
@@ -33,6 +36,7 @@ export interface ShowDetail {
   id: string;
   title: string;
   name?: string;
+  originalTitle?: string; // 영어 원제목
   type: 'movie' | 'series';
   year: number;
   posterPath?: string;
@@ -41,6 +45,8 @@ export interface ShowDetail {
     [key: string]: string | undefined;
   };
   overview?: string;
+  overview_ko?: string; // 한국어 줄거리
+  overview_en?: string; // 영어 줄거리
   streamingInfo?: {
     kr: {
       [service: string]: Array<{
@@ -323,6 +329,40 @@ export class StreamingAvailabilityClient {
     });
 
     return ottProviders;
+  }
+
+  // 8. 한글 메타데이터 fallback 처리
+  processKoreanMetadata(item: StreamingAvailabilityResult['results'][0] | ShowDetail) {
+    // 제목 fallback: 한국어 → 영어 원제목 → 영어 제목
+    const processedTitle = item.title || item.originalTitle || item.name || '제목 없음';
+    
+    // 줄거리 fallback: 한국어 → 영어
+    const processedOverview = item.overview_ko || item.overview_en || item.overview || '';
+    
+    return {
+      ...item,
+      title: processedTitle,
+      overview: processedOverview,
+      // 한글 제목이 없으면 영어 제목도 함께 표시
+      displayTitle: item.title ? item.title : 
+                   item.originalTitle ? `${item.originalTitle} (${item.originalTitle})` : 
+                   item.name || '제목 없음'
+    };
+  }
+
+  // 9. 결과 배열의 메타데이터를 한글 우선으로 처리
+  processKoreanMetadataForResults(results: StreamingAvailabilityResult['results']) {
+    return results.map(item => this.processKoreanMetadata(item));
+  }
+
+  // 10. 한국어 메타데이터가 있는지 확인
+  hasKoreanMetadata(item: StreamingAvailabilityResult['results'][0] | ShowDetail): boolean {
+    return !!(item.title || item.overview_ko);
+  }
+
+  // 11. 영어 fallback이 필요한지 확인
+  needsEnglishFallback(item: StreamingAvailabilityResult['results'][0] | ShowDetail): boolean {
+    return !this.hasKoreanMetadata(item) && !!(item.originalTitle || item.overview_en);
   }
 
   private getProviderId(service: string): number {
