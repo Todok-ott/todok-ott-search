@@ -28,7 +28,7 @@ export async function GET() {
     const blockedIds = [244808, 112470, 65270, 22980, 65701, 59941, 1399];
     
     // OTT 정보가 없는 콘텐츠는 제외 + 문제가 있는 ID 차단
-    const filteredMovies = allMovies.filter((movie: any) => {
+    const filteredMovies = allMovies.filter((movie) => {
       // 확실히 문제가 있는 ID 차단
       if (blockedIds.includes(movie.id)) {
         console.log('차단된 ID 제외:', movie.id);
