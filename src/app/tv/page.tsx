@@ -234,7 +234,7 @@ export default function TVPage() {
                   
                   {/* 미디어 타입 배지 */}
                   <div className="absolute top-3 right-3 bg-[#FFD700] text-black text-xs px-2 py-1 rounded-full font-medium shadow-lg">
-                    {getContentTag(tvShow.genre_ids, tvShow.media_type)}
+                    {getContentTag(tvShow.genre_ids || [], tvShow.media_type)}
                   </div>
                 </div>
               </motion.div>
