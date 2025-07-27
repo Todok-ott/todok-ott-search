@@ -33,81 +33,32 @@ export async function GET(
     let movieDetails = null;
     let ottProviders = null;
     
-    try {
-      // Streaming Availability API로 검색
-      console.log('Streaming Availability 검색 시도:', searchQuery);
-      const streamingData = await streamingAvailabilityClient.searchByTitle(searchQuery);
+    // Streaming Availability API로 검색
+    console.log('Streaming Availability 검색 시도:', searchQuery);
+    const streamingData = await streamingAvailabilityClient.searchByTitle(searchQuery);
+    
+    if (streamingData && streamingData.results && streamingData.results.length > 0) {
+      const firstResult = streamingData.results[0];
+      const processedResult = streamingAvailabilityClient.processKoreanMetadata(firstResult);
       
-      if (streamingData && streamingData.results && streamingData.results.length > 0) {
-        const firstResult = streamingData.results[0];
-        const processedResult = streamingAvailabilityClient.processKoreanMetadata(firstResult);
-        
-        movieDetails = {
-          id: parseInt(id),
-          title: processedResult.title,
-          overview: processedResult.overview || `${processedResult.title} (${processedResult.year})`,
-          release_date: `${processedResult.year}-01-01`,
-          vote_average: 0,
-          media_type: processedResult.type === 'movie' ? 'movie' : 'tv',
-          popularity: 0,
-          vote_count: 0,
-          original_language: 'ko',
-          origin_country: ['KR']
-        };
-        
-        ottProviders = streamingAvailabilityClient.convertResultsToOTTProviders([processedResult]);
-        
-        console.log('Streaming Availability 검색 성공:', movieDetails);
-      } else {
-        console.log('Streaming Availability 검색 결과 없음');
-      }
-    } catch (searchError) {
-      console.error('Streaming Availability 검색 실패:', searchError);
+      movieDetails = {
+        id: parseInt(id),
+        title: processedResult.title,
+        overview: processedResult.overview || `${processedResult.title} (${processedResult.year})`,
+        release_date: `${processedResult.year}-01-01`,
+        vote_average: 0,
+        media_type: processedResult.type === 'movie' ? 'movie' : 'tv',
+        popularity: 0,
+        vote_count: 0,
+        original_language: 'ko',
+        origin_country: ['KR']
+      };
       
-      // API 실패 시 로컬 데이터에서 검색
-      try {
-        const { dataLoader } = await import('@/lib/dataLoader');
-        const allMovies = dataLoader.getAllMovies();
-        const allDramas = dataLoader.getAllDramas();
-        const allContent = [...allMovies, ...allDramas];
-        
-        const localItem = allContent.find(item => 
-          item.id.toString() === id || 
-          item.title.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-        
-        if (localItem) {
-          movieDetails = {
-            id: parseInt(id),
-            title: localItem.title,
-            overview: localItem.overview,
-            release_date: `${localItem.year}-01-01`,
-            vote_average: localItem.rating || 0,
-            media_type: localItem.type === 'movie' ? 'movie' : 'tv',
-            popularity: localItem.rating || 0,
-            vote_count: 0,
-            original_language: 'ko',
-            origin_country: ['KR']
-          };
-          
-          // 로컬 OTT 정보 생성
-          ottProviders = {
-            KR: {
-              flatrate: localItem.ottPlatforms?.map(platform => ({
-                provider_id: 0,
-                provider_name: platform,
-                logo_path: `/ott-logos/${platform.toLowerCase().replace(/\s+/g, '-')}.svg`
-              })) || [],
-              buy: [],
-              rent: []
-            }
-          };
-          
-          console.log('로컬 데이터 검색 성공:', movieDetails);
-        }
-      } catch (localError) {
-        console.error('로컬 데이터 검색 실패:', localError);
-      }
+      ottProviders = streamingAvailabilityClient.convertResultsToOTTProviders([processedResult]);
+      
+      console.log('Streaming Availability 검색 성공:', movieDetails);
+    } else {
+      console.log('Streaming Availability 검색 결과 없음');
     }
     
     // 최종적으로 영화 정보를 찾지 못한 경우
