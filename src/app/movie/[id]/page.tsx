@@ -98,45 +98,73 @@ export default function MovieDetail({ params }: { params: Promise<{ id: string }
         
         // ID 유효성 검사
         const movieId = parseInt(id);
+        console.log('파싱된 movieId:', movieId);
+        
         if (isNaN(movieId)) {
-          setError('유효하지 않은 영화 ID입니다.');
+          console.error('잘못된 영화 ID:', id);
+          setError('잘못된 영화 ID입니다.');
           setLoading(false);
           return;
         }
-
-        // URL에서 media_type 확인 (기본값은 movie)
+        
+        // ID 범위 검사 (TMDB 영화 ID는 보통 1-9999999 범위)
+        if (movieId < 1 || movieId > 9999999) {
+          console.error('ID 범위 초과:', movieId);
+          setError('존재하지 않는 영화입니다.');
+          setLoading(false);
+          return;
+        }
+        
+        console.log('API 호출 시작:', `/api/movie/${id}`);
+        
+        // URL에서 제목 정보 추출 (예: /movie/244808?title=누키타시%20THE%20ANOMATION)
         const urlParams = new URLSearchParams(window.location.search);
-        const mediaType = urlParams.get('type') as 'movie' | 'tv';
+        const titleParam = urlParams.get('title');
         
-        // media_type 검증
-        if (mediaType && mediaType !== 'movie' && mediaType !== 'tv') {
-          throw new Error(`지원하지 않는 미디어 타입: ${mediaType}`);
+        // 제목 파라미터가 있으면 제목으로 검색, 없으면 ID로 검색
+        const apiUrl = titleParam 
+          ? `/api/movie/${id}?title=${encodeURIComponent(titleParam)}`
+          : `/api/movie/${id}`;
+        
+        console.log('최종 API URL:', apiUrl);
+        const response = await fetch(apiUrl);
+        console.log('API 응답 상태:', response.status, response.statusText);
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          console.error('API 오류 응답:', errorData);
+          const errorMessage = errorData.error || `API Error: ${response.status}`;
+          setError(errorMessage);
+          setLoading(false);
+          return;
         }
         
-        console.log('미디어 타입:', mediaType || 'movie');
-        console.log('캐시 클리어 완료');
+        const data = await response.json();
+        console.log('API 응답 데이터:', data);
         
-        // media_type에 따른 API 호출
-        let movieData;
-        if (mediaType === 'tv') {
-          movieData = await fetch(`/api/tv/${movieId}`);
-        } else {
-          // 기본값은 movie
-          movieData = await fetch(`/api/movie/${movieId}`);
+        // TV 쇼 데이터인지 확인 (first_air_date가 있으면 TV 쇼)
+        if (data.first_air_date && !data.release_date) {
+          console.log('TV 쇼 감지, TV 페이지로 리다이렉트:', data.name || data.title);
+          // TV 페이지로 리다이렉트
+          const tvUrl = `/tv/${id}${titleParam ? `?title=${encodeURIComponent(titleParam)}` : ''}`;
+          router.replace(tvUrl);
+          return;
         }
         
-        if (!movieData.ok) {
-          throw new Error(`API 요청 실패: ${movieData.status}`);
+        // 데이터 유효성 검사
+        if (!data || !data.title) {
+          console.error('유효하지 않은 영화 데이터:', data);
+          setError('유효하지 않은 영화 데이터입니다.');
+          setLoading(false);
+          return;
         }
         
-        const movieDetails = await movieData.json();
-        console.log('영화 상세 정보:', movieDetails);
-        
-        setMovie(movieDetails);
+        console.log('영화 데이터 설정 완료:', data.title);
+        setMovie(data);
         setLoading(false);
       } catch (error) {
-        console.error('영화 상세 정보 가져오기 실패:', error);
-        setError('영화 정보를 불러오는 중 오류가 발생했습니다.');
+        console.error('Error fetching movie details:', error);
+        setError(error instanceof Error ? error.message : '영화 정보를 불러오는 중 오류가 발생했습니다.');
         setLoading(false);
       }
     };
@@ -284,25 +312,8 @@ export default function MovieDetail({ params }: { params: Promise<{ id: string }
             )}
 
             {/* OTT 정보 */}
-            {movie.ott_providers && movie.ott_providers.length > 0 ? (
+            {movie.ott_providers && movie.ott_providers.length > 0 && (
               <OTTInfo ottProviders={movie.ott_providers} />
-            ) : (
-              <div className="mb-8 p-6 bg-gray-900/50 border border-gray-700 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-white font-semibold mb-1">시청 가능한 OTT가 없습니다</h3>
-                    <p className="text-gray-400 text-sm">
-                      현재 이 영화는 국내 OTT 플랫폼에서 시청할 수 없습니다. 
-                      극장에서만 상영 중이거나 아직 OTT 서비스에 공개되지 않았을 수 있습니다.
-                    </p>
-                  </div>
-                </div>
-              </div>
             )}
           </motion.div>
         </div>

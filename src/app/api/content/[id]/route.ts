@@ -8,7 +8,7 @@ export async function GET(
 ) {
   try {
     const { searchParams } = new URL(request.url);
-    const type = searchParams.get('type');
+    const type = searchParams.get('type') || 'movie';
     const { id } = await params;
 
     if (!id) {
@@ -18,35 +18,19 @@ export async function GET(
       );
     }
 
-    // media_type 검증
-    if (!type || (type !== 'movie' && type !== 'tv')) {
-      return NextResponse.json(
-        { error: '유효하지 않은 media_type입니다. movie 또는 tv를 지정해주세요.' },
-        { status: 400 }
-      );
-    }
-
     console.log(`콘텐츠 상세 정보 요청: ${type} ${id}`);
 
     let contentDetails;
     let ottProviders;
 
-    try {
-      if (type === 'movie') {
-        // 영화 상세 정보
-        contentDetails = await tmdbClient.getMovieDetails(parseInt(id));
-        ottProviders = await tmdbClient.getMovieWatchProviders(parseInt(id));
-      } else {
-        // TV 쇼 상세 정보
-        contentDetails = await tmdbClient.getTVDetails(parseInt(id));
-        ottProviders = await tmdbClient.getTVWatchProviders(parseInt(id));
-      }
-    } catch (apiError) {
-      console.error(`${type} API 호출 실패:`, apiError);
-      return NextResponse.json(
-        { error: `${type === 'movie' ? '영화' : 'TV 쇼'} 정보를 찾을 수 없습니다.` },
-        { status: 404 }
-      );
+    if (type === 'movie') {
+      // 영화 상세 정보
+      contentDetails = await tmdbClient.getMovieDetails(parseInt(id));
+      ottProviders = await tmdbClient.getMovieWatchProviders(parseInt(id));
+    } else {
+      // TV 쇼 상세 정보
+      contentDetails = await tmdbClient.getTVDetails(parseInt(id));
+      ottProviders = await tmdbClient.getTVWatchProviders(parseInt(id));
     }
 
     // 한국 OTT 정보 추가

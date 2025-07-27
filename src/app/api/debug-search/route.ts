@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { tmdbClient } from '@/lib/tmdb';
+import { debugOTTInfo } from '@/lib/ottUtils';
 
 export async function GET(request: Request) {
   try {
@@ -30,9 +31,45 @@ export async function GET(request: Request) {
       const searchResults = await tmdbClient.searchMulti(searchQuery);
       
       if (searchResults?.results?.length > 0) {
+        // 각 결과에 OTT 정보 추가 및 디버깅
+        const resultsWithOTT = await Promise.all(
+          searchResults.results.slice(0, 3).map(async (result) => {
+            try {
+              let ottInfo = null;
+              
+              if (result.media_type === 'movie') {
+                console.log(`영화 OTT 정보 가져오기: ${result.title} (ID: ${result.id})`);
+                const providers = await tmdbClient.getMovieWatchProviders(result.id);
+                const providerData = providers as { results?: { KR?: unknown } };
+                ottInfo = providerData.results?.KR || null;
+                console.log(`영화 OTT 결과:`, ottInfo);
+              } else if (result.media_type === 'tv') {
+                console.log(`TV OTT 정보 가져오기: ${result.title} (ID: ${result.id})`);
+                const providers = await tmdbClient.getTVWatchProviders(result.id);
+                const providerData = providers as { results?: { KR?: unknown } };
+                ottInfo = providerData.results?.KR || null;
+                console.log(`TV OTT 결과:`, ottInfo);
+              }
+              
+              const resultWithOTT = {
+                ...result,
+                ott_providers: ottInfo
+              };
+              
+              // 디버깅 정보 출력
+              debugOTTInfo(resultWithOTT);
+              
+              return resultWithOTT;
+            } catch (error) {
+              console.error('OTT 정보 가져오기 실패:', error);
+              return result;
+            }
+          })
+        );
+        
         allResults.push({
           searchQuery,
-          results: searchResults.results.slice(0, 5),
+          results: resultsWithOTT,
           total: searchResults.total_results
         });
         console.log(`"${searchQuery}" 검색 성공: ${searchResults.total_results}개 결과`);
