@@ -105,6 +105,8 @@ export async function GET() {
         results[test.name] = {
           url: test.url,
           method: test.method,
+          status: 0,
+          statusText: 'Network Error',
           error: error instanceof Error ? error.message : 'Unknown error',
           exists: false
         };
