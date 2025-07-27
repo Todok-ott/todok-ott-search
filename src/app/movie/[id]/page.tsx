@@ -98,73 +98,41 @@ export default function MovieDetail({ params }: { params: Promise<{ id: string }
         
         // ID 유효성 검사
         const movieId = parseInt(id);
-        console.log('파싱된 movieId:', movieId);
-        
         if (isNaN(movieId)) {
-          console.error('잘못된 영화 ID:', id);
-          setError('잘못된 영화 ID입니다.');
+          setError('유효하지 않은 영화 ID입니다.');
           setLoading(false);
           return;
         }
-        
-        // ID 범위 검사 (TMDB 영화 ID는 보통 1-9999999 범위)
-        if (movieId < 1 || movieId > 9999999) {
-          console.error('ID 범위 초과:', movieId);
-          setError('존재하지 않는 영화입니다.');
-          setLoading(false);
-          return;
-        }
-        
-        console.log('API 호출 시작:', `/api/movie/${id}`);
-        
-        // URL에서 제목 정보 추출 (예: /movie/244808?title=누키타시%20THE%20ANOMATION)
+
+        // URL에서 media_type 확인 (기본값은 movie)
         const urlParams = new URLSearchParams(window.location.search);
-        const titleParam = urlParams.get('title');
+        const mediaType = (urlParams.get('type') as 'movie' | 'tv') || 'movie';
         
-        // 제목 파라미터가 있으면 제목으로 검색, 없으면 ID로 검색
-        const apiUrl = titleParam 
-          ? `/api/movie/${id}?title=${encodeURIComponent(titleParam)}`
-          : `/api/movie/${id}`;
+        console.log('미디어 타입:', mediaType);
+        console.log('캐시 클리어 완료');
         
-        console.log('최종 API URL:', apiUrl);
-        const response = await fetch(apiUrl);
-        console.log('API 응답 상태:', response.status, response.statusText);
-        
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          console.error('API 오류 응답:', errorData);
-          const errorMessage = errorData.error || `API Error: ${response.status}`;
-          setError(errorMessage);
-          setLoading(false);
-          return;
+        // media_type에 따른 API 호출
+        let movieData;
+        if (mediaType === 'movie') {
+          movieData = await fetch(`/api/movie/${movieId}`);
+        } else if (mediaType === 'tv') {
+          movieData = await fetch(`/api/tv/${movieId}`);
+        } else {
+          throw new Error(`지원하지 않는 미디어 타입: ${mediaType}`);
         }
         
-        const data = await response.json();
-        console.log('API 응답 데이터:', data);
-        
-        // TV 쇼 데이터인지 확인 (first_air_date가 있으면 TV 쇼)
-        if (data.first_air_date && !data.release_date) {
-          console.log('TV 쇼 감지, TV 페이지로 리다이렉트:', data.name || data.title);
-          // TV 페이지로 리다이렉트
-          const tvUrl = `/tv/${id}${titleParam ? `?title=${encodeURIComponent(titleParam)}` : ''}`;
-          router.replace(tvUrl);
-          return;
+        if (!movieData.ok) {
+          throw new Error(`API 요청 실패: ${movieData.status}`);
         }
         
-        // 데이터 유효성 검사
-        if (!data || !data.title) {
-          console.error('유효하지 않은 영화 데이터:', data);
-          setError('유효하지 않은 영화 데이터입니다.');
-          setLoading(false);
-          return;
-        }
+        const movieDetails = await movieData.json();
+        console.log('영화 상세 정보:', movieDetails);
         
-        console.log('영화 데이터 설정 완료:', data.title);
-        setMovie(data);
+        setMovie(movieDetails);
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching movie details:', error);
-        setError(error instanceof Error ? error.message : '영화 정보를 불러오는 중 오류가 발생했습니다.');
+        console.error('영화 상세 정보 가져오기 실패:', error);
+        setError('영화 정보를 불러오는 중 오류가 발생했습니다.');
         setLoading(false);
       }
     };

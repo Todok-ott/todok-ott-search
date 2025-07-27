@@ -103,16 +103,18 @@ export default function SearchResults() {
       // 로컬 데이터인 경우 display_title 사용
       const displayTitle = movie.local_data ? (movie.display_title || movie.original_title || movieTitle) : movieTitle;
       
-      // TV 쇼인지 확인
-      const isTV = movie.media_type === 'tv' || movie.first_air_date;
+      // media_type에 따른 올바른 링크 생성
+      const mediaType = movie.media_type || 'movie';
+      const baseUrl = mediaType === 'tv' ? '/tv' : '/movie';
+      const queryParams = new URLSearchParams({
+        title: displayTitle,
+        type: mediaType
+      });
       
-      if (isTV) {
-        // TV 쇼인 경우 TV 페이지로 이동
-        window.location.href = `/tv/${movieId}?title=${encodeURIComponent(displayTitle)}`;
-      } else {
-        // 영화인 경우 영화 페이지로 이동
-        window.location.href = `/movie/${movieId}?title=${encodeURIComponent(displayTitle)}`;
-      }
+      const finalUrl = `${baseUrl}/${movieId}?${queryParams.toString()}`;
+      console.log('이동할 URL:', finalUrl);
+      
+      window.location.href = finalUrl;
     };
 
     const handleSearch = (newQuery: string) => {

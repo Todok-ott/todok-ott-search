@@ -37,9 +37,139 @@ export interface Genre {
   name: string;
 }
 
+// TMDB 검색 결과 정규화를 위한 인터페이스
+export interface TMDBRawItem {
+  id: number;
+  title?: string;
+  name?: string;
+  media_type?: 'movie' | 'tv' | 'person';
+  overview?: string;
+  poster_path?: string;
+  backdrop_path?: string;
+  release_date?: string;
+  first_air_date?: string;
+  vote_average?: number;
+  vote_count?: number;
+  genre_ids?: number[];
+  [key: string]: unknown;
+}
+
+// 정규화된 콘텐츠 타입
+export interface NormalizedContent {
+  id: number;
+  title: string;
+  overview: string;
+  poster_path: string;
+  backdrop_path: string;
+  release_date?: string;
+  first_air_date?: string;
+  vote_average: number;
+  vote_count: number;
+  media_type: 'movie' | 'tv';
+  genre_ids: number[];
+  ott_providers?: {
+    flatrate?: Array<{ provider_id: number; provider_name: string; logo_path: string }>;
+  };
+}
+
 class TMDBClient {
   private cache = new Map<string, { data: unknown; timestamp: number }>();
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5분 캐시
+
+  // TMDB 검색 결과 정규화 함수
+  normalizeTMDBItem(item: TMDBRawItem): NormalizedContent | null {
+    try {
+      // media_type이 movie나 tv가 아니면 제외
+      if (!item.media_type || (item.media_type !== 'movie' && item.media_type !== 'tv')) {
+        console.log('제외된 항목 (media_type):', item.media_type, item);
+        return null;
+      }
+
+      // 필수 필드 검증
+      if (!item.id) {
+        console.error('ID가 없는 항목:', item);
+        return null;
+      }
+
+      // 제목 필드 정규화 (movie는 title, tv는 name)
+      const title = item.media_type === 'movie' ? item.title : item.name;
+      if (!title) {
+        console.error('제목이 없는 항목:', item);
+        return null;
+      }
+
+      // 기본값 설정
+      const normalized: NormalizedContent = {
+        id: item.id,
+        title: title,
+        overview: item.overview || '',
+        poster_path: item.poster_path || '',
+        backdrop_path: item.backdrop_path || '',
+        release_date: item.release_date,
+        first_air_date: item.first_air_date,
+        vote_average: item.vote_average || 0,
+        vote_count: item.vote_count || 0,
+        media_type: item.media_type,
+        genre_ids: item.genre_ids || [],
+        ott_providers: undefined
+      };
+
+      console.log('정규화된 항목:', {
+        id: normalized.id,
+        title: normalized.title,
+        media_type: normalized.media_type
+      });
+
+      return normalized;
+    } catch (error) {
+      console.error('항목 정규화 실패:', error, item);
+      return null;
+    }
+  }
+
+  // 검색 결과 필터링 및 정규화
+  normalizeSearchResults(results: TMDBRawItem[]): NormalizedContent[] {
+    console.log('검색 결과 정규화 시작:', results.length);
+    
+    const normalized = results
+      .map(item => this.normalizeTMDBItem(item))
+      .filter((item): item is NormalizedContent => item !== null);
+    
+    console.log('정규화 완료:', normalized.length);
+    return normalized;
+  }
+
+  // media_type에 따른 상세 정보 가져오기
+  async getContentDetails(id: number, mediaType: 'movie' | 'tv'): Promise<unknown> {
+    try {
+      if (mediaType === 'movie') {
+        return await this.getMovieDetails(id);
+      } else if (mediaType === 'tv') {
+        return await this.getTVDetails(id);
+      } else {
+        throw new Error(`지원하지 않는 media_type: ${mediaType}`);
+      }
+    } catch (error) {
+      console.error(`${mediaType} 상세 정보 가져오기 실패 (ID: ${id}):`, error);
+      throw error;
+    }
+  }
+
+  // media_type에 따른 OTT 정보 가져오기
+  async getContentWatchProviders(id: number, mediaType: 'movie' | 'tv'): Promise<unknown> {
+    try {
+      if (mediaType === 'movie') {
+        return await this.getMovieWatchProviders(id);
+      } else if (mediaType === 'tv') {
+        return await this.getTVWatchProviders(id);
+      } else {
+        throw new Error(`지원하지 않는 media_type: ${mediaType}`);
+      }
+    } catch (error) {
+      console.error(`${mediaType} OTT 정보 가져오기 실패 (ID: ${id}):`, error);
+      throw error;
+    }
+  }
 
   private async fetchAPI<T>(endpoint: string, params: Record<string, string> = {}, retryCount = 0): Promise<T> {
     if (!TMDB_API_KEY || TMDB_API_KEY === 'undefined') {
@@ -155,14 +285,22 @@ class TMDBClient {
     }
   }
 
-  // 검색 기능
-  async searchMulti(query: string, page: number = 1): Promise<SearchResult> {
+  // 검색 기능 (정규화된 결과 반환)
+  async searchMulti(query: string, page: number = 1): Promise<{ results: NormalizedContent[]; total_pages: number; total_results: number }> {
     try {
-      return await this.fetchAPI('/search/multi', { 
+      const rawResult = await this.fetchAPI<{ results: TMDBRawItem[]; total_pages: number; total_results: number }>('/search/multi', { 
         query, 
         page: page.toString(),
         include_adult: 'false'
       });
+      
+      const normalizedResults = this.normalizeSearchResults(rawResult.results || []);
+      
+      return {
+        results: normalizedResults,
+        total_pages: rawResult.total_pages,
+        total_results: normalizedResults.length
+      };
     } catch (error) {
       console.error('검색 실패:', error);
       throw error;

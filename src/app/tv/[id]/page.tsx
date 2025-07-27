@@ -95,45 +95,46 @@ export default function TVDetail({ params }: { params: Promise<{ id: string }> }
       try {
         const { id } = await params;
         
+        console.log('=== TV Detail Page 시작 ===');
+        console.log('받은 ID:', id);
+        console.log('URL 파라미터:', await params);
+        
         // ID 유효성 검사
         const tvId = parseInt(id);
         if (isNaN(tvId)) {
-          setError('잘못된 TV 쇼 ID입니다.');
+          setError('유효하지 않은 TV 쇼 ID입니다.');
           setLoading(false);
           return;
         }
+
+        // URL에서 media_type 확인 (기본값은 tv)
+        const urlParams = new URLSearchParams(window.location.search);
+        const mediaType = (urlParams.get('type') as 'movie' | 'tv') || 'tv';
         
-        // ID 범위 검사 (TMDB TV ID는 보통 1-999999 범위)
-        if (tvId < 1 || tvId > 999999) {
-          setError('존재하지 않는 TV 쇼입니다.');
-          setLoading(false);
-          return;
+        console.log('미디어 타입:', mediaType);
+        
+        // media_type에 따른 API 호출
+        let tvData;
+        if (mediaType === 'tv') {
+          tvData = await fetch(`/api/tv/${tvId}`);
+        } else if (mediaType === 'movie') {
+          tvData = await fetch(`/api/movie/${tvId}`);
+        } else {
+          throw new Error(`지원하지 않는 미디어 타입: ${mediaType}`);
         }
         
-        const response = await fetch(`/api/tv/${id}`);
-        
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          const errorMessage = errorData.error || `API Error: ${response.status}`;
-          setError(errorMessage);
-          setLoading(false);
-          return;
+        if (!tvData.ok) {
+          throw new Error(`API 요청 실패: ${tvData.status}`);
         }
         
-        const data = await response.json();
+        const tvDetails = await tvData.json();
+        console.log('TV 상세 정보:', tvDetails);
         
-        // 데이터 유효성 검사
-        if (!data || !data.name) {
-          setError('유효하지 않은 TV 쇼 데이터입니다.');
-          setLoading(false);
-          return;
-        }
-        
-        setTV(data);
+        setTV(tvDetails);
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching TV details:', error);
-        setError(error instanceof Error ? error.message : '드라마 정보를 불러오는 중 오류가 발생했습니다.');
+        console.error('TV 상세 정보 가져오기 실패:', error);
+        setError('TV 쇼 정보를 불러오는 중 오류가 발생했습니다.');
         setLoading(false);
       }
     };
