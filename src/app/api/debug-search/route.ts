@@ -53,8 +53,8 @@ export async function GET(request: NextRequest) {
           result = await tmdbClient.getTVDetails(numId);
         }
         
-        const responseId = (result as any)?.id;
-        const title = (result as any)?.title || (result as any)?.name;
+        const responseId = (result as Record<string, unknown>)?.id;
+        const title = (result as Record<string, unknown>)?.title || (result as Record<string, unknown>)?.name;
         
         return NextResponse.json({
           success: true,

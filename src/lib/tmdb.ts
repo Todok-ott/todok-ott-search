@@ -281,11 +281,11 @@ class TMDBClient {
       
       // 응답 ID 검증
       if (!this.validateResponseId(result, validatedId)) {
-        console.error(`ID 불일치: 요청 ${validatedId}, 응답 ${(result as any)?.id}`);
+        console.error(`ID 불일치: 요청 ${validatedId}, 응답 ${(result as Record<string, unknown>)?.id}`);
         throw new Error('요청한 ID와 응답 ID가 일치하지 않습니다.');
       }
       
-      console.log(`영화 상세 정보 완료: ID ${validatedId} - ${(result as any)?.title || (result as any)?.name}`);
+      console.log(`영화 상세 정보 완료: ID ${validatedId} - ${(result as Record<string, unknown>)?.title || (result as Record<string, unknown>)?.name}`);
       return result;
     } catch (error) {
       console.error('영화 상세 정보 가져오기 실패:', error);
@@ -308,11 +308,11 @@ class TMDBClient {
       
       // 응답 ID 검증
       if (!this.validateResponseId(result, validatedId)) {
-        console.error(`ID 불일치: 요청 ${validatedId}, 응답 ${(result as any)?.id}`);
+        console.error(`ID 불일치: 요청 ${validatedId}, 응답 ${(result as Record<string, unknown>)?.id}`);
         throw new Error('요청한 ID와 응답 ID가 일치하지 않습니다.');
       }
       
-      console.log(`TV 쇼 상세 정보 완료: ID ${validatedId} - ${(result as any)?.title || (result as any)?.name}`);
+      console.log(`TV 쇼 상세 정보 완료: ID ${validatedId} - ${(result as Record<string, unknown>)?.title || (result as Record<string, unknown>)?.name}`);
       return result;
     } catch (error) {
       console.error('TV 쇼 상세 정보 가져오기 실패:', error);
