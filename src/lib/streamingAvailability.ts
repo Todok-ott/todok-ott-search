@@ -108,6 +108,13 @@ export class StreamingAvailabilityClient {
       url.searchParams.set('page', page.toString());
 
       console.log('Streaming Availability API 호출:', url.toString());
+      console.log('API 파라미터:', {
+        country,
+        service,
+        type,
+        language,
+        page
+      });
 
       const response = await fetch(url.toString(), {
         method: 'GET',
@@ -117,13 +124,25 @@ export class StreamingAvailabilityClient {
         }
       });
 
+      console.log('API 응답 상태:', response.status, response.statusText);
+
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API 응답 에러 내용:', errorText);
         throw new Error(`API 요청 실패: ${response.status} ${response.statusText}`);
       }
 
       const data: StreamingAvailabilityResult = await response.json();
       
       console.log(`OTT 영화 조회 결과: ${data.results?.length || 0}개, 페이지 ${data.page}/${data.total_pages}`);
+      if (data.results && data.results.length > 0) {
+        console.log('첫 번째 결과:', {
+          id: data.results[0].id,
+          title: data.results[0].title,
+          type: data.results[0].type,
+          year: data.results[0].year
+        });
+      }
 
       return {
         results: data.results || [],
