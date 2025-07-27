@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { tmdbClient } from '@/lib/tmdb';
+import { tmdbClient, SearchResult } from '@/lib/tmdb';
+
+// TMDB API 응답 타입 정의
+type TMDBTestResult = SearchResult | Record<string, unknown>;
 
 export async function GET(request: NextRequest) {
   try {
@@ -8,7 +11,7 @@ export async function GET(request: NextRequest) {
     
     console.log(`TMDB API 테스트 시작: ${testType}`);
     
-    let result;
+    let result: TMDBTestResult;
     
     switch (testType) {
       case 'popular-movies':
@@ -26,11 +29,11 @@ export async function GET(request: NextRequest) {
         break;
       case 'movie-details':
         const movieId = searchParams.get('id') || '550'; // Fight Club
-        result = await tmdbClient.getMovieDetails(movieId);
+        result = await tmdbClient.getMovieDetails(movieId) as Record<string, unknown>;
         break;
       case 'tv-details':
         const tvId = searchParams.get('id') || '1399'; // Game of Thrones
-        result = await tmdbClient.getTVDetails(tvId);
+        result = await tmdbClient.getTVDetails(tvId) as Record<string, unknown>;
         break;
       default:
         return NextResponse.json({ 
@@ -41,11 +44,15 @@ export async function GET(request: NextRequest) {
     
     console.log(`TMDB API 테스트 완료: ${testType}`);
     
+    // SearchResult 타입인지 확인
+    const searchResult = result as SearchResult;
+    const hasResults = 'results' in result && Array.isArray(searchResult.results);
+    
     return NextResponse.json({
       success: true,
       test_type: testType,
-      result_count: result?.results?.length || 0,
-      sample_data: result?.results?.slice(0, 2) || result
+      result_count: hasResults ? searchResult.results.length : 0,
+      sample_data: hasResults ? searchResult.results.slice(0, 2) : result
     });
     
   } catch (error) {
