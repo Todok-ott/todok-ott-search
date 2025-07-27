@@ -98,36 +98,38 @@ export async function GET(request: NextRequest) {
     // 3단계: 로컬 결과와 TMDB 결과 결합
     const combinedResults = localResults.concat(tmdbResults as SearchResult[]);
     console.log('결합된 검색 결과:', combinedResults.length);
-    console.log('결합된 결과:', combinedResults);
 
-    // 4단계: 각 결과에 OTT 정보 추가 (최대 5개까지만 처리하여 성능 최적화)
-    let resultsWithOTT: unknown[] = await Promise.all(
-      combinedResults.slice(0, 5).map(async (item: unknown) => {
-        const itemTyped = item as SearchResult;
-        try {
-          let ottInfo = null;
-          
-          // media_type에 따른 OTT 정보 가져오기
-          if (itemTyped.media_type === 'movie') {
-            const providers = await tmdbClient.getMovieWatchProviders(itemTyped.id);
-            const providerData = providers as { results?: { KR?: unknown } };
-            ottInfo = providerData.results?.KR || null;
-          } else if (itemTyped.media_type === 'tv') {
-            const providers = await tmdbClient.getTVWatchProviders(itemTyped.id);
-            const providerData = providers as { results?: { KR?: unknown } };
-            ottInfo = providerData.results?.KR || null;
+    // 4단계: OTT 정보 추가 (상위 5개 결과에만)
+    let resultsWithOTT: SearchResult[] = [];
+    try {
+      console.log('OTT 정보 가져오기 시작...');
+      resultsWithOTT = await Promise.all(
+        combinedResults.slice(0, 5).map(async (item: SearchResult) => {
+          try {
+            // media_type에 따른 OTT 정보 가져오기
+            let ottInfo = null;
+            if (item.media_type === 'movie' || item.media_type === 'tv') {
+              console.log(`OTT 정보 가져오기: ${item.media_type} ${item.id}`);
+              const providers = await tmdbClient.getContentWatchProviders(item.id, item.media_type);
+              const providerData = providers as { results?: { KR?: unknown } };
+              ottInfo = providerData.results?.KR || null;
+            }
+            
+            return {
+              ...item,
+              ott_providers: ottInfo
+            };
+          } catch (error) {
+            console.error(`OTT 정보 가져오기 실패 (${item.media_type} ${item.id}):`, error);
+            return item; // OTT 정보 실패해도 기본 정보는 반환
           }
-          
-          return {
-            ...itemTyped,
-            ott_providers: ottInfo
-          };
-        } catch (error) {
-          console.error('OTT 정보 가져오기 실패:', error);
-          return itemTyped;
-        }
-      })
-    );
+        })
+      );
+      console.log('OTT 정보 추가 완료');
+    } catch (error) {
+      console.error('OTT 정보 가져오기 전체 실패:', error);
+      resultsWithOTT = combinedResults; // OTT 정보 없이 기본 결과만 반환
+    }
 
     // 5단계: 한국어 콘텐츠에 한국 OTT 정보 추가 (로컬 데이터가 아닌 경우만)
     resultsWithOTT = await Promise.all(

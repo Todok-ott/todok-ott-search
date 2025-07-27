@@ -112,8 +112,13 @@ export default function SearchResults() {
       // 로컬 데이터인 경우 display_title 사용
       const displayTitle = movie.local_data ? (movie.display_title || movie.original_title || movieTitle) : movieTitle;
       
-      // media_type에 따른 올바른 링크 생성
-      const mediaType = movie.media_type || 'movie';
+      // media_type 검증 및 분기
+      const mediaType = movie.media_type;
+      if (!mediaType || (mediaType !== 'movie' && mediaType !== 'tv')) {
+        console.error('유효하지 않은 media_type:', mediaType, movie);
+        return;
+      }
+      
       const baseUrl = mediaType === 'tv' ? '/tv' : '/movie';
       const queryParams = new URLSearchParams({
         title: displayTitle,

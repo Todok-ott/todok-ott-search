@@ -58,6 +58,7 @@ export interface TMDBRawItem {
 export interface NormalizedContent {
   id: number;
   title: string;
+  name?: string; // TV 쇼의 경우 name도 유지
   overview: string;
   poster_path: string;
   backdrop_path: string;
@@ -102,6 +103,7 @@ class TMDBClient {
       const normalized: NormalizedContent = {
         id: item.id,
         title: title,
+        name: item.media_type === 'tv' ? item.name : undefined, // TV 쇼의 경우 name 유지
         overview: item.overview || '',
         poster_path: item.poster_path || '',
         backdrop_path: item.backdrop_path || '',
@@ -117,6 +119,7 @@ class TMDBClient {
       console.log('정규화된 항목:', {
         id: normalized.id,
         title: normalized.title,
+        name: normalized.name,
         media_type: normalized.media_type
       });
 

@@ -106,19 +106,23 @@ export default function MovieDetail({ params }: { params: Promise<{ id: string }
 
         // URL에서 media_type 확인 (기본값은 movie)
         const urlParams = new URLSearchParams(window.location.search);
-        const mediaType = (urlParams.get('type') as 'movie' | 'tv') || 'movie';
+        const mediaType = urlParams.get('type') as 'movie' | 'tv';
         
-        console.log('미디어 타입:', mediaType);
+        // media_type 검증
+        if (mediaType && mediaType !== 'movie' && mediaType !== 'tv') {
+          throw new Error(`지원하지 않는 미디어 타입: ${mediaType}`);
+        }
+        
+        console.log('미디어 타입:', mediaType || 'movie');
         console.log('캐시 클리어 완료');
         
         // media_type에 따른 API 호출
         let movieData;
-        if (mediaType === 'movie') {
-          movieData = await fetch(`/api/movie/${movieId}`);
-        } else if (mediaType === 'tv') {
+        if (mediaType === 'tv') {
           movieData = await fetch(`/api/tv/${movieId}`);
         } else {
-          throw new Error(`지원하지 않는 미디어 타입: ${mediaType}`);
+          // 기본값은 movie
+          movieData = await fetch(`/api/movie/${movieId}`);
         }
         
         if (!movieData.ok) {

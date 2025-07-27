@@ -109,18 +109,22 @@ export default function TVDetail({ params }: { params: Promise<{ id: string }> }
 
         // URL에서 media_type 확인 (기본값은 tv)
         const urlParams = new URLSearchParams(window.location.search);
-        const mediaType = (urlParams.get('type') as 'movie' | 'tv') || 'tv';
+        const mediaType = urlParams.get('type') as 'movie' | 'tv';
         
-        console.log('미디어 타입:', mediaType);
+        // media_type 검증
+        if (mediaType && mediaType !== 'movie' && mediaType !== 'tv') {
+          throw new Error(`지원하지 않는 미디어 타입: ${mediaType}`);
+        }
+        
+        console.log('미디어 타입:', mediaType || 'tv');
         
         // media_type에 따른 API 호출
         let tvData;
-        if (mediaType === 'tv') {
-          tvData = await fetch(`/api/tv/${tvId}`);
-        } else if (mediaType === 'movie') {
+        if (mediaType === 'movie') {
           tvData = await fetch(`/api/movie/${tvId}`);
         } else {
-          throw new Error(`지원하지 않는 미디어 타입: ${mediaType}`);
+          // 기본값은 tv
+          tvData = await fetch(`/api/tv/${tvId}`);
         }
         
         if (!tvData.ok) {
