@@ -24,10 +24,45 @@ export async function GET() {
       ...(page3.results || [])
     ];
     
+    // 확실히 문제가 있는 ID들 차단
+    const blockedIds = [244808, 112470, 65270, 22980, 65701, 59941, 1399];
+    
+    // OTT 정보가 없는 콘텐츠는 제외 + 문제가 있는 ID 차단
+    const filteredMovies = allMovies.filter((movie: any) => {
+      // 확실히 문제가 있는 ID 차단
+      if (blockedIds.includes(movie.id)) {
+        console.log('차단된 ID 제외:', movie.id);
+        return false;
+      }
+      
+      // TMDB ott_providers: flatrate만 체크 (undefined, null, 빈 배열, 빈 객체 모두 제외)
+      const hasTMDB = !!(
+        movie.ott_providers &&
+        Array.isArray(movie.ott_providers.flatrate) &&
+        movie.ott_providers.flatrate.length > 0
+      );
+      // Korean ott_providers: 안전하게 체크
+      const hasKorean = !!(
+        movie.korean_ott_providers &&
+        Array.isArray(movie.korean_ott_providers) &&
+        movie.korean_ott_providers.length > 0
+      );
+      
+      const hasOTT = hasTMDB || hasKorean;
+      
+      // OTT 정보가 없으면 제외
+      if (!hasOTT) {
+        console.log('OTT 정보 없는 콘텐츠 제외:', movie.id, movie.title);
+        return false;
+      }
+      
+      return true; // OTT 정보가 있는 콘텐츠만 포함
+    });
+    
     const response = {
-      results: allMovies.slice(0, 50), // 50개로 조정
+      results: filteredMovies.slice(0, 50), // 50개로 조정
       total_pages: 3,
-      total_results: allMovies.length,
+      total_results: filteredMovies.length,
       page: 1
     };
     
