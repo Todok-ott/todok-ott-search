@@ -50,6 +50,22 @@ class TMDBClient {
     return numId;
   }
 
+  // 응답 데이터 ID 검증 함수
+  private validateResponseId(response: unknown, expectedId: number): boolean {
+    if (!response || typeof response !== 'object') {
+      return false;
+    }
+    
+    const responseObj = response as Record<string, unknown>;
+    const responseId = responseObj.id;
+    
+    if (typeof responseId !== 'number') {
+      return false;
+    }
+    
+    return responseId === expectedId;
+  }
+
   private async fetchAPI<T>(endpoint: string, params: Record<string, string> = {}, retryCount = 0): Promise<T> {
     if (!TMDB_API_KEY || TMDB_API_KEY === 'undefined') {
       throw new Error('TMDB API 키가 설정되지 않았습니다.');
@@ -150,6 +166,23 @@ class TMDBClient {
     console.log('TMDB 캐시가 클리어되었습니다.');
   }
 
+  // 특정 ID의 캐시 무효화
+  invalidateCacheForId(id: number, mediaType: 'movie' | 'tv'): void {
+    const patterns = [
+      `/movie/${id}`,
+      `/tv/${id}`,
+      `/movie/${id}/watch/providers`,
+      `/tv/${id}/watch/providers`
+    ];
+    
+    for (const [key] of this.cache) {
+      if (patterns.some(pattern => key.includes(pattern))) {
+        this.cache.delete(key);
+        console.log(`캐시 무효화: ${key}`);
+      }
+    }
+  }
+
   // 인기 영화 가져오기
   async getPopularMovies(page: number = 1): Promise<SearchResult> {
     try {
@@ -228,11 +261,20 @@ class TMDBClient {
       const validatedId = this.validateId(id);
       console.log(`영화 상세 정보 요청: ID ${validatedId}`);
       
+      // 캐시 무효화 (잘못된 데이터 방지)
+      this.invalidateCacheForId(validatedId, 'movie');
+      
       const result = await this.fetchAPI(`/movie/${validatedId}`, {
         append_to_response: 'credits,videos,similar'
       });
       
-      console.log(`영화 상세 정보 완료: ID ${validatedId}`);
+      // 응답 ID 검증
+      if (!this.validateResponseId(result, validatedId)) {
+        console.error(`ID 불일치: 요청 ${validatedId}, 응답 ${(result as any)?.id}`);
+        throw new Error('요청한 ID와 응답 ID가 일치하지 않습니다.');
+      }
+      
+      console.log(`영화 상세 정보 완료: ID ${validatedId} - ${(result as any)?.title || (result as any)?.name}`);
       return result;
     } catch (error) {
       console.error('영화 상세 정보 가져오기 실패:', error);
@@ -246,11 +288,20 @@ class TMDBClient {
       const validatedId = this.validateId(id);
       console.log(`TV 쇼 상세 정보 요청: ID ${validatedId}`);
       
+      // 캐시 무효화 (잘못된 데이터 방지)
+      this.invalidateCacheForId(validatedId, 'tv');
+      
       const result = await this.fetchAPI(`/tv/${validatedId}`, {
         append_to_response: 'credits,videos,similar'
       });
       
-      console.log(`TV 쇼 상세 정보 완료: ID ${validatedId}`);
+      // 응답 ID 검증
+      if (!this.validateResponseId(result, validatedId)) {
+        console.error(`ID 불일치: 요청 ${validatedId}, 응답 ${(result as any)?.id}`);
+        throw new Error('요청한 ID와 응답 ID가 일치하지 않습니다.');
+      }
+      
+      console.log(`TV 쇼 상세 정보 완료: ID ${validatedId} - ${(result as any)?.title || (result as any)?.name}`);
       return result;
     } catch (error) {
       console.error('TV 쇼 상세 정보 가져오기 실패:', error);

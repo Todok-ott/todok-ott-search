@@ -65,7 +65,24 @@ export async function GET(
         );
       }
       
-      throw apiError;
+      // ID 불일치 오류 처리
+      if (apiError instanceof Error && apiError.message.includes('ID가 일치하지 않습니다')) {
+        console.error('ID 불일치 오류 발생, 캐시 클리어 후 재시도');
+        tmdbClient.clearCache();
+        
+        // 재시도
+        try {
+          contentDetails = await tmdbClient.getTVDetails(numId) as TMDBContentDetails;
+          ottProviders = await tmdbClient.getTVWatchProviders(numId);
+        } catch (retryError) {
+          return NextResponse.json(
+            { error: 'TV 쇼 정보를 불러올 수 없습니다.' },
+            { status: 500 }
+          );
+        }
+      } else {
+        throw apiError;
+      }
     }
 
     // 응답 데이터 검증
@@ -80,6 +97,15 @@ export async function GET(
     if (!contentDetails.id || (!contentDetails.title && !contentDetails.name)) {
       return NextResponse.json(
         { error: '유효하지 않은 TV 쇼 정보입니다.' },
+        { status: 500 }
+      );
+    }
+
+    // ID 일치 확인
+    if (contentDetails.id !== numId) {
+      console.error(`ID 불일치: 요청 ${numId}, 응답 ${contentDetails.id}`);
+      return NextResponse.json(
+        { error: '요청한 TV 쇼와 다른 TV 쇼 정보가 반환되었습니다.' },
         { status: 500 }
       );
     }
@@ -100,7 +126,7 @@ export async function GET(
       media_type: 'tv'
     };
 
-    console.log(`TV 쇼 상세 정보 완료: ${numId}`);
+    console.log(`TV 쇼 상세 정보 완료: ${numId} - ${contentDetails.title || contentDetails.name}`);
 
     return NextResponse.json(response);
 
