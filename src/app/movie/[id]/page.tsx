@@ -117,6 +117,14 @@ export default function MovieDetail({ params }: { params: Promise<{ id: string }
         
         console.log('API 호출 시작:', `/api/movie/${id}`);
         
+        // 캐시 클리어 (문제 해결을 위해)
+        try {
+          await fetch('/api/debug-search?action=clear-cache');
+          console.log('캐시 클리어 완료');
+        } catch (error) {
+          console.log('캐시 클리어 실패:', error);
+        }
+        
         // URL에서 제목 정보 추출 (예: /movie/244808?title=누키타시%20THE%20ANOMATION)
         const urlParams = new URLSearchParams(window.location.search);
         const titleParam = urlParams.get('title');
@@ -131,6 +139,18 @@ export default function MovieDetail({ params }: { params: Promise<{ id: string }
         console.log('API 응답 상태:', response.status, response.statusText);
         
         if (!response.ok) {
+          // 404 오류인 경우 TV API도 시도
+          if (response.status === 404) {
+            console.log('영화 API 404, TV API 시도 중...');
+            const tvResponse = await fetch(`/api/tv/${id}`);
+            if (tvResponse.ok) {
+              console.log('TV API 성공, TV 페이지로 리다이렉트');
+              const tvUrl = `/tv/${id}${titleParam ? `?title=${encodeURIComponent(titleParam)}` : ''}`;
+              router.replace(tvUrl);
+              return;
+            }
+          }
+          
           const errorData = await response.json().catch(() => ({}));
           console.error('API 오류 응답:', errorData);
           const errorMessage = errorData.error || `API Error: ${response.status}`;
