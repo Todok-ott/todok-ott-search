@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { tmdbClient } from '@/lib/tmdb';
 import { combineOTTData, OTTProvider } from '@/lib/ottUtils';
-import { findKoreanOTTProviders } from '@/lib/koreanOTTs';
 
 export async function GET(
   request: Request,
