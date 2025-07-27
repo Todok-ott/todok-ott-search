@@ -22,7 +22,13 @@ type SearchResult = {
   origin_country?: string[];
   original_language?: string;
   backdrop_path?: string;
-  ott_providers?: unknown;
+  ott_providers?: {
+    KR?: {
+      flatrate?: Array<{ provider_id: number; provider_name: string; logo_path: string }>;
+      buy?: Array<{ provider_id: number; provider_name: string; logo_path: string }>;
+      rent?: Array<{ provider_id: number; provider_name: string; logo_path: string }>;
+    };
+  };
   local_data?: boolean;
   year?: number;
   [key: string]: unknown;
@@ -50,15 +56,15 @@ export async function GET(request: NextRequest) {
     console.log('로컬 검색 결과:', localResults.length);
 
     // 2단계: Streaming Availability API로 검색
-    let streamingResults: SearchResult[] = [];
+    const streamingResults: SearchResult[] = [];
     try {
       console.log(`Streaming Availability 검색: "${query.trim()}"`);
       const streamingData = await streamingAvailabilityClient.searchByTitle(query.trim());
       
-      if (streamingData && streamingData.result) {
-        const ottProviders = streamingAvailabilityClient.convertToOTTProviders(streamingData);
-        
-        streamingResults.push({
+             if (streamingData && streamingData.result) {
+         const ottProviders = streamingAvailabilityClient.convertToOTTProviders(streamingData);
+         
+         const streamingResult: SearchResult = {
           id: `streaming_${Date.now()}`,
           title: streamingData.result.title,
           name: streamingData.result.title,
@@ -77,11 +83,12 @@ export async function GET(request: NextRequest) {
           original_language: 'ko',
           backdrop_path: '',
           ott_providers: ottProviders,
-          year: streamingData.result.year,
-          local_data: false
-        });
-        
-        console.log('Streaming Availability 검색 결과:', streamingResults.length);
+                     year: streamingData.result.year,
+           local_data: false
+         };
+         
+         streamingResults.push(streamingResult);
+         console.log('Streaming Availability 검색 결과:', streamingResults.length);
       }
     } catch (error) {
       console.error('Streaming Availability 검색 실패:', error);
