@@ -38,7 +38,16 @@ export async function GET() {
       { name: 'streaming', url: `${baseUrl}/streaming` }
     ];
 
-    const results: Record<string, any> = {};
+    interface EndpointResult {
+      url: string;
+      status: number;
+      statusText: string;
+      exists: boolean;
+      data?: unknown;
+      error?: string;
+    }
+
+    const results: Record<string, EndpointResult> = {};
 
     for (const endpoint of endpoints) {
       try {
