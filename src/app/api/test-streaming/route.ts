@@ -22,9 +22,9 @@ export async function GET() {
       }, { status: 500 });
     }
     
-    // 더 간단한 테스트 조건들
-    console.log('넷플릭스 영화만 조회 테스트...');
-    const netflixResults = await streamingAvailabilityClient.fetchOTTMovies({
+    // 다양한 API 엔드포인트 테스트
+    console.log('=== 기본 검색 테스트 ===');
+    const basicResults = await streamingAvailabilityClient.fetchOTTMovies({
       country: 'kr',
       service: 'netflix',
       type: 'movie',
@@ -32,83 +32,77 @@ export async function GET() {
       language: 'ko'
     });
     
-    console.log('왓챠 영화만 조회 테스트...');
-    const watchaResults = await streamingAvailabilityClient.fetchOTTMovies({
-      country: 'kr',
-      service: 'watcha',
-      type: 'movie',
-      page: 1,
-      language: 'ko'
-    });
+    console.log('=== 제목 검색 테스트 ===');
+    const searchResults = await streamingAvailabilityClient.searchByTitle('Avengers');
     
-    console.log('웨이브 영화만 조회 테스트...');
-    const wavveResults = await streamingAvailabilityClient.fetchOTTMovies({
-      country: 'kr',
-      service: 'wavve',
-      type: 'movie',
-      page: 1,
-      language: 'ko'
-    });
-    
-    console.log('넷플릭스 드라마만 조회 테스트...');
-    const netflixSeriesResults = await streamingAvailabilityClient.fetchOTTMovies({
-      country: 'kr',
+    console.log('=== 다른 국가 코드 테스트 ===');
+    const usResults = await streamingAvailabilityClient.fetchOTTMovies({
+      country: 'us',
       service: 'netflix',
-      type: 'series',
+      type: 'movie',
+      page: 1,
+      language: 'en'
+    });
+    
+    console.log('=== 다른 서비스 테스트 ===');
+    const disneyResults = await streamingAvailabilityClient.fetchOTTMovies({
+      country: 'kr',
+      service: 'disney',
+      type: 'movie',
       page: 1,
       language: 'ko'
     });
     
     console.log('테스트 결과:', {
-      netflix: netflixResults,
-      watcha: watchaResults,
-      wavve: wavveResults,
-      netflixSeries: netflixSeriesResults
+      basic: basicResults,
+      search: searchResults,
+      us: usResults,
+      disney: disneyResults
     });
     
     return NextResponse.json({
       success: true,
       api_key_configured: true,
       test_results: {
-        netflix_movies: {
-          total_results: netflixResults.results.length,
-          first_movie: netflixResults.results[0] ? {
-            id: netflixResults.results[0].id,
-            title: netflixResults.results[0].title,
-            type: netflixResults.results[0].type,
-            year: netflixResults.results[0].year
+        basic_search: {
+          total_results: basicResults.results.length,
+          first_movie: basicResults.results[0] ? {
+            id: basicResults.results[0].id,
+            title: basicResults.results[0].title,
+            type: basicResults.results[0].type,
+            year: basicResults.results[0].year
           } : null,
-          total_pages: netflixResults.totalPages
+          total_pages: basicResults.totalPages
         },
-        watcha_movies: {
-          total_results: watchaResults.results.length,
-          first_movie: watchaResults.results[0] ? {
-            id: watchaResults.results[0].id,
-            title: watchaResults.results[0].title,
-            type: watchaResults.results[0].type,
-            year: watchaResults.results[0].year
+        title_search: {
+          total_results: searchResults?.results?.length || 0,
+          first_movie: searchResults?.results?.[0] ? {
+            id: searchResults.results[0].id,
+            title: searchResults.results[0].title,
+            type: searchResults.results[0].type,
+            year: searchResults.results[0].year
           } : null,
-          total_pages: watchaResults.totalPages
+          total_pages: searchResults?.total_pages || 1
         },
-        wavve_movies: {
-          total_results: wavveResults.results.length,
-          first_movie: wavveResults.results[0] ? {
-            id: wavveResults.results[0].id,
-            title: wavveResults.results[0].title,
-            type: wavveResults.results[0].type,
-            year: wavveResults.results[0].year
+        us_netflix: {
+          total_results: usResults.results.length,
+          first_movie: usResults.results[0] ? {
+            id: usResults.results[0].id,
+            title: usResults.results[0].title,
+            type: usResults.results[0].type,
+            year: usResults.results[0].year
           } : null,
-          total_pages: wavveResults.totalPages
+          total_pages: usResults.totalPages
         },
-        netflix_series: {
-          total_results: netflixSeriesResults.results.length,
-          first_series: netflixSeriesResults.results[0] ? {
-            id: netflixSeriesResults.results[0].id,
-            title: netflixSeriesResults.results[0].title,
-            type: netflixSeriesResults.results[0].type,
-            year: netflixSeriesResults.results[0].year
+        disney_movies: {
+          total_results: disneyResults.results.length,
+          first_movie: disneyResults.results[0] ? {
+            id: disneyResults.results[0].id,
+            title: disneyResults.results[0].title,
+            type: disneyResults.results[0].type,
+            year: disneyResults.results[0].year
           } : null,
-          total_pages: netflixSeriesResults.totalPages
+          total_pages: disneyResults.totalPages
         }
       },
       message: 'Streaming Availability API가 정상 작동합니다!'

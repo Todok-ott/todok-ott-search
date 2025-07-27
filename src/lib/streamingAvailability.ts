@@ -99,13 +99,27 @@ export class StreamingAvailabilityClient {
     }
 
     try {
-      const url = new URL(`${this.baseUrl}/search/advanced`);
+      // 여러 엔드포인트 시도
+      let url: URL;
+      
+      // 1. 기본 검색 엔드포인트 시도
+      url = new URL(`${this.baseUrl}/search/basic`);
       url.searchParams.set('country', country);
       url.searchParams.set('service', service);
       url.searchParams.set('type', type);
       url.searchParams.set('output_language', language);
-      url.searchParams.set('order_by', 'original_title');
       url.searchParams.set('page', page.toString());
+      
+      // 2. advanced 엔드포인트도 시도
+      if (service.includes(',')) {
+        url = new URL(`${this.baseUrl}/search/advanced`);
+        url.searchParams.set('country', country);
+        url.searchParams.set('service', service);
+        url.searchParams.set('type', type);
+        url.searchParams.set('output_language', language);
+        url.searchParams.set('order_by', 'original_title');
+        url.searchParams.set('page', page.toString());
+      }
 
       console.log('Streaming Availability API 호출:', url.toString());
       console.log('API 파라미터:', {
