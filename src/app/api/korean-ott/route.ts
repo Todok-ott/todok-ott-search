@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     console.log('한국 OTT API 호출:', { title, type });
 
     // Streaming Availability API로 OTT 정보 검색
-    let providers = [];
+    let providers: Array<{ name: string; logo: string; type: string }> = [];
     try {
       const streamingData = await streamingAvailabilityClient.searchByTitle(title);
       
