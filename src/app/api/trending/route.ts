@@ -5,6 +5,12 @@ interface MovieWithKoreanOTT extends Movie {
   korean_ott_providers?: unknown[];
 }
 
+interface WatchProviderData {
+  KR?: {
+    flatrate?: Array<{ provider_id: number; provider_name: string }>;
+  };
+}
+
 export async function GET() {
   try {
     const trendingData = await tmdbClient.getTrending('week');
@@ -26,21 +32,18 @@ export async function GET() {
           const isMovie = item.media_type === 'movie' || item.title;
           const isTV = item.media_type === 'tv' || item.name;
           
-          let ottData = null;
-          let koreanOTTData = null;
+          let ottData: WatchProviderData | null = null;
           
           if (isMovie) {
             // 영화 OTT 정보 가져오기
-            ottData = await tmdbClient.getMovieWatchProviders(item.id);
-            koreanOTTData = null; // 한국 OTT 정보는 일단 제외
+            ottData = await tmdbClient.getMovieWatchProviders(item.id) as WatchProviderData;
           } else if (isTV) {
             // TV OTT 정보 가져오기
-            ottData = await tmdbClient.getTVWatchProviders(item.id);
-            koreanOTTData = null; // 한국 OTT 정보는 일단 제외
+            ottData = await tmdbClient.getTVWatchProviders(item.id) as WatchProviderData;
           }
           
           // OTT 정보가 있는지 확인
-          const hasTMDB = !!(ottData && typeof ottData === 'object' && 'KR' in ottData && (ottData as any).KR && (ottData as any).KR.flatrate && (ottData as any).KR.flatrate.length > 0);
+          const hasTMDB = !!(ottData && typeof ottData === 'object' && 'KR' in ottData && ottData.KR && ottData.KR.flatrate && ottData.KR.flatrate.length > 0);
           const hasKorean = false; // 한국 OTT 정보는 일단 제외
           
           const hasOTT = hasTMDB || hasKorean;
@@ -53,7 +56,7 @@ export async function GET() {
           // OTT 정보 추가
           return {
             ...item,
-            ott_providers: (ottData as any)?.KR || null,
+            ott_providers: ottData?.KR || null,
             korean_ott_providers: null
           };
         } catch (error) {

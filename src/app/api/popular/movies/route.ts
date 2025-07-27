@@ -5,6 +5,12 @@ interface MovieWithKoreanOTT extends Movie {
   korean_ott_providers?: unknown[];
 }
 
+interface WatchProviderData {
+  KR?: {
+    flatrate?: Array<{ provider_id: number; provider_name: string }>;
+  };
+}
+
 export async function GET() {
   try {
     console.log('인기 영화 API 호출 시작');
@@ -42,13 +48,10 @@ export async function GET() {
           }
           
           // OTT 정보 가져오기
-          const ottData = await tmdbClient.getMovieWatchProviders(movie.id);
+          const ottData = await tmdbClient.getMovieWatchProviders(movie.id) as WatchProviderData;
           
-          // 한국 OTT 정보는 일단 제외 (성능 개선)
-          const koreanOTTData = null;
-          
-                               // OTT 정보가 있는지 확인
-          const hasTMDB = !!(ottData && typeof ottData === 'object' && 'KR' in ottData && (ottData as any).KR && (ottData as any).KR.flatrate && (ottData as any).KR.flatrate.length > 0);
+          // OTT 정보가 있는지 확인
+          const hasTMDB = !!(ottData && typeof ottData === 'object' && 'KR' in ottData && ottData.KR && ottData.KR.flatrate && ottData.KR.flatrate.length > 0);
           const hasKorean = false; // 한국 OTT 정보는 일단 제외
           
           const hasOTT = hasTMDB || hasKorean;
@@ -58,10 +61,10 @@ export async function GET() {
             return null;
           }
           
-                               // OTT 정보 추가
+          // OTT 정보 추가
           return {
             ...movie,
-            ott_providers: (ottData as any)?.KR || null,
+            ott_providers: ottData?.KR || null,
             korean_ott_providers: null
           };
         } catch (error) {
