@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
-import { tmdbClient } from '@/lib/tmdb';
+import { tmdbClient, Movie } from '@/lib/tmdb';
+
+interface MovieWithKoreanOTT extends Movie {
+  korean_ott_providers?: unknown[];
+}
 
 export async function GET() {
   try {
@@ -9,7 +13,7 @@ export async function GET() {
     const blockedIds = [244808, 112470, 65270, 22980, 65701, 59941, 1399];
     
     // OTT 정보가 없는 콘텐츠는 제외 + 문제가 있는 ID 차단
-    const filteredResults = (trendingData.results || []).filter((item) => {
+    const filteredResults = (trendingData.results || []).filter((item: MovieWithKoreanOTT) => {
       // 확실히 문제가 있는 ID 차단
       if (blockedIds.includes(item.id)) {
         console.log('차단된 ID 제외:', item.id);
