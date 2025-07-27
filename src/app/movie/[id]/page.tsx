@@ -142,12 +142,30 @@ export default function MovieDetail({ params }: { params: Promise<{ id: string }
         const data = await response.json();
         console.log('API 응답 데이터:', data);
         
-        // TV 쇼 데이터인지 확인 (first_air_date가 있으면 TV 쇼)
-        // 추가로 알려진 TV 쇼 ID들도 체크
-        const knownTVShowIds = [1622, 1399, 1396, 1398]; // 슈퍼내추럴, 게임오브쓰론 등
-        const isKnownTVShow = knownTVShowIds.includes(parseInt(id, 10));
+        // TV 쇼 데이터인지 확인
+        // 1. first_air_date가 있고 release_date가 없으면 TV 쇼
+        // 2. name 필드가 있고 title 필드가 없으면 TV 쇼
+        // 3. episode_run_time이 있으면 TV 쇼
+        const hasFirstAirDate = !!data.first_air_date;
+        const hasReleaseDate = !!data.release_date;
+        const hasName = !!data.name;
+        const hasTitle = !!data.title;
+        const hasEpisodeRunTime = !!data.episode_run_time;
         
-        if (data.first_air_date && !data.release_date || isKnownTVShow) {
+        const isTVShow = (hasFirstAirDate && !hasReleaseDate) || 
+                        (hasName && !hasTitle) || 
+                        hasEpisodeRunTime;
+        
+        console.log('TV 쇼 판단:', {
+          hasFirstAirDate,
+          hasReleaseDate,
+          hasName,
+          hasTitle,
+          hasEpisodeRunTime,
+          isTVShow
+        });
+        
+        if (isTVShow) {
           console.log('TV 쇼 감지, TV 페이지로 리다이렉트:', data.name || data.title);
           // TV 페이지로 리다이렉트
           const tvUrl = `/tv/${id}${titleParam ? `?title=${encodeURIComponent(titleParam)}` : ''}`;
