@@ -66,7 +66,9 @@ export default function TVPage() {
   }, []);
 
   const handleTVShowClick = (tvShow: Movie) => {
-    window.location.href = `/movie/${tvShow.id}`;
+            // 제목 정보를 URL 파라미터로 함께 전달
+        const titleParam = encodeURIComponent(tvShow.title);
+        window.location.href = `/movie/${tvShow.id}?title=${titleParam}`;
   };
 
   return (

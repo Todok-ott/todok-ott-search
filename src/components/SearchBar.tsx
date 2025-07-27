@@ -95,7 +95,9 @@ export default function SearchBar({ onSearch, onResultSelect, placeholder = "작
     setQuery('');
     setResults([]);
     // 상세 페이지로 이동
-    window.location.href = `/movie/${movie.id}`;
+            // 제목 정보를 URL 파라미터로 함께 전달
+        const titleParam = encodeURIComponent(movie.title);
+        window.location.href = `/movie/${movie.id}?title=${titleParam}`;
   };
 
   const clearSearch = () => {

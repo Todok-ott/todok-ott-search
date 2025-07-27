@@ -230,7 +230,9 @@ export default function Home() {
 
   const handleContentClick = (item: PopularContent) => {
     try {
-      const path = item.media_type === 'movie' ? `/movie/${item.id}` : `/tv/${item.id}`;
+      // 제목 정보를 URL 파라미터로 함께 전달
+      const titleParam = encodeURIComponent(item.title);
+      const path = item.media_type === 'movie' ? `/movie/${item.id}?title=${titleParam}` : `/tv/${item.id}?title=${titleParam}`;
       window.location.href = path;
     } catch (error) {
       console.error('Navigation error:', error);
@@ -346,7 +348,9 @@ export default function Home() {
               }}
               onResultSelect={(movie) => {
                 try {
-                  window.location.href = `/movie/${movie.id}`;
+                  // 제목 정보를 URL 파라미터로 함께 전달
+                const titleParam = encodeURIComponent(movie.title);
+                window.location.href = `/movie/${movie.id}?title=${titleParam}`;
                 } catch (error) {
                   console.error('Movie navigation error:', error);
                 }

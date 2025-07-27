@@ -76,7 +76,9 @@ export default function LatestPage() {
   }, []);
 
   const handleContentClick = (content: Movie) => {
-    window.location.href = `/movie/${content.id}`;
+    // 제목 정보를 URL 파라미터로 함께 전달
+    const titleParam = encodeURIComponent(content.title);
+    window.location.href = `/movie/${content.id}?title=${titleParam}`;
   };
 
   return (

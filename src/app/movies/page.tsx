@@ -66,7 +66,9 @@ export default function MoviesPage() {
   }, []);
 
   const handleMovieClick = (movie: Movie) => {
-    window.location.href = `/movie/${movie.id}`;
+            // 제목 정보를 URL 파라미터로 함께 전달
+        const titleParam = encodeURIComponent(movie.title);
+        window.location.href = `/movie/${movie.id}?title=${titleParam}`;
   };
 
   return (
