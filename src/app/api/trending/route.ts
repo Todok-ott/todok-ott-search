@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { dataLoader } from '@/lib/dataLoader';
 import { streamingAvailabilityClient } from '@/lib/streamingAvailability';
-import { filterByOTT } from '@/lib/ottUtils';
 
 export async function GET() {
   try {

@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('query');
-    const page = searchParams.get('page') || '1';
+    const _page = searchParams.get('page') || '1';
 
     if (!query || query.trim().length < 2) {
       return NextResponse.json({ 

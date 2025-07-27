@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Star, TrendingUp, Calendar, Film, Tv, Flame, Clock, Info } from 'lucide-react';
 import Link from 'next/link';
 import SearchBar from '@/components/SearchBar';

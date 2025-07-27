@@ -51,7 +51,17 @@ export async function GET() {
       }
     ];
 
-    const results: Record<string, any> = {};
+    interface TestResult {
+      url: string;
+      method: string;
+      status: number;
+      statusText: string;
+      exists: boolean;
+      data?: unknown;
+      error?: string;
+    }
+
+    const results: Record<string, TestResult> = {};
 
     for (const test of testEndpoints) {
       try {
