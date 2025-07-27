@@ -76,6 +76,8 @@ export async function GET() {
       } catch (error) {
         results[endpoint.name] = {
           url: endpoint.url,
+          status: 0,
+          statusText: 'Network Error',
           error: error instanceof Error ? error.message : 'Unknown error',
           exists: false
         };
