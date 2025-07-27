@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { streamingAvailabilityClient } from '@/lib/streamingAvailability';
-import { debugOTTInfo, filterByOTT } from '@/lib/ottUtils';
+import { filterByOTT } from '@/lib/ottUtils';
 import moviesData from '@/data/movies.json';
 
 // 검색 결과 타입 정의

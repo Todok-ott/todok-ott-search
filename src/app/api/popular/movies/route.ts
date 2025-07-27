@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { streamingAvailabilityClient } from '@/lib/streamingAvailability';
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     console.log('인기 영화 API 호출 시작');
     
