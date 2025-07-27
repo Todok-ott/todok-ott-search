@@ -122,16 +122,38 @@ export async function GET(request: NextRequest) {
             };
           } else if (itemTyped.media_type === 'movie') {
             console.log(`영화 OTT 정보 가져오기: ${itemTyped.title} (ID: ${itemTyped.id})`);
-            const providers = await tmdbClient.getMovieWatchProviders(itemTyped.id);
-            const providerData = providers as { results?: { KR?: unknown } };
-            ottInfo = providerData.results?.KR || null;
-            console.log(`영화 OTT 결과:`, ottInfo);
+            try {
+              const providers = await tmdbClient.getMovieWatchProviders(itemTyped.id);
+              const providerData = providers as { results?: { KR?: unknown } };
+              ottInfo = providerData.results?.KR || null;
+              console.log(`영화 OTT 결과:`, ottInfo);
+              
+              // OTT 정보가 없으면 기본 구조라도 제공
+              if (!ottInfo) {
+                console.log('OTT 정보 없음 - 기본 구조 제공');
+                ottInfo = { flatrate: [], buy: [], rent: [] };
+              }
+            } catch (error) {
+              console.error('영화 OTT 정보 가져오기 실패:', error);
+              ottInfo = { flatrate: [], buy: [], rent: [] };
+            }
           } else if (itemTyped.media_type === 'tv') {
             console.log(`TV OTT 정보 가져오기: ${itemTyped.title} (ID: ${itemTyped.id})`);
-            const providers = await tmdbClient.getTVWatchProviders(itemTyped.id);
-            const providerData = providers as { results?: { KR?: unknown } };
-            ottInfo = providerData.results?.KR || null;
-            console.log(`TV OTT 결과:`, ottInfo);
+            try {
+              const providers = await tmdbClient.getTVWatchProviders(itemTyped.id);
+              const providerData = providers as { results?: { KR?: unknown } };
+              ottInfo = providerData.results?.KR || null;
+              console.log(`TV OTT 결과:`, ottInfo);
+              
+              // OTT 정보가 없으면 기본 구조라도 제공
+              if (!ottInfo) {
+                console.log('OTT 정보 없음 - 기본 구조 제공');
+                ottInfo = { flatrate: [], buy: [], rent: [] };
+              }
+            } catch (error) {
+              console.error('TV OTT 정보 가져오기 실패:', error);
+              ottInfo = { flatrate: [], buy: [], rent: [] };
+            }
           }
           
           const resultWithOTT = {
@@ -145,19 +167,23 @@ export async function GET(request: NextRequest) {
           return resultWithOTT;
         } catch (error) {
           console.error('OTT 정보 가져오기 실패:', error);
-          return itemTyped;
+          // 에러가 발생해도 기본 구조라도 제공
+          return {
+            ...itemTyped,
+            ott_providers: { flatrate: [], buy: [], rent: [] }
+          };
         }
       })
     );
 
-    // 5단계: 한국어 콘텐츠에 한국 OTT 정보 추가 (로컬 데이터가 아닌 경우만)
+    // 5단계: 한국어 콘텐츠에 한국 OTT 정보 추가 (모든 콘텐츠에 적용)
     resultsWithOTT = await Promise.all(
       resultsWithOTT.map(async (item: unknown) => {
         const itemTyped = item as SearchResult;
         const title = itemTyped.title || itemTyped.name || '';
         
-        // 로컬 데이터가 아닌 경우에만 한국 OTT 정보 추가
-        if (/[가-힣]/.test(title) && !itemTyped.local_data) {
+        // 로컬 데이터가 아닌 경우에만 한국 OTT 정보 추가 (조건 완화)
+        if (!itemTyped.local_data) {
           try {
             const koreanOTTInfo = await enhanceWithKoreanOTTInfo([itemTyped]);
             return koreanOTTInfo[0] || itemTyped;

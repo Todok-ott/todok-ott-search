@@ -149,7 +149,7 @@ export function findKoreanOTTProviders(title: string): KoreanOTTProvider[] {
   return [];
 }
 
-// OTT 정보를 TMDB 결과와 결합하는 함수
+// OTT 정보를 TMDB 결과와 결합하는 함수 (완화된 버전)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function enhanceWithKoreanOTTInfo(tmdbResults: any[]): any[] {
   return tmdbResults.map(result => {
@@ -171,6 +171,38 @@ export function enhanceWithKoreanOTTInfo(tmdbResults: any[]): any[] {
         }
       };
       return enhancedResult;
+    }
+    
+    // TMDB OTT 정보가 있지만 KR이 없는 경우 한국 OTT 정보 추가
+    if (result.ott_providers && !result.ott_providers.KR && koreanProviders.length > 0) {
+      const enhancedResult = {
+        ...result,
+        ott_providers: {
+          ...result.ott_providers,
+          KR: {
+            flatrate: koreanProviders.map(provider => ({
+              provider_id: Math.random(), // 임시 ID
+              provider_name: provider.name,
+              logo_path: provider.logo
+            }))
+          }
+        }
+      };
+      return enhancedResult;
+    }
+    
+    // OTT 정보가 전혀 없는 경우 기본 구조 제공
+    if (!result.ott_providers) {
+      return {
+        ...result,
+        ott_providers: {
+          KR: {
+            flatrate: [],
+            buy: [],
+            rent: []
+          }
+        }
+      };
     }
     
     return result;

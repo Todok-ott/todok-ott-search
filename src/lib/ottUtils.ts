@@ -11,7 +11,7 @@ export interface OTTProvider {
   availableContent: string[];
 }
 
-// OTT 정보가 있는지 체크하는 재사용 함수
+// OTT 정보가 있는지 체크하는 재사용 함수 (완화된 버전)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function hasOTT(result: any): boolean {
   // 1. 로컬 데이터의 ottPlatforms 배열 체크
@@ -19,20 +19,9 @@ export function hasOTT(result: any): boolean {
     return true;
   }
 
-  // 2. TMDB ott_providers 구조 체크 (더 유연하게)
+  // 2. TMDB ott_providers 구조 체크 (대폭 완화)
   if (result.ott_providers) {
-    // KR 키가 있는 경우
-    if (result.ott_providers.KR) {
-      const kr = result.ott_providers.KR;
-      // flatrate, buy, rent 중 하나라도 있으면 통과
-      if ((Array.isArray(kr.flatrate) && kr.flatrate.length > 0) ||
-          (Array.isArray(kr.buy) && kr.buy.length > 0) ||
-          (Array.isArray(kr.rent) && kr.rent.length > 0)) {
-        return true;
-      }
-    }
-    
-    // 다른 국가 코드가 있는 경우도 체크
+    // 모든 국가 코드에서 flatrate, buy, rent 중 하나라도 있으면 통과
     for (const countryCode in result.ott_providers) {
       const country = result.ott_providers[countryCode];
       if (country && (
@@ -64,10 +53,15 @@ export function hasAnyOTT(result: any): boolean {
   return hasOTT(result) || hasKoreanOTT(result);
 }
 
-// OTT 정보가 있는 콘텐츠만 필터링하는 함수
+// OTT 정보가 있는 콘텐츠만 필터링하는 함수 (완화된 버전)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function filterByOTT(results: any[]): any[] {
-  return results.filter(result => hasAnyOTT(result));
+  // 임시로 모든 결과를 반환 (OTT 필터링 비활성화)
+  console.log('OTT 필터링 비활성화 - 모든 결과 반환:', results.length);
+  return results;
+  
+  // 나중에 OTT 정보가 풍부해지면 다시 활성화
+  // return results.filter(result => hasAnyOTT(result));
 }
 
 // OTT 정보 디버깅을 위한 함수 추가
@@ -81,8 +75,8 @@ export function debugOTTInfo(result: any): void {
   
   if (result.ott_providers) {
     console.log('ott_providers 키들:', Object.keys(result.ott_providers));
-    if (result.ott_providers.KR) {
-      console.log('KR 구조:', result.ott_providers.KR);
+    for (const country in result.ott_providers) {
+      console.log(`${country} 구조:`, result.ott_providers[country]);
     }
   }
   
