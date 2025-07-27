@@ -114,11 +114,23 @@ function SearchResultsContent() {
     // TV 쇼인지 확인
     const isTV = movie.media_type === 'tv' || movie.first_air_date;
     
+    // 디버깅 로그 추가
+    console.log('=== 검색 결과 선택 ===');
+    console.log('영화 ID:', movieId);
+    console.log('영화 제목:', movieTitle);
+    console.log('표시 제목:', displayTitle);
+    console.log('media_type:', movie.media_type);
+    console.log('first_air_date:', movie.first_air_date);
+    console.log('isTV 판단:', isTV);
+    console.log('로컬 데이터:', movie.local_data);
+    
     if (isTV) {
       // TV 쇼인 경우 TV 페이지로 이동
+      console.log('TV 쇼로 판단, TV 페이지로 이동:', `/tv/${movieId}`);
       window.location.href = `/tv/${movieId}?title=${encodeURIComponent(displayTitle)}`;
     } else {
       // 영화인 경우 영화 페이지로 이동
+      console.log('영화로 판단, 영화 페이지로 이동:', `/movie/${movieId}`);
       window.location.href = `/movie/${movieId}?title=${encodeURIComponent(displayTitle)}`;
     }
   };
