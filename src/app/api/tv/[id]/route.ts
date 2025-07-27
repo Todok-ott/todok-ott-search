@@ -1,132 +1,134 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { tmdbClient } from '@/lib/tmdb';
-import { combineOTTData, OTTProvider } from '@/lib/ottUtils';
-import { findKoreanOTTProviders } from '@/lib/koreanOTTs';
+import { enhanceWithKoreanOTTInfo } from '@/lib/koreanOTTs';
+
+// TMDB 콘텐츠 상세 정보 타입 정의
+interface TMDBContentDetails {
+  id: number;
+  title?: string;
+  name?: string;
+  overview?: string;
+  poster_path?: string;
+  backdrop_path?: string;
+  vote_average?: number;
+  vote_count?: number;
+  release_date?: string;
+  first_air_date?: string;
+  runtime?: number;
+  episode_run_time?: number[];
+  genres?: Array<{ id: number; name: string }>;
+  [key: string]: unknown; // 추가 속성 허용
+}
 
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { searchParams } = new URL(request.url);
     const { id } = await params;
-    const tvId = parseInt(id);
-    
-    console.log('TV API 호출:', { id, tvId });
-    
-    if (isNaN(tvId)) {
+
+    // ID 검증
+    if (!id || id.trim() === '') {
       return NextResponse.json(
-        { error: '잘못된 TV 쇼 ID입니다.' },
+        { error: 'TV 쇼 ID가 필요합니다.' },
         { status: 400 }
       );
     }
 
-    // TV 상세 정보만 먼저 가져오기 (OTT 정보는 선택적)
-    let tvDetails;
-    let ottProviders = null;
-    
+    // ID가 숫자인지 확인
+    const numId = parseInt(id, 10);
+    if (isNaN(numId) || numId <= 0) {
+      return NextResponse.json(
+        { error: '유효하지 않은 TV 쇼 ID입니다.' },
+        { status: 400 }
+      );
+    }
+
+    console.log(`TV 쇼 상세 정보 요청: ${numId}`);
+
+    let contentDetails: TMDBContentDetails;
+    let ottProviders;
+
     try {
-      tvDetails = await tmdbClient.getTVDetails(tvId);
-      console.log('TV 상세 정보 성공:', tvDetails);
+      // TV 쇼 상세 정보
+      contentDetails = await tmdbClient.getTVDetails(numId) as TMDBContentDetails;
+      ottProviders = await tmdbClient.getTVWatchProviders(numId);
+    } catch (apiError) {
+      console.error('TMDB API 오류:', apiError);
       
-      // 데이터 유효성 검사 추가
-      const tvDetailsTyped = tvDetails as { name?: string };
-      if (!tvDetails || !tvDetailsTyped.name) {
-        console.error('TV 상세 정보가 유효하지 않음:', tvDetails);
+      // 404 오류 처리
+      if (apiError instanceof Error && apiError.message.includes('찾을 수 없습니다')) {
         return NextResponse.json(
           { error: 'TV 쇼 정보를 찾을 수 없습니다.' },
           { status: 404 }
         );
       }
-    } catch (error) {
-      console.error('TV 상세 정보 가져오기 실패:', error);
       
-      // TMDB API 에러 타입별 처리
-      if (error instanceof Error) {
-        if (error.message.includes('404')) {
-          return NextResponse.json(
-            { error: 'TV 쇼를 찾을 수 없습니다.' },
-            { status: 404 }
-          );
-        } else if (error.message.includes('401')) {
-          return NextResponse.json(
-            { error: 'API 키가 유효하지 않습니다.' },
-            { status: 401 }
-          );
-        } else if (error.message.includes('429')) {
-          return NextResponse.json(
-            { error: 'API 요청 한도를 초과했습니다.' },
-            { status: 429 }
-          );
-        }
-      }
-      
+      throw apiError;
+    }
+
+    // 응답 데이터 검증
+    if (!contentDetails || typeof contentDetails !== 'object') {
       return NextResponse.json(
-        { error: 'TV 쇼 정보를 불러오는 중 오류가 발생했습니다.' },
+        { error: 'TV 쇼 정보를 불러올 수 없습니다.' },
         { status: 500 }
       );
     }
 
-    // OTT 정보는 선택적으로 가져오기
+    // 필수 필드 확인
+    if (!contentDetails.id || (!contentDetails.title && !contentDetails.name)) {
+      return NextResponse.json(
+        { error: '유효하지 않은 TV 쇼 정보입니다.' },
+        { status: 500 }
+      );
+    }
+
+    // 한국 OTT 정보 추가
+    let enhancedContent;
     try {
-      ottProviders = await tmdbClient.getTVWatchProviders(tvId);
-      console.log('OTT 정보 성공:', ottProviders);
-    } catch (error) {
-      console.error('OTT 정보 가져오기 실패:', error);
-      // OTT 정보 실패는 치명적이지 않음
+      enhancedContent = await enhanceWithKoreanOTTInfo([contentDetails]);
+    } catch (ottError) {
+      console.error('한국 OTT 정보 추가 실패:', ottError);
+      // OTT 정보 추가 실패해도 기본 콘텐츠 정보는 반환
+      enhancedContent = [contentDetails];
     }
-    
-    // OTT 정보 결합 (실패해도 기본 정보는 반환)
-    let combinedOTTInfo: OTTProvider[] = [];
-    if (ottProviders) {
-      try {
-        const ottData = ottProviders as { results?: { KR?: unknown; US?: unknown } };
-        const tvTitle = (tvDetails as { name?: string }).name || '';
-        combinedOTTInfo = combineOTTData(ottData.results?.KR || ottData.results?.US || {}, tvTitle);
-      } catch (error) {
-        console.error('OTT 정보 결합 실패:', error);
-        // OTT 정보 결합 실패는 무시
-      }
-    }
-    
-    // 결합된 OTT 정보를 TV 상세 정보에 추가
-    const tvWithOTT = {
-      ...(tvDetails as Record<string, unknown>),
-      ott_providers: combinedOTTInfo
+
+    const response = {
+      ...enhancedContent[0],
+      ott_providers: ottProviders,
+      media_type: 'tv'
     };
-    
-    console.log('TV API 응답 완료');
-    return NextResponse.json(tvWithOTT);
+
+    console.log(`TV 쇼 상세 정보 완료: ${numId}`);
+
+    return NextResponse.json(response);
+
   } catch (error) {
-    console.error('TV details API error:', error);
+    console.error('TV 쇼 상세 정보 API 오류:', error);
     
-    // 더 구체적인 에러 메시지
-    let errorMessage = 'TV 쇼 정보를 불러오는 중 오류가 발생했습니다.';
-    let statusCode = 500;
+    // 네트워크 오류 처리
+    if (error instanceof Error && error.message.includes('fetch')) {
+      return NextResponse.json(
+        { error: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' },
+        { status: 503 }
+      );
+    }
     
-    if (error instanceof Error) {
-      if (error.message.includes('TMDB API 키가 설정되지 않았습니다')) {
-        errorMessage = 'API 키 설정 오류입니다.';
-        statusCode = 500;
-      } else if (error.message.includes('TMDB API Error: 401')) {
-        errorMessage = 'API 키가 유효하지 않습니다.';
-        statusCode = 401;
-      } else if (error.message.includes('TMDB API Error: 404')) {
-        errorMessage = 'TV 쇼를 찾을 수 없습니다.';
-        statusCode = 404;
-      } else if (error.message.includes('TMDB API Error: 429')) {
-        errorMessage = 'API 요청 한도를 초과했습니다. 잠시 후 다시 시도해주세요.';
-        statusCode = 429;
-      } else {
-        errorMessage = `API 오류: ${error.message}`;
-      }
+    // 타임아웃 오류 처리
+    if (error instanceof Error && error.message.includes('시간 초과')) {
+      return NextResponse.json(
+        { error: '요청 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.' },
+        { status: 408 }
+      );
     }
     
     return NextResponse.json(
       { 
-        error: errorMessage,
+        error: 'TV 쇼 정보를 불러올 수 없습니다.',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
-      { status: statusCode }
+      { status: 500 }
     );
   }
 } 
