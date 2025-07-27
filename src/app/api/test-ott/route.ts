@@ -1,6 +1,21 @@
 import { NextResponse } from 'next/server';
 import { tmdbClient } from '@/lib/tmdb';
 
+interface MovieDetails {
+  id: number;
+  title: string;
+  [key: string]: unknown;
+}
+
+interface WatchProviderData {
+  KR?: {
+    flatrate?: Array<{ provider_id: number; provider_name: string }>;
+    rent?: Array<{ provider_id: number; provider_name: string }>;
+    buy?: Array<{ provider_id: number; provider_name: string }>;
+  };
+  [key: string]: unknown;
+}
+
 export async function GET() {
   try {
     console.log('OTT 테스트 API 시작');
@@ -13,8 +28,8 @@ export async function GET() {
     for (const movieId of testMovieIds) {
       try {
         // 영화 정보 가져오기
-        const movieDetails = await tmdbClient.getMovieDetails(movieId);
-        const ottData = await tmdbClient.getMovieWatchProviders(movieId);
+        const movieDetails = await tmdbClient.getMovieDetails(movieId) as MovieDetails;
+        const ottData = await tmdbClient.getMovieWatchProviders(movieId) as WatchProviderData;
         
         console.log(`영화 ${movieId} (${movieDetails.title}) OTT 데이터:`, {
           movieId,
