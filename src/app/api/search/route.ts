@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { tmdbClient } from '@/lib/tmdb';
+import { tmdbClient, Movie } from '@/lib/tmdb';
 import { enhanceWithKoreanOTTInfo } from '@/lib/koreanOTTs';
 import moviesData from '@/data/movies.json';
 
@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
             console.log(`"${englishTitle}" 검색 결과:`, result.results?.length || 0);
             if (result.results && result.results.length > 0) {
               // media_type 명시적 설정
-              const resultsWithType = result.results.map((item: any) => ({
+              const resultsWithType = result.results.map((item: Movie) => ({
                 ...item,
                 media_type: item.media_type || (item.first_air_date ? 'tv' : 'movie')
               }));
@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
         console.log(`영어 검색: "${searchQuery}"`);
         const searchResult = await tmdbClient.searchMulti(searchQuery, parseInt(page));
         // media_type 명시적 설정
-        tmdbResults = (searchResult.results || []).map((item: any) => ({
+        tmdbResults = (searchResult.results || []).map((item: Movie) => ({
           ...item,
           media_type: item.media_type || (item.first_air_date ? 'tv' : 'movie')
         }));
