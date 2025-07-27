@@ -25,7 +25,6 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { searchParams } = new URL(request.url);
     const { id } = await params;
 
     // ID 검증
@@ -77,7 +76,7 @@ export async function GET(
         try {
           contentDetails = await tmdbClient.getMovieDetails(numId) as TMDBContentDetails;
           ottProviders = await tmdbClient.getMovieWatchProviders(numId);
-        } catch (retryError) {
+        } catch {
           return NextResponse.json(
             { error: '영화 정보를 불러올 수 없습니다.' },
             { status: 500 }

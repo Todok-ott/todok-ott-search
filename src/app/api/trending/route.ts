@@ -32,16 +32,16 @@ export async function GET() {
           if (isMovie) {
             // 영화 OTT 정보 가져오기
             ottData = await tmdbClient.getMovieWatchProviders(item.id);
-            koreanOTTData = await fetch(`/api/korean-ott?movieId=${item.id}`).then(res => res.json()).catch(() => null);
+            koreanOTTData = null; // 한국 OTT 정보는 일단 제외
           } else if (isTV) {
             // TV OTT 정보 가져오기
             ottData = await tmdbClient.getTVWatchProviders(item.id);
-            koreanOTTData = await fetch(`/api/korean-ott?movieId=${item.id}`).then(res => res.json()).catch(() => null);
+            koreanOTTData = null; // 한국 OTT 정보는 일단 제외
           }
           
           // OTT 정보가 있는지 확인
           const hasTMDB = !!(ottData && typeof ottData === 'object' && 'KR' in ottData && (ottData as any).KR && (ottData as any).KR.flatrate && (ottData as any).KR.flatrate.length > 0);
-          const hasKorean = !!(koreanOTTData && koreanOTTData.providers && koreanOTTData.providers.length > 0);
+          const hasKorean = false; // 한국 OTT 정보는 일단 제외
           
           const hasOTT = hasTMDB || hasKorean;
           
@@ -54,7 +54,7 @@ export async function GET() {
           return {
             ...item,
             ott_providers: (ottData as any)?.KR || null,
-            korean_ott_providers: koreanOTTData?.providers || null
+            korean_ott_providers: null
           };
         } catch (error) {
           console.log('OTT 정보 가져오기 실패:', item.id, error);
