@@ -121,7 +121,8 @@ export class StreamingAvailabilityClient {
         url.searchParams.set('page', page.toString());
       }
 
-      console.log('Streaming Availability API 호출:', url.toString());
+      console.log('=== API 호출 상세 정보 ===');
+      console.log('최종 호출 URL:', url.toString());
       console.log('API 파라미터:', {
         country,
         service,
@@ -129,6 +130,8 @@ export class StreamingAvailabilityClient {
         language,
         page
       });
+      console.log('API 키 길이:', this.apiKey.length);
+      console.log('API 키 앞 10자리:', this.apiKey.substring(0, 10) + '...');
 
       const response = await fetch(url.toString(), {
         method: 'GET',
