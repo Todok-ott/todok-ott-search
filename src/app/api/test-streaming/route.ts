@@ -22,9 +22,9 @@ export async function GET() {
       }, { status: 500 });
     }
     
-    // 간단한 테스트 호출
+    // 다양한 테스트 호출
     console.log('넷플릭스 영화 조회 테스트...');
-    const testResults = await streamingAvailabilityClient.fetchOTTMovies({
+    const netflixResults = await streamingAvailabilityClient.fetchOTTMovies({
       country: 'kr',
       service: 'netflix',
       type: 'movie',
@@ -32,20 +32,64 @@ export async function GET() {
       language: 'ko'
     });
     
-    console.log('테스트 결과:', testResults);
+    console.log('넷플릭스 드라마 조회 테스트...');
+    const netflixSeriesResults = await streamingAvailabilityClient.fetchOTTMovies({
+      country: 'kr',
+      service: 'netflix',
+      type: 'series',
+      page: 1,
+      language: 'ko'
+    });
+    
+    console.log('모든 한국 OTT 조회 테스트...');
+    const allKoreanResults = await streamingAvailabilityClient.fetchOTTMovies({
+      country: 'kr',
+      service: 'netflix,watcha,wavve,tving,disney',
+      type: 'movie',
+      page: 1,
+      language: 'ko'
+    });
+    
+    console.log('테스트 결과:', {
+      netflix: netflixResults,
+      netflixSeries: netflixSeriesResults,
+      allKorean: allKoreanResults
+    });
     
     return NextResponse.json({
       success: true,
       api_key_configured: true,
       test_results: {
-        total_results: testResults.results.length,
-        first_movie: testResults.results[0] ? {
-          id: testResults.results[0].id,
-          title: testResults.results[0].title,
-          type: testResults.results[0].type,
-          year: testResults.results[0].year
-        } : null,
-        total_pages: testResults.totalPages
+        netflix_movies: {
+          total_results: netflixResults.results.length,
+          first_movie: netflixResults.results[0] ? {
+            id: netflixResults.results[0].id,
+            title: netflixResults.results[0].title,
+            type: netflixResults.results[0].type,
+            year: netflixResults.results[0].year
+          } : null,
+          total_pages: netflixResults.totalPages
+        },
+        netflix_series: {
+          total_results: netflixSeriesResults.results.length,
+          first_series: netflixSeriesResults.results[0] ? {
+            id: netflixSeriesResults.results[0].id,
+            title: netflixSeriesResults.results[0].title,
+            type: netflixSeriesResults.results[0].type,
+            year: netflixSeriesResults.results[0].year
+          } : null,
+          total_pages: netflixSeriesResults.totalPages
+        },
+        all_korean: {
+          total_results: allKoreanResults.results.length,
+          first_content: allKoreanResults.results[0] ? {
+            id: allKoreanResults.results[0].id,
+            title: allKoreanResults.results[0].title,
+            type: allKoreanResults.results[0].type,
+            year: allKoreanResults.results[0].year
+          } : null,
+          total_pages: allKoreanResults.totalPages
+        }
       },
       message: 'Streaming Availability API가 정상 작동합니다!'
     });
