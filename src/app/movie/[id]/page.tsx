@@ -152,9 +152,8 @@ export default function MovieDetail({ params }: { params: Promise<{ id: string }
         const hasTitle = !!data.title;
         const hasEpisodeRunTime = !!data.episode_run_time;
         
-        const isTVShow = (hasFirstAirDate && !hasReleaseDate) || 
-                        (hasName && !hasTitle) || 
-                        hasEpisodeRunTime;
+        // 더 정확한 TV 쇼 판단: first_air_date가 있고 release_date가 없을 때만 TV 쇼로 판단
+        const isTVShow = hasFirstAirDate && !hasReleaseDate;
         
         console.log('TV 쇼 판단:', {
           hasFirstAirDate,
