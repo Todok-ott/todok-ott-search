@@ -222,7 +222,7 @@ export default function PopularPage() {
                         <span>{content.release_date?.split('-')[0] || content.first_air_date?.split('-')[0] || 'N/A'}</span>
                         <div className="flex items-center">
                           <Star className="w-4 h-4 text-[#FFD700] mr-1" />
-                          <span>{content.vote_average.toFixed(1)}</span>
+                          <span>{content.vote_average?.toFixed(1) || 'N/A'}</span>
                         </div>
                       </div>
                       {content.overview && (
@@ -242,7 +242,7 @@ export default function PopularPage() {
                   
                   {/* 미디어 타입 배지 */}
                   <div className="absolute top-3 right-3 bg-[#FFD700] text-black text-xs px-2 py-1 rounded-full font-medium shadow-lg">
-                    {getContentTag(content.genre_ids, content.media_type)}
+                    {getContentTag(content.genre_ids || [], content.media_type)}
                   </div>
                   
                   {/* 인기 배지 */}

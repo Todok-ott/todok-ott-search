@@ -216,7 +216,7 @@ function ContentDetailContent() {
                   {content.vote_average && (
                     <div className="flex items-center">
                       <Star className="w-5 h-5 text-yellow-500 mr-2" />
-                      <span className="font-semibold">{content.vote_average.toFixed(1)}</span>
+                                              <span className="font-semibold">{content.vote_average?.toFixed(1) || 'N/A'}</span>
                       <span className="text-gray-400 ml-1">({content.vote_count}명 평가)</span>
                     </div>
                   )}

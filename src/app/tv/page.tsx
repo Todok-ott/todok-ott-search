@@ -214,7 +214,7 @@ export default function TVPage() {
                         <span>{tvShow.first_air_date?.split('-')[0] || 'N/A'}</span>
                         <div className="flex items-center">
                           <Star className="w-4 h-4 text-[#FFD700] mr-1" />
-                          <span>{tvShow.vote_average.toFixed(1)}</span>
+                          <span>{tvShow.vote_average?.toFixed(1) || 'N/A'}</span>
                         </div>
                       </div>
                       {tvShow.overview && (

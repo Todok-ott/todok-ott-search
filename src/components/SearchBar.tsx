@@ -190,7 +190,7 @@ export default function SearchBar({ onSearch, onResultSelect, placeholder = "작
                         <span>•</span>
                         <div className="flex items-center">
                           <Star className="w-4 h-4 text-[#FFD700] mr-1" />
-                          <span>{movie.vote_average.toFixed(1)}</span>
+                          <span>{movie.vote_average?.toFixed(1) || 'N/A'}</span>
                         </div>
                       </div>
                       {movie.overview && (
