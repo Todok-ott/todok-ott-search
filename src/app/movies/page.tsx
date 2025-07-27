@@ -214,7 +214,7 @@ export default function MoviesPage() {
                         <span>{movie.release_date?.split('-')[0] || 'N/A'}</span>
                         <div className="flex items-center">
                           <Star className="w-4 h-4 text-[#FFD700] mr-1" />
-                          <span>{movie.vote_average.toFixed(1)}</span>
+                          <span>{movie.vote_average?.toFixed(1) || 'N/A'}</span>
                         </div>
                       </div>
                       {movie.overview && (
@@ -234,7 +234,7 @@ export default function MoviesPage() {
                   
                   {/* 미디어 타입 배지 */}
                   <div className="absolute top-3 right-3 bg-[#FFD700] text-black text-xs px-2 py-1 rounded-full font-medium shadow-lg">
-                    {getContentTag(movie.genre_ids, movie.media_type)}
+                    {getContentTag(movie.genre_ids || [], movie.media_type)}
                   </div>
                 </div>
               </motion.div>
