@@ -28,7 +28,7 @@ type SearchResult = {
       buy?: Array<{ provider_id: number; provider_name: string; logo_path: string }>;
       rent?: Array<{ provider_id: number; provider_name: string; logo_path: string }>;
     };
-  };
+  } | null;
   local_data?: boolean;
   year?: number;
   [key: string]: unknown;
@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
           origin_country: ['KR'],
           original_language: 'ko',
           backdrop_path: '',
-          ott_providers: ottProviders,
+          ott_providers: ottProviders || undefined,
                      year: streamingData.result.year,
            local_data: false
          };
