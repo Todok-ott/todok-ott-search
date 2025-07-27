@@ -162,6 +162,15 @@ export default function MovieDetail({ params }: { params: Promise<{ id: string }
         const data = await response.json();
         console.log('API 응답 데이터:', data);
         
+        // 응답 데이터의 ID가 요청한 ID와 일치하는지 확인
+        if (data.id !== parseInt(id, 10)) {
+          console.error(`ID 불일치: 요청 ${id}, 응답 ${data.id}`);
+          console.error('잘못된 영화 정보가 반환되었습니다.');
+          setError('요청한 영화와 다른 영화 정보가 반환되었습니다.');
+          setLoading(false);
+          return;
+        }
+        
         // TV 쇼 데이터인지 확인
         // 1. first_air_date가 있고 release_date가 없으면 TV 쇼
         // 2. name 필드가 있고 title 필드가 없으면 TV 쇼
