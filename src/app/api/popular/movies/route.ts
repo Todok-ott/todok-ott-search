@@ -75,8 +75,9 @@ export async function GET() {
     
     console.log('OTT 정보 추가 완료:', moviesWithOTT.length);
     
-    // OTT 정보가 있는 콘텐츠만 필터링
-    const filteredMovies = filterByOTT(moviesWithOTT);
+    // OTT 정보가 있는 콘텐츠만 필터링 (일시적으로 비활성화)
+    // const filteredMovies = filterByOTT(moviesWithOTT);
+    const filteredMovies = moviesWithOTT; // 필터링 비활성화
     console.log('OTT 필터링 후 영화 수:', filteredMovies.length);
     
     const response = {

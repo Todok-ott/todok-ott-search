@@ -78,8 +78,9 @@ export async function GET() {
     
     console.log('OTT 정보 추가 완료:', contentWithOTT.length);
     
-    // OTT 정보가 있는 콘텐츠만 필터링
-    const filteredTrending = filterByOTT(contentWithOTT);
+    // OTT 정보가 있는 콘텐츠만 필터링 (일시적으로 비활성화)
+    // const filteredTrending = filterByOTT(contentWithOTT);
+    const filteredTrending = contentWithOTT; // 필터링 비활성화
     console.log('OTT 필터링 후 트렌딩 콘텐츠 수:', filteredTrending.length);
     
     const response = {
