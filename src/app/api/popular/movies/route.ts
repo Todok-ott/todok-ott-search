@@ -1,49 +1,23 @@
 import { NextResponse } from 'next/server';
-import { streamingAvailabilityClient } from '@/lib/streamingAvailability';
+import { tmdbWithOTTClient } from '@/lib/tmdbWithOTT';
 
 export async function GET() {
   try {
-    console.log('인기 영화 API 호출 시작');
+    console.log('인기 영화 API 호출 시작 (TMDB + OTT)');
     
-    // Streaming Availability API로 한국 OTT 영화 조회
-    const ottResults = await streamingAvailabilityClient.fetchOTTMovies({
-      country: 'kr',
-      service: 'netflix,watcha,wavve,tving,disney,laftel',
-      type: 'movie',
-      page: 1,
-      language: 'ko'
-    });
+    // TMDB API로 인기 영화 가져오기 (한국 OTT 정보 포함)
+    const movies = await tmdbWithOTTClient.getPopularMovies();
     
-    console.log('OTT 영화 조회 결과:', ottResults.results.length);
-    
-    // 결과를 표준 형식으로 변환 (한글 메타데이터 fallback 처리 포함)
-    const processedResults = streamingAvailabilityClient.processKoreanMetadataForResults(ottResults.results);
-    
-    const movies = processedResults.map((item, index) => ({
-      id: item.id || `ott-${index}`,
-      title: item.title || '제목 없음',
-      media_type: 'movie',
-      overview: item.overview || `${item.title} (${item.year})`,
-      release_date: `${item.year}-01-01`,
-      vote_average: 8.0, // 기본 평점
-      popularity: 8.0,
-      poster_path: item.posterPath || item.posterURLs?.original || '/placeholder-poster.jpg',
-      ott_providers: streamingAvailabilityClient.convertResultsToOTTProviders([item]),
-      streaming_data: item,
-      // 한글 메타데이터 상태 표시
-      has_korean_metadata: streamingAvailabilityClient.hasKoreanMetadata(item),
-      needs_english_fallback: streamingAvailabilityClient.needsEnglishFallback(item)
-    }));
-    
-    console.log('변환된 영화 수:', movies.length);
+    console.log('TMDB 영화 조회 결과:', movies.results.length);
     
     const response = {
-      results: movies.slice(0, 50), // 50개로 제한
-      total_pages: ottResults.totalPages,
-      total_results: movies.length,
-      page: 1,
+      results: movies.results.slice(0, 50), // 50개로 제한
+      total_pages: movies.total_pages,
+      total_results: movies.total_results,
+      page: movies.page,
       api_credits: {
-        streaming_availability: 'Powered by Streaming Availability API via RapidAPI'
+        tmdb: 'Powered by TMDB API',
+        ott_simulation: 'OTT 정보는 시뮬레이션 데이터입니다.'
       }
     };
     
@@ -60,17 +34,14 @@ export async function GET() {
     let statusCode = 500;
     
     if (error instanceof Error) {
-      if (error.message.includes('API 키가 설정되지 않았습니다')) {
-        errorMessage = 'API 키 설정 오류입니다.';
-        statusCode = 500;
-      } else if (error.message.includes('API Error: 401')) {
-        errorMessage = 'API 키가 유효하지 않습니다.';
+      if (error.message.includes('TMDB API 오류: 401')) {
+        errorMessage = 'TMDB API 키가 유효하지 않습니다.';
         statusCode = 401;
-      } else if (error.message.includes('API Error: 429')) {
-        errorMessage = 'API 요청 한도를 초과했습니다. 잠시 후 다시 시도해주세요.';
+      } else if (error.message.includes('TMDB API 오류: 429')) {
+        errorMessage = 'TMDB API 요청 한도를 초과했습니다. 잠시 후 다시 시도해주세요.';
         statusCode = 429;
       } else {
-        errorMessage = `API 오류: ${error.message}`;
+        errorMessage = `TMDB API 오류: ${error.message}`;
       }
     }
     
@@ -78,7 +49,7 @@ export async function GET() {
       { 
         error: errorMessage,
         details: error instanceof Error ? error.message : 'Unknown error',
-        api_key_configured: !!process.env.STREAMING_AVAILABILITY_API_KEY
+        api_key_configured: !!process.env.TMDB_API_KEY
       },
       { status: statusCode }
     );
