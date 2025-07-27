@@ -52,7 +52,7 @@ function SearchResultsContent() {
       // 확실히 문제가 있는 ID들만 차단 (TMDB API에서 잘못된 응답을 반환하는 ID들)
       const blockedIds = [244808, 112470, 65270, 22980, 65701, 59941, 1399];
       
-      // 문제가 있는 ID만 차단하고, OTT 정보 필터링은 완화
+      // OTT 정보가 없는 콘텐츠는 제외 + 문제가 있는 ID 차단
       filteredResults = filteredResults.filter((item: MovieWithKoreanOTT) => {
         // 확실히 문제가 있는 ID 차단
         if (blockedIds.includes(item.id)) {
@@ -60,12 +60,13 @@ function SearchResultsContent() {
           return false;
         }
         
-        // OTT 정보가 있으면 우선 포함
+        // TMDB ott_providers: flatrate만 체크 (undefined, null, 빈 배열, 빈 객체 모두 제외)
         const hasTMDB = !!(
           item.ott_providers &&
           Array.isArray(item.ott_providers.flatrate) &&
           item.ott_providers.flatrate.length > 0
         );
+        // Korean ott_providers: MovieWithKoreanOTT 타입으로 안전하게 체크
         const hasKorean = !!(
           item.korean_ott_providers &&
           Array.isArray(item.korean_ott_providers) &&
@@ -74,12 +75,13 @@ function SearchResultsContent() {
         
         const hasOTT = hasTMDB || hasKorean;
         
-        // OTT 정보가 없어도 일단 포함 (필터링 완화)
+        // OTT 정보가 없으면 제외
         if (!hasOTT) {
-          console.log('OTT 정보 없는 콘텐츠 포함:', item.id, item.title || item.name);
+          console.log('OTT 정보 없는 콘텐츠 제외:', item.id, item.title || item.name);
+          return false;
         }
         
-        return true; // 모든 콘텐츠 포함 (차단된 ID 제외)
+        return true; // OTT 정보가 있는 콘텐츠만 포함
       });
       
       console.log('필터링 후 결과 수:', filteredResults.length);
