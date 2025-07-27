@@ -49,8 +49,17 @@ function SearchResultsContent() {
       
       let filteredResults = data.results || [];
       
-      // OTT 정보가 없는 콘텐츠는 제외
+      // 잘못된 ID들 차단 (TMDB API에서 잘못된 응답을 반환하는 ID들)
+      const blockedIds = [244808, 112470, 65270, 22980, 65701, 59941, 1399];
+      
+      // OTT 정보가 없는 콘텐츠는 제외 + 잘못된 ID 차단
       filteredResults = filteredResults.filter((item: MovieWithKoreanOTT) => {
+        // 잘못된 ID 차단
+        if (blockedIds.includes(item.id)) {
+          console.log('차단된 ID 제외:', item.id);
+          return false;
+        }
+        
         // TMDB ott_providers: flatrate만 체크 (undefined, null, 빈 배열, 빈 객체 모두 제외)
         const hasTMDB = !!(
           item.ott_providers &&
@@ -63,7 +72,14 @@ function SearchResultsContent() {
           Array.isArray(item.korean_ott_providers) &&
           item.korean_ott_providers.length > 0
         );
-        return hasTMDB || hasKorean;
+        
+        const hasOTT = hasTMDB || hasKorean;
+        
+        if (!hasOTT) {
+          console.log('OTT 정보 없는 콘텐츠 제외:', item.id, item.title || item.name);
+        }
+        
+        return hasOTT;
       });
       
       console.log('필터링 후 결과 수:', filteredResults.length);
