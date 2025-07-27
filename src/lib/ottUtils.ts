@@ -11,6 +11,35 @@ export interface OTTProvider {
   availableContent: string[];
 }
 
+// OTT 정보가 있는지 체크하는 재사용 함수
+export function hasOTT(result: any): boolean {
+  return !!(
+    result.ott_providers &&
+    result.ott_providers.KR &&
+    Array.isArray(result.ott_providers.KR.flatrate) &&
+    result.ott_providers.KR.flatrate.length > 0
+  );
+}
+
+// 한국 OTT 정보가 있는지 체크하는 함수
+export function hasKoreanOTT(result: any): boolean {
+  return !!(
+    result.korean_ott_providers &&
+    Array.isArray(result.korean_ott_providers) &&
+    result.korean_ott_providers.length > 0
+  );
+}
+
+// TMDB 또는 한국 OTT 정보가 있는지 체크하는 함수
+export function hasAnyOTT(result: any): boolean {
+  return hasOTT(result) || hasKoreanOTT(result);
+}
+
+// OTT 정보가 있는 콘텐츠만 필터링하는 함수
+export function filterByOTT(results: any[]): any[] {
+  return results.filter(result => hasAnyOTT(result));
+}
+
 export const combineOTTData = (tmdbProviders: unknown, movieTitle: string): OTTProvider[] => {
   const combinedProviders: OTTProvider[] = [];
   

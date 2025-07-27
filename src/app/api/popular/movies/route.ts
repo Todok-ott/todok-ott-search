@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { tmdbClient } from '@/lib/tmdb';
+import { filterByOTT } from '@/lib/ottUtils';
 
 export async function GET() {
   try {
@@ -24,10 +25,16 @@ export async function GET() {
       ...(page3.results || [])
     ];
     
+    console.log('전체 영화 수:', allMovies.length);
+    
+    // OTT 정보가 있는 콘텐츠만 필터링
+    const filteredMovies = filterByOTT(allMovies);
+    console.log('OTT 필터링 후 영화 수:', filteredMovies.length);
+    
     const response = {
-      results: allMovies.slice(0, 50), // 50개로 조정
+      results: filteredMovies.slice(0, 50), // 50개로 조정
       total_pages: 3,
-      total_results: allMovies.length,
+      total_results: filteredMovies.length,
       page: 1
     };
     

@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { tmdbClient } from '@/lib/tmdb';
+import { filterByOTT } from '@/lib/ottUtils';
 
 export async function GET() {
   try {
-    console.log('인기 TV 쇼 API 호출 시작');
+    console.log('인기 TV API 호출 시작');
     
     // 3페이지(60개)를 가져와서 50개만 반환 (성능 개선)
     const [page1, page2, page3] = await Promise.all([
@@ -12,7 +13,7 @@ export async function GET() {
       tmdbClient.getPopularTVShows(3)
     ]);
     
-    console.log('TMDB TV API 응답 받음:', {
+    console.log('TMDB API 응답 받음:', {
       page1Results: page1.results?.length || 0,
       page2Results: page2.results?.length || 0,
       page3Results: page3.results?.length || 0
@@ -24,21 +25,27 @@ export async function GET() {
       ...(page3.results || [])
     ];
     
+    console.log('전체 TV 쇼 수:', allTVShows.length);
+    
+    // OTT 정보가 있는 콘텐츠만 필터링
+    const filteredTVShows = filterByOTT(allTVShows);
+    console.log('OTT 필터링 후 TV 쇼 수:', filteredTVShows.length);
+    
     const response = {
-      results: allTVShows.slice(0, 50), // 50개로 조정
+      results: filteredTVShows.slice(0, 50), // 50개로 조정
       total_pages: 3,
-      total_results: allTVShows.length,
+      total_results: filteredTVShows.length,
       page: 1
     };
     
-    console.log('인기 TV 쇼 API 응답 완료:', {
+    console.log('인기 TV API 응답 완료:', {
       totalTVShows: response.results.length,
       totalResults: response.total_results
     });
     
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Popular TV shows API error:', error);
+    console.error('Popular TV API error:', error);
     
     // 더 구체적인 에러 메시지
     let errorMessage = '인기 TV 쇼를 불러오는 중 오류가 발생했습니다.';

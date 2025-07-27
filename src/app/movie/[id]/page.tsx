@@ -312,8 +312,25 @@ export default function MovieDetail({ params }: { params: Promise<{ id: string }
             )}
 
             {/* OTT 정보 */}
-            {movie.ott_providers && movie.ott_providers.length > 0 && (
+            {movie.ott_providers && movie.ott_providers.length > 0 ? (
               <OTTInfo ottProviders={movie.ott_providers} />
+            ) : (
+              <div className="mb-8 p-6 bg-gray-900/50 border border-gray-700 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-white font-semibold mb-1">시청 가능한 OTT가 없습니다</h3>
+                    <p className="text-gray-400 text-sm">
+                      현재 이 영화는 국내 OTT 플랫폼에서 시청할 수 없습니다. 
+                      극장에서만 상영 중이거나 아직 OTT 서비스에 공개되지 않았을 수 있습니다.
+                    </p>
+                  </div>
+                </div>
+              </div>
             )}
           </motion.div>
         </div>
