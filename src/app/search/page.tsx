@@ -36,11 +36,9 @@ export default function SearchResults() {
   const [isLoading, setIsLoading] = useState(false);
   const [sortBy, setSortBy] = useState<'rating' | 'year' | 'title'>('rating');
   const [filterType, setFilterType] = useState<'all' | 'movie' | 'tv'>('all');
+  const [query, setQuery] = useState<string>('');
 
   function SearchResultsContent() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const query = urlParams.get('q');
-    
     const performSearch = useCallback(async () => {
       if (!query) {
         setResults([]);
@@ -91,6 +89,17 @@ export default function SearchResults() {
         setIsLoading(false);
       }
     }, [query, sortBy, filterType]);
+
+    useEffect(() => {
+      // URL 파라미터에서 쿼리 가져오기
+      if (typeof window !== 'undefined') {
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlQuery = urlParams.get('q');
+        if (urlQuery) {
+          setQuery(urlQuery);
+        }
+      }
+    }, []);
 
     useEffect(() => {
       performSearch();
@@ -166,7 +175,7 @@ export default function SearchResults() {
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
               <div>
                 <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2">
-                  "{query}" 검색 결과
+                  &quot;{query}&quot; 검색 결과
                 </h1>
                 <p className="text-gray-400">
                   {isLoading ? '검색 중...' : `${results.length}개의 결과를 찾았습니다`}

@@ -12,6 +12,7 @@ export interface OTTProvider {
 }
 
 // OTT 정보가 있는지 체크하는 재사용 함수
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function hasOTT(result: any): boolean {
   return !!(
     result.ott_providers &&
@@ -22,6 +23,7 @@ export function hasOTT(result: any): boolean {
 }
 
 // 한국 OTT 정보가 있는지 체크하는 함수
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function hasKoreanOTT(result: any): boolean {
   return !!(
     result.korean_ott_providers &&
@@ -31,11 +33,13 @@ export function hasKoreanOTT(result: any): boolean {
 }
 
 // TMDB 또는 한국 OTT 정보가 있는지 체크하는 함수
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function hasAnyOTT(result: any): boolean {
   return hasOTT(result) || hasKoreanOTT(result);
 }
 
 // OTT 정보가 있는 콘텐츠만 필터링하는 함수
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function filterByOTT(results: any[]): any[] {
   return results.filter(result => hasAnyOTT(result));
 }

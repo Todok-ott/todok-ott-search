@@ -51,13 +51,14 @@ export async function GET(
       if (searchResults && searchResults.results && searchResults.results.length > 0) {
         console.log('1차 검색 결과 개수:', searchResults.results.length);
         console.log('1차 검색 결과:', searchResults.results.slice(0, 5).map(r => ({
-          title: r.title || r.name,
+          title: r.title,
           id: r.id,
           media_type: r.media_type
         })));
         
         // 정확한 매칭 찾기
-        selectedResult = findBestMatch(searchResults.results, searchQuery);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        selectedResult = findBestMatch(searchResults.results as any[], searchQuery);
       }
       
       // 2. 첫 번째 결과가 만족스럽지 않으면 더 넓은 검색
@@ -74,10 +75,11 @@ export async function GET(
             const keywordResults = await tmdbClient.searchMulti(keyword);
             
             if (keywordResults && keywordResults.results && keywordResults.results.length > 0) {
-              const keywordMatch = findBestMatch(keywordResults.results, searchQuery);
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const keywordMatch = findBestMatch(keywordResults.results as any[], searchQuery);
               if (keywordMatch && isGoodMatch(keywordMatch, searchQuery)) {
                 selectedResult = keywordMatch;
-                console.log('키워드 검색으로 매칭 발견:', keywordMatch.title || keywordMatch.name);
+                console.log('키워드 검색으로 매칭 발견:', keywordMatch.title);
                 break;
               }
             }
@@ -87,13 +89,14 @@ export async function GET(
       
       // 3. 여전히 결과가 없으면 첫 번째 결과 사용
       if (!selectedResult && searchResults && searchResults.results && searchResults.results.length > 0) {
-        selectedResult = searchResults.results[0];
-        console.log('첫 번째 결과 사용:', selectedResult.title || selectedResult.name);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        selectedResult = searchResults.results[0] as any;
+        console.log('첫 번째 결과 사용:', selectedResult?.title);
       }
       
       if (selectedResult) {
         console.log('최종 선택된 결과:', {
-          title: selectedResult.title || selectedResult.name,
+          title: selectedResult.title,
           id: selectedResult.id,
           media_type: selectedResult.media_type
         });
@@ -101,9 +104,9 @@ export async function GET(
         // 선택된 결과의 ID로 상세 정보 가져오기
         let detailedResult;
         console.log('상세 정보 가져오기 시작...');
-        if (selectedResult.media_type === 'tv') {
+        if (selectedResult && selectedResult.media_type === 'tv') {
           detailedResult = await tmdbClient.getTVDetails(selectedResult.id);
-        } else {
+        } else if (selectedResult) {
           detailedResult = await tmdbClient.getMovieDetails(selectedResult.id);
         }
         
