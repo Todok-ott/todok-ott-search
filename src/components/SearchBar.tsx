@@ -199,10 +199,10 @@ export default function SearchBar({ onSearch, onResultSelect, placeholder = "작
                         </p>
                       )}
                       {/* OTT 플랫폼 로고들 */}
-                                                {movie.ott_providers?.flatrate && movie.ott_providers.flatrate.length > 0 && (
+                      {movie.ott_providers?.KR?.flatrate && movie.ott_providers.KR.flatrate.length > 0 && (
                         <div className="flex items-center space-x-2">
                           <span className="text-xs text-gray-500 mr-2">시청 가능:</span>
-                          {movie.ott_providers.flatrate.slice(0, 4).map((provider: { provider_id: number; provider_name: string; logo_path: string }) => (
+                          {movie.ott_providers.KR.flatrate.slice(0, 4).map((provider: { provider_id: number; provider_name: string; logo_path: string }) => (
                             <Image
                               key={provider.provider_id}
                               src={provider.logo_path}

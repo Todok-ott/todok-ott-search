@@ -83,8 +83,9 @@ function SearchResultsContent() {
         // ott_providers: flatrate만 체크 (undefined, null, 빈 배열, 빈 객체 모두 제외)
         const hasOTT = !!(
           item.ott_providers &&
-          Array.isArray(item.ott_providers.flatrate) &&
-          item.ott_providers.flatrate.length > 0
+          item.ott_providers.KR &&
+          Array.isArray(item.ott_providers.KR.flatrate) &&
+          item.ott_providers.KR.flatrate.length > 0
         );
         // Korean ott_providers: MovieWithKoreanOTT 타입으로 안전하게 체크
         const hasKorean = !!(
@@ -108,7 +109,7 @@ function SearchResultsContent() {
       filteredResults.sort((a: MovieWithKoreanOTT, b: MovieWithKoreanOTT) => {
         switch (sortBy) {
           case 'rating':
-            return b.vote_average - a.vote_average;
+            return (b.vote_average || 0) - (a.vote_average || 0);
           case 'year':
             const yearA = a.release_date?.split('-')[0] || a.first_air_date?.split('-')[0] || '0';
             const yearB = b.release_date?.split('-')[0] || b.first_air_date?.split('-')[0] || '0';
