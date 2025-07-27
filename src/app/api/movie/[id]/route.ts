@@ -47,6 +47,9 @@ export async function GET(
 
     console.log(`영화 상세 정보 요청: ${numId}`);
 
+    // 캐시 클리어 (문제 해결을 위해)
+    tmdbClient.clearCache();
+
     let contentDetails: TMDBContentDetails;
     let ottProviders;
 

@@ -175,12 +175,23 @@ class TMDBClient {
       `/tv/${id}/watch/providers`
     ];
     
+    let clearedCount = 0;
     for (const [key] of this.cache) {
       if (patterns.some(pattern => key.includes(pattern))) {
         this.cache.delete(key);
+        clearedCount++;
         console.log(`캐시 무효화: ${key}`);
       }
     }
+    
+    // 캐시가 너무 많으면 전체 클리어
+    if (this.cache.size > 100) {
+      console.log('캐시 크기가 너무 큽니다. 전체 캐시를 클리어합니다.');
+      this.cache.clear();
+      clearedCount = this.cache.size;
+    }
+    
+    console.log(`캐시 무효화 완료: ${clearedCount}개 항목 삭제`);
   }
 
   // 인기 영화 가져오기
