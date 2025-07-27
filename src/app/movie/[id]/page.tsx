@@ -143,7 +143,11 @@ export default function MovieDetail({ params }: { params: Promise<{ id: string }
         console.log('API 응답 데이터:', data);
         
         // TV 쇼 데이터인지 확인 (first_air_date가 있으면 TV 쇼)
-        if (data.first_air_date && !data.release_date) {
+        // 추가로 알려진 TV 쇼 ID들도 체크
+        const knownTVShowIds = [1622, 1399, 1396, 1398]; // 슈퍼내추럴, 게임오브쓰론 등
+        const isKnownTVShow = knownTVShowIds.includes(parseInt(id, 10));
+        
+        if (data.first_air_date && !data.release_date || isKnownTVShow) {
           console.log('TV 쇼 감지, TV 페이지로 리다이렉트:', data.name || data.title);
           // TV 페이지로 리다이렉트
           const tvUrl = `/tv/${id}${titleParam ? `?title=${encodeURIComponent(titleParam)}` : ''}`;
