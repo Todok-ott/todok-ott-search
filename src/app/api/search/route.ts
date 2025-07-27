@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { tmdbClient } from '@/lib/tmdb';
 import { enhanceWithKoreanOTTInfo } from '@/lib/koreanOTTs';
 import { debugOTTInfo, filterByOTT } from '@/lib/ottUtils';
+import { streamingAvailabilityClient } from '@/lib/streamingAvailability';
 import moviesData from '@/data/movies.json';
 
 // 검색 결과 타입 정의
@@ -123,10 +124,24 @@ export async function GET(request: NextRequest) {
           } else if (itemTyped.media_type === 'movie') {
             console.log(`영화 OTT 정보 가져오기: ${itemTyped.title} (ID: ${itemTyped.id})`);
             try {
+              // 1. TMDB OTT 정보 가져오기
               const providers = await tmdbClient.getMovieWatchProviders(itemTyped.id);
               const providerData = providers as { results?: { KR?: unknown } };
               ottInfo = providerData.results?.KR || null;
-              console.log(`영화 OTT 결과:`, ottInfo);
+              console.log(`TMDB 영화 OTT 결과:`, ottInfo);
+              
+              // 2. Streaming Availability API로 보완
+              if (!ottInfo || (ottInfo as any).flatrate?.length === 0) {
+                console.log('Streaming Availability API로 보완 시도:', itemTyped.title);
+                const streamingData = await streamingAvailabilityClient.searchByTitle(itemTyped.title || '');
+                if (streamingData) {
+                  const streamingOTT = streamingAvailabilityClient.convertToOTTProviders(streamingData);
+                  if (streamingOTT && streamingOTT.KR.flatrate.length > 0) {
+                    console.log('Streaming Availability OTT 결과:', streamingOTT);
+                    ottInfo = streamingOTT;
+                  }
+                }
+              }
               
               // OTT 정보가 없으면 기본 구조라도 제공
               if (!ottInfo) {
@@ -140,10 +155,24 @@ export async function GET(request: NextRequest) {
           } else if (itemTyped.media_type === 'tv') {
             console.log(`TV OTT 정보 가져오기: ${itemTyped.title} (ID: ${itemTyped.id})`);
             try {
+              // 1. TMDB OTT 정보 가져오기
               const providers = await tmdbClient.getTVWatchProviders(itemTyped.id);
               const providerData = providers as { results?: { KR?: unknown } };
               ottInfo = providerData.results?.KR || null;
-              console.log(`TV OTT 결과:`, ottInfo);
+              console.log(`TMDB TV OTT 결과:`, ottInfo);
+              
+              // 2. Streaming Availability API로 보완
+              if (!ottInfo || (ottInfo as any).flatrate?.length === 0) {
+                console.log('Streaming Availability API로 보완 시도:', itemTyped.title);
+                const streamingData = await streamingAvailabilityClient.searchByTitle(itemTyped.title || '');
+                if (streamingData) {
+                  const streamingOTT = streamingAvailabilityClient.convertToOTTProviders(streamingData);
+                  if (streamingOTT && streamingOTT.KR.flatrate.length > 0) {
+                    console.log('Streaming Availability OTT 결과:', streamingOTT);
+                    ottInfo = streamingOTT;
+                  }
+                }
+              }
               
               // OTT 정보가 없으면 기본 구조라도 제공
               if (!ottInfo) {
