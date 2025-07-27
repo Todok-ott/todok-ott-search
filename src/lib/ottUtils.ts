@@ -53,15 +53,13 @@ export function hasAnyOTT(result: any): boolean {
   return hasOTT(result) || hasKoreanOTT(result);
 }
 
-// OTT 정보가 있는 콘텐츠만 필터링하는 함수 (완화된 버전)
+// OTT 정보가 있는 콘텐츠만 필터링하는 함수 (활성화된 버전)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function filterByOTT(results: any[]): any[] {
-  // 임시로 모든 결과를 반환 (OTT 필터링 비활성화)
-  console.log('OTT 필터링 비활성화 - 모든 결과 반환:', results.length);
-  return results;
-  
-  // 나중에 OTT 정보가 풍부해지면 다시 활성화
-  // return results.filter(result => hasAnyOTT(result));
+  console.log('OTT 필터링 활성화 - 필터링 전 결과 수:', results.length);
+  const filteredResults = results.filter(result => hasAnyOTT(result));
+  console.log('OTT 필터링 후 결과 수:', filteredResults.length);
+  return filteredResults;
 }
 
 // OTT 정보 디버깅을 위한 함수 추가

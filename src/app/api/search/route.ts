@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { tmdbClient } from '@/lib/tmdb';
 import { enhanceWithKoreanOTTInfo } from '@/lib/koreanOTTs';
-import { debugOTTInfo } from '@/lib/ottUtils';
+import { debugOTTInfo, filterByOTT } from '@/lib/ottUtils';
 import moviesData from '@/data/movies.json';
 
 // 검색 결과 타입 정의
@@ -199,11 +199,16 @@ export async function GET(request: NextRequest) {
     console.log('최종 결과:', resultsWithOTT);
     console.log('=== 검색 API 완료 ===');
 
+    // OTT 필터링 적용
+    const filteredResults = filterByOTT(resultsWithOTT);
+    console.log('OTT 필터링 적용 후 결과:', filteredResults.length);
+
     return NextResponse.json({
-      results: resultsWithOTT,
-      total_pages: Math.ceil(combinedResults.length / 20),
-      total_results: combinedResults.length,
-      source: 'combined'
+      results: filteredResults,
+      total_pages: Math.ceil(filteredResults.length / 20),
+      total_results: filteredResults.length,
+      source: 'combined',
+      filtered: true
     });
 
   } catch (error) {

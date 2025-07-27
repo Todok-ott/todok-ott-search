@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { tmdbClient } from '@/lib/tmdb';
-import { debugOTTInfo } from '@/lib/ottUtils';
+import { debugOTTInfo, filterByOTT } from '@/lib/ottUtils';
 
 export async function GET(request: Request) {
   try {
@@ -67,12 +67,16 @@ export async function GET(request: Request) {
           })
         );
         
+        // OTT 필터링 적용
+        const filteredResults = filterByOTT(resultsWithOTT);
+        
         allResults.push({
           searchQuery,
-          results: resultsWithOTT,
-          total: searchResults.total_results
+          results: filteredResults,
+          total: searchResults.total_results,
+          filtered: filteredResults.length
         });
-        console.log(`"${searchQuery}" 검색 성공: ${searchResults.total_results}개 결과`);
+        console.log(`"${searchQuery}" 검색 성공: ${searchResults.total_results}개 결과 (필터링 후: ${filteredResults.length}개)`);
       } else {
         console.log(`"${searchQuery}" 검색 실패: 결과 없음`);
       }
@@ -82,7 +86,8 @@ export async function GET(request: Request) {
       originalQuery: query,
       searchQueries,
       successfulResults: allResults,
-      totalSuccessful: allResults.length
+      totalSuccessful: allResults.length,
+      filtered: true
     });
     
   } catch (error) {
