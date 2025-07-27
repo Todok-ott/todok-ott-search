@@ -47,21 +47,7 @@ export class UnsplashClient {
   }
 
   private getMockImages(query: string): ImageResult[] {
-    // 영화 포스터 스타일 이미지들
-    const posterKeywords = [
-      'movie poster cinematic',
-      'film poster dramatic',
-      'cinema poster artistic',
-      'movie scene dramatic',
-      'film noir poster',
-      'action movie poster',
-      'drama film poster',
-      'sci-fi movie poster',
-      'romance film poster',
-      'thriller movie poster'
-    ];
-    
-    // const randomKeyword = posterKeywords[Math.floor(Math.random() * posterKeywords.length)];
+    // 영화 포스터 스타일 이미지들 (사용되지 않는 변수 제거)
     
     return [
       {

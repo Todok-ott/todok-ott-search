@@ -5,7 +5,13 @@ import { Star, Info, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 import Image from 'next/image';
 import { OTTProvider } from '@/lib/ottUtils';
-import { KoreanOTTProvider } from '@/lib/koreanOTTs';
+
+// KoreanOTTProvider 인터페이스 정의
+interface KoreanOTTProvider {
+  name: string;
+  logo: string;
+  type?: string;
+}
 
 interface OTTInfoProps {
   ottProviders?: OTTProvider[];
