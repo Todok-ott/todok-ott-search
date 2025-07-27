@@ -194,7 +194,7 @@ export default function TVPage() {
               >
                 <div className="relative overflow-hidden rounded-xl shadow-2xl poster-card">
                   <Image
-                    src={tvShow.poster_path ? `https://image.tmdb.org/t/p/w500${tvShow.poster_path}` : '/placeholder-poster.jpg'}
+                    src={tvShow.poster_path ? tvShow.poster_path : '/placeholder-poster.jpg'}
                     alt={tvShow.title || tvShow.name || ''}
                     width={500}
                     height={750}

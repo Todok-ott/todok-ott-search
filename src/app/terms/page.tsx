@@ -63,8 +63,8 @@ export default function TermsPage() {
             <section>
               <h2 className="text-2xl font-semibold text-white mb-4">2. 서비스 내용</h2>
               <p>
-                본 서비스는 TMDB API를 통해 제공되는 영화 및 드라마 정보를 검색하고 표시합니다.
-                제공되는 정보의 정확성은 TMDB의 데이터에 의존하며, 당사는 정보의 정확성을 보장하지 않습니다.
+                본 서비스는 Streaming Availability API를 통해 제공되는 영화 및 드라마 정보를 검색하고 표시합니다.
+제공되는 정보의 정확성은 Streaming Availability API의 데이터에 의존하며, 당사는 정보의 정확성을 보장하지 않습니다.
               </p>
             </section>
 

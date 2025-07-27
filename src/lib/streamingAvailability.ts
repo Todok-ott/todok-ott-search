@@ -89,7 +89,7 @@ export class StreamingAvailabilityClient {
     }
   }
 
-  // TMDB 결과를 Streaming Availability 형식으로 변환
+  // Streaming Availability 결과를 OTT 제공업체 형식으로 변환
   convertToOTTProviders(streamingData: StreamingAvailabilityResult | null) {
     if (!streamingData || !streamingData.result) {
       return null;

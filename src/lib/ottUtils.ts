@@ -48,7 +48,7 @@ export function hasOTT(result: any): boolean {
     return true;
   }
 
-  // 2. TMDB ott_providers 구조 체크 (대폭 완화)
+  // 2. ott_providers 구조 체크 (대폭 완화)
   if (result.ott_providers) {
     // 모든 국가 코드에서 flatrate, buy, rent 중 하나라도 있으면 통과
     for (const countryCode in result.ott_providers) {
@@ -76,7 +76,7 @@ export function hasKoreanOTT(result: any): boolean {
   );
 }
 
-// TMDB 또는 한국 OTT 정보가 있는지 체크하는 함수
+// OTT 정보가 있는지 체크하는 함수
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function hasAnyOTT(result: any): boolean {
   return hasOTT(result) || hasKoreanOTT(result);
@@ -112,15 +112,15 @@ export function debugOTTInfo(result: any): void {
   console.log('=====================');
 }
 
-export const combineOTTData = (tmdbProviders: unknown, movieTitle: string): OTTProvider[] => {
+export const combineOTTData = (ottProviders: unknown, movieTitle: string): OTTProvider[] => {
   const combinedProviders: OTTProvider[] = [];
   
   // 한국 OTT 정보 확인
   const koreanProviders = findKoreanOTTProviders(movieTitle);
   
-  // TMDB 데이터 처리
-  if (tmdbProviders && typeof tmdbProviders === 'object' && 'results' in tmdbProviders) {
-    const providers = tmdbProviders as { results?: { KR?: unknown } };
+  // Streaming Availability 데이터 처리
+  if (ottProviders && typeof ottProviders === 'object' && 'results' in ottProviders) {
+    const providers = ottProviders as { results?: { KR?: unknown } };
     if (providers.results?.KR && Array.isArray(providers.results.KR)) {
       providers.results.KR.forEach((provider: unknown) => {
         if (provider && typeof provider === 'object' && 'provider_name' in provider) {

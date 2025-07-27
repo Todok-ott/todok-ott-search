@@ -80,7 +80,7 @@ export default function PrivacyPage() {
               <h2 className="text-2xl font-semibold text-white mb-4">4. 개인정보 공유</h2>
               <p>
                 당사는 법적 요구사항이 있는 경우를 제외하고는 사용자의 개인정보를 제3자와 공유하지 않습니다.
-                TMDB API를 통해 영화 정보를 제공하지만, 개인정보는 전송되지 않습니다.
+                Streaming Availability API를 통해 영화 정보를 제공하지만, 개인정보는 전송되지 않습니다.
               </p>
             </section>
 

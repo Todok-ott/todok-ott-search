@@ -207,7 +207,7 @@ export default function MovieDetail({ params }: { params: Promise<{ id: string }
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.9)), url(https://image.tmdb.org/t/p/original${movie.backdrop_path})`
+          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.9)), url(${movie.backdrop_path})`
         }}
       />
 
@@ -233,7 +233,7 @@ export default function MovieDetail({ params }: { params: Promise<{ id: string }
             className="lg:col-span-1"
           >
             <Image
-              src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                              src={movie.poster_path}
               alt={movie.title}
               width={500}
               height={750}

@@ -204,7 +204,7 @@ export default function LatestPage() {
               >
                 <div className="relative overflow-hidden rounded-xl shadow-2xl poster-card">
                   <Image
-                    src={content.poster_path ? `https://image.tmdb.org/t/p/w500${content.poster_path}` : '/placeholder-poster.jpg'}
+                    src={content.poster_path ? content.poster_path : '/placeholder-poster.jpg'}
                     alt={content.title || content.name || ''}
                     width={500}
                     height={750}

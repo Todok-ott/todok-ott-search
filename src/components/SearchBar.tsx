@@ -172,7 +172,7 @@ export default function SearchBar({ onSearch, onResultSelect, placeholder = "작
                   >
                     <div className="w-16 h-24 rounded-lg overflow-hidden mr-4 flex-shrink-0 shadow-lg">
                       <Image
-                        src={movie.poster_path ? `https://image.tmdb.org/t/p/w154${movie.poster_path}` : '/placeholder-poster.jpg'}
+                        src={movie.poster_path ? movie.poster_path : '/placeholder-poster.jpg'}
                         alt={movie.title || movie.name || ''}
                         width={64}
                         height={96}
@@ -205,7 +205,7 @@ export default function SearchBar({ onSearch, onResultSelect, placeholder = "작
                           {movie.ott_providers.flatrate.slice(0, 4).map((provider: { provider_id: number; provider_name: string; logo_path: string }) => (
                             <Image
                               key={provider.provider_id}
-                              src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
+                              src={provider.logo_path}
                               alt={provider.provider_name}
                               width={24}
                               height={24}

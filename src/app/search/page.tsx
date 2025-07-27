@@ -80,8 +80,8 @@ function SearchResultsContent() {
       
       // OTT 정보가 없는 콘텐츠는 제외
       filteredResults = filteredResults.filter((item: MovieWithKoreanOTT) => {
-        // TMDB ott_providers: flatrate만 체크 (undefined, null, 빈 배열, 빈 객체 모두 제외)
-        const hasTMDB = !!(
+        // ott_providers: flatrate만 체크 (undefined, null, 빈 배열, 빈 객체 모두 제외)
+        const hasOTT = !!(
           item.ott_providers &&
           Array.isArray(item.ott_providers.flatrate) &&
           item.ott_providers.flatrate.length > 0
@@ -92,7 +92,7 @@ function SearchResultsContent() {
           Array.isArray(item.korean_ott_providers) &&
           item.korean_ott_providers.length > 0
         );
-        return hasTMDB || hasKorean;
+        return hasOTT || hasKorean;
       });
       
       console.log('필터링 후 결과 수:', filteredResults.length);
@@ -344,7 +344,7 @@ function SearchResultsContent() {
                   >
                     <div className="relative overflow-hidden rounded-xl shadow-2xl poster-card">
                       <Image
-                        src={item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : '/placeholder-poster.jpg'}
+                        src={item.poster_path ? item.poster_path : '/placeholder-poster.jpg'}
                         alt={getDisplayTitle(item)}
                         width={500}
                         height={750}

@@ -181,7 +181,7 @@ export default function TVDetail({ params }: { params: Promise<{ id: string }> }
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.9)), url(https://image.tmdb.org/t/p/original${tv.backdrop_path})`
+          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.9)), url(${tv.backdrop_path})`
         }}
       />
 
@@ -207,7 +207,7 @@ export default function TVDetail({ params }: { params: Promise<{ id: string }> }
             className="lg:col-span-1"
           >
             <Image
-              src={`https://image.tmdb.org/t/p/w500${tv.poster_path}`}
+                              src={tv.poster_path}
               alt={tv.name}
               width={500}
               height={750}

@@ -129,7 +129,7 @@ function ContentDetailContent() {
         <div className="fixed inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/50 to-black"></div>
           <Image
-            src={`https://image.tmdb.org/t/p/original${content.backdrop_path}`}
+                         src={content.backdrop_path}
             alt={title}
             fill
             className="object-cover opacity-30"
@@ -182,7 +182,7 @@ function ContentDetailContent() {
             <div className="sticky top-8">
               <div className="relative overflow-hidden rounded-xl shadow-2xl">
                 <Image
-                  src={content.poster_path ? `https://image.tmdb.org/t/p/w500${content.poster_path}` : '/placeholder-poster.jpg'}
+                  src={content.poster_path ? content.poster_path : '/placeholder-poster.jpg'}
                   alt={title}
                   width={500}
                   height={750}

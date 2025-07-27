@@ -156,7 +156,7 @@ function searchLocalData(query: string): SearchResult[] {
         display_title: movie.displayTitle,
         media_type: movie.type === 'tv' ? 'tv' : 'movie',
         overview: movie.overview,
-        poster_path: movie.posterUrl.startsWith('http') ? movie.posterUrl : `https://image.tmdb.org/t/p/w500${movie.posterUrl}`,
+        poster_path: movie.posterUrl.startsWith('http') ? movie.posterUrl : movie.posterUrl,
         vote_average: movie.rating,
         release_date: movie.year ? `${movie.year}-01-01` : undefined,
         first_air_date: movie.type === 'tv' ? `${movie.year}-01-01` : undefined,
@@ -165,7 +165,7 @@ function searchLocalData(query: string): SearchResult[] {
         vote_count: Math.floor(movie.rating * 100),
         origin_country: ['KR'],
         original_language: 'ko',
-        backdrop_path: movie.posterUrl.startsWith('http') ? movie.posterUrl : `https://image.tmdb.org/t/p/w500${movie.posterUrl}`,
+        backdrop_path: movie.posterUrl.startsWith('http') ? movie.posterUrl : movie.posterUrl,
         ott_providers: {
           KR: {
             flatrate: movie.ottPlatforms.map((platform: string) => ({
@@ -202,7 +202,7 @@ function searchLocalData(query: string): SearchResult[] {
         display_title: drama.displayTitle,
         media_type: 'tv',
         overview: drama.overview,
-        poster_path: drama.posterUrl.startsWith('http') ? drama.posterUrl : `https://image.tmdb.org/t/p/w500${drama.posterUrl}`,
+        poster_path: drama.posterUrl.startsWith('http') ? drama.posterUrl : drama.posterUrl,
         vote_average: drama.rating,
         first_air_date: drama.year ? `${drama.year}-01-01` : undefined,
         genre_ids: drama.genre.map((_, index) => index + 1),
@@ -210,7 +210,7 @@ function searchLocalData(query: string): SearchResult[] {
         vote_count: Math.floor(drama.rating * 100),
         origin_country: ['KR'],
         original_language: 'ko',
-        backdrop_path: drama.posterUrl.startsWith('http') ? drama.posterUrl : `https://image.tmdb.org/t/p/w500${drama.posterUrl}`,
+        backdrop_path: drama.posterUrl.startsWith('http') ? drama.posterUrl : drama.posterUrl,
         ott_providers: {
           KR: {
             flatrate: drama.ottPlatforms.map((platform: string) => ({

@@ -3,13 +3,12 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // 이미지 도메인 설정
   images: {
-    domains: ['image.tmdb.org'],
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'image.tmdb.org',
+        hostname: '**',
         port: '',
-        pathname: '/t/p/**',
+        pathname: '/**',
       }
     ]
   },

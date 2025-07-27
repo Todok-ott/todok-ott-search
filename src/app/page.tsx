@@ -445,7 +445,7 @@ export default function Home() {
                         onClick={() => handleContentClick(movie)}
                       >
                         <Image
-                          src={movie.poster_path.startsWith('http') ? movie.poster_path : `https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                          src={movie.poster_path.startsWith('http') ? movie.poster_path : movie.poster_path}
                           alt={movie.title}
                           width={500}
                           height={720}
@@ -495,7 +495,7 @@ export default function Home() {
                         onClick={() => handleContentClick(show)}
                       >
                         <Image
-                          src={show.poster_path.startsWith('http') ? show.poster_path : `https://image.tmdb.org/t/p/w500${show.poster_path}`}
+                          src={show.poster_path.startsWith('http') ? show.poster_path : show.poster_path}
                           alt={show.name || show.title}
                           width={500}
                           height={720}

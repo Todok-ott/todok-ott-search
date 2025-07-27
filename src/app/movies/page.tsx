@@ -194,7 +194,7 @@ export default function MoviesPage() {
               >
                 <div className="relative overflow-hidden rounded-xl shadow-2xl poster-card">
                   <Image
-                    src={movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : '/placeholder-poster.jpg'}
+                    src={movie.poster_path ? movie.poster_path : '/placeholder-poster.jpg'}
                     alt={movie.title}
                     width={500}
                     height={750}

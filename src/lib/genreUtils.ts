@@ -1,4 +1,4 @@
-// TMDB 장르 ID 기반 태그 생성 유틸리티
+// 장르 ID 기반 태그 생성 유틸리티
 
 export function getContentTag(genreIds: number[], mediaType?: 'movie' | 'tv'): string {
   if (!genreIds || genreIds.length === 0) {
